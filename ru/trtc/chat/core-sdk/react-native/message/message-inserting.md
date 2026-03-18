@@ -1,0 +1,36 @@
+# Вставка сообщений
+
+## Описание функции
+
+При вставке сообщения оно будет вставлено только в локальную базу данных, но не будет отправлено на сервер.
+
+> **Внимание:** Вставленные сообщения будут потеряны, если аккаунт авторизирован на другом мобильном устройстве или приложение было удалено и переустановлено.
+
+Этот API используется для вставки подсказок в диалог, таких как "Вы покинули группу" и "Сохраняйте безопасность вашей информации. Не отправляйте приватную информацию, такую как логин, пароль и код подтверждения в групповой чат". Такие сообщения должны отображаться в области чата, но не требуют отправки другим пользователям.
+
+### Вставка локального сообщения в личные сообщения
+
+Вызовите `insertC2CMessageToLocalStorage` ([Подробности](https://comm.qq.com/im/doc/RN/en/Api/V2TIMMessageManager/insertC2CMessageToLocalStorage.html)) для вставки локального сообщения в личные сообщения. В настоящее время SDK для Flutter поддерживает только вставку пользовательских сообщений.
+
+Ниже приведен пример кода:
+
+```
+const data = "";const userID = "";const sender = "";TencentImSDKPlugin.v2TIMManager  .getMessageManager()  .insertC2CMessageToLocalStorage(data, userID, sender);
+```
+
+### Вставка локального сообщения в групповые сообщения
+
+Вызовите `insertGroupMessageToLocalStorage` ([Подробности](https://comm.qq.com/im/doc/RN/en/Api/V2TIMMessageManager/insertGroupMessageToLocalStorage.html)) для вставки локального сообщения в групповые сообщения.
+
+Ниже приведен пример кода:
+
+```
+const data = "";const groupID = "";const sender = "";TencentImSDKPlugin.v2TIMManager  .getMessageManager()  .insertGroupMessageToLocalStorage(data, groupID, sender);
+```
+
+
+---
+*Источник: [https://trtc.io/document/48876](https://trtc.io/document/48876)*
+
+---
+*Источник (EN): [message-inserting.md](./message-inserting.md)*

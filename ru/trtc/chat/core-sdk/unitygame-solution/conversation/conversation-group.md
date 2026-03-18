@@ -1,0 +1,103 @@
+# Группа разговоров
+
+## Обзор
+
+В некоторых случаях может потребоваться группировка разговоров, например, в группы "Опыт продукта" или "НИОКР", что может быть реализовано через следующий API.
+
+> **Примечание** Для использования этой функции необходимо приобрести [издание Premium](https://www.tencentcloud.com/document/product/1047/34577). Эта функция поддерживается только в расширенной версии на нативном SDK версии 6.5 или выше.
+
+## Группа разговоров
+
+### Создание группы разговоров
+
+Вызовите API `ConvCreateConversationGroup` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvCreateConversationGroup.html)) для создания группы разговоров.
+
+> **Примечание** Можно создать не более 20 групп разговоров. После превышения этого лимита будет сообщена ошибка `51010`. Группы, которые больше не используются, должны быть незамедлительно удалены.
+
+| Атрибут | Определение | Описание |
+| --- | --- | --- |
+| groupName | Имя группы разговоров | Длина должна быть больше 0 и может содержать до 32 байт; в противном случае будет сообщена ошибка `51011`. |
+| conversationIDList | Список идентификаторов разговоров | Не может быть пустым. |
+
+Пример кода:
+
+```
+    // Create a conversation group    TIMResult res = TencentIMSDK.ConvCreateConversationGroup("groupName", new List<string> {      conv_id    }, (int code, string desc, List<ConversationOperationResult> results, string user_data)=>{      // Async result of the conversation group creation    });
+```
+
+### Удаление группы разговоров
+
+Вызовите API `ConvDeleteConversationGroup` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvDeleteConversationGroup.html)) для удаления группы разговоров.
+
+> **Примечание** Если целевая группа разговоров не существует, будет сообщена ошибка `51009`.
+
+Пример кода:
+
+```
+    // Delete the conversation group    TIMResult res = TencentIMSDK.ConvDeleteConversationGroup("groupName", (int code, string desc, string result, string user_data)=>{      // Async result of the conversation group deletion    });
+```
+
+### Переименование группы разговоров
+
+Вызовите API `ConvRenameConversationGroup` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvRenameConversationGroup.html)) для переименования группы разговоров.
+
+Пример кода:
+
+```
+    // Rename a conversation group    TIMResult res = TencentIMSDK.ConvRenameConversationGroup("oldGroupName", "newGroupName", (int code, string desc, string result, string user_data)=>{      // Async result of the conversation group renaming    });
+```
+
+### Получение списка групп разговоров
+
+Вызовите API `ConvGetConversationGroupList` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvGetConversationGroupList.html)) для получения списка групп разговоров.
+
+Пример кода:
+
+```
+    // Get the list of conversation groups    TIMResult res = TencentIMSDK.ConvGetConversationGroupList((int code, string desc, List<string> results, string user_data)=>{      // Async result of the conversation group list getting    });
+```
+
+Для получения списка разговоров в группе можно вызвать API `ConvGetConversationListByFilter` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvGetConversationListByFilter.html)).
+
+Пример кода:
+
+```
+    // Get the conversation list    ConversationListFilter filter = new ConversationListFilter    {        conversation_list_filter_conv_type: TIMConvType.kTIMConv_C2C,// Conversation type        conversation_list_filter_mark_type: TIMConversationMarkType.kTIMConversationMarkTypeStar,// Conversation mark type        conversation_list_filter_conversation_group: "groupName"// Named of the group whose data is to be pulled    };    ulong next_seq = 0; // Pulling cursor    uint count = 10; // Pulling count    // Advanced API for getting the conversation list    TIMResult res = TencentIMSDK.ConvGetConversationListByFilter(filter, next_seq, count, (int code, string desc, ConversationListResult result, string user_data)=>{      // Async result of the conversation list getting      if (code == 0) {        // Pulled successfully        bool isFinished = result.conversation_list_result_is_finished; // Whether pulling is completed        next_seq = result.conversation_list_result_next_seq; // Cursor for subsequent paged pulling        var conversationList = result.conversation_list_result_conv_list; // List of messages pulled this time        // If more conversations need to be pulled, use the returned `nextSeq` to continue pulling until `isFinished` is `true`.      }    });
+```
+
+### Добавление разговора в группу
+
+После создания группы вы можете вызвать API `ConvAddConversationsToGroup` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvAddConversationsToGroup.html)) для добавления разговора в группу.
+
+Пример кода:
+
+```
+    // Add a conversation to a conversation group    TIMResult res = TencentIMSDK.ConvAddConversationsToGroup("groupName", new List<string> {      conv_id    }, (int code, string desc, List<ConversationOperationResult> results, string user_data)=>{      // Async result of adding a conversation to a conversation group    });
+```
+
+### Удаление разговора из группы
+
+Вызовите API `ConvDeleteConversationsFromGroup` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/ConvApi/ConvDeleteConversationsFromGroup.html)) для удаления разговора из группы.
+
+Пример кода:
+
+```
+    // Delete a conversation from a conversation group    TIMResult res = TencentIMSDK.ConvDeleteConversationsFromGroup("groupName", new List<string> {      conv_id    }, (int code, string desc, List<ConversationOperationResult> results, string user_data)=>{      // Async result of deleting a conversation from a conversation group    });
+```
+
+### Прослушивание уведомления об изменении группы разговоров
+
+Вызовите API `SetConvEventCallback` ([подробности](https://comm.qq.com/im/doc/unity/zh/api/SDKRegisteringCallback/SetConvEventCallback.html)) для прослушивания уведомлений об изменении группы разговоров.
+
+Пример кода:
+
+```
+    // Set the conversation listener    TencentIMSDK.SetConvEventCallback((TIMConvEvent conv_event, List<ConvInfo> conv_list, string user_data)=>{      // Process the callback logic    });
+```
+
+
+---
+*Источник: [https://trtc.io/document/53447](https://trtc.io/document/53447)*
+
+---
+*Источник (EN): [conversation-group.md](./conversation-group.md)*

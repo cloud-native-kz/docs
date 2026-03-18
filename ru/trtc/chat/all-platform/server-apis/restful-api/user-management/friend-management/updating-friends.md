@@ -1,0 +1,125 @@
+# Обновление друзей
+
+## Обзор функции
+
+- Этот API используется для обновления данных контактов нескольких друзей пользователя одновременно.
+- Рекомендуется обновлять нескольких друзей пользователя одновременно, чтобы избежать конфликтов записи, вызванных параллельными записями.
+
+## Описание вызова API
+
+### Пример URL запроса
+
+```
+https://xxxxxx/v4/sns/friend_update?sdkappid=88888888&identifier=admin&usersig=xxx&random=99999999&contenttype=json
+```
+
+### Параметры запроса
+
+В следующей таблице описаны изменённые параметры при вызове этого API. Для остальных параметров см. [Обзор RESTful API](https://intl.cloud.tencent.com/document/product/1047/34620).
+
+| Параметр | Описание |
+| --- | --- |
+| xxxxxx | Доменное имя, соответствующее стране/региону, в котором находится ваш SDKAppID.Китай: `console.tim.qq.com`Сингапур: `adminapisgp.im.qcloud.com`Сеул: `adminapikr.im.qcloud.com`Токио: `adminapijpn.im.qcloud.com`Франкфурт: `adminapiger.im.qcloud.com`Кремниевая долина: `adminapiusa.im.qcloud.com`Джакарта: `adminapiidn.im.qcloud.com` |
+| v4/sns/friend_update | API запроса. |
+| sdkappid | SDKAppID, назначенный консолью Chat при создании приложения |
+| identifier | Учётная запись администратора приложения. Для получения дополнительной информации см. раздел **Администратор приложения** в [Аутентификация при входе](https://intl.cloud.tencent.com/document/product/1047/33517). |
+| usersig | Подпись, созданная учётной записью администратора приложения. Подробнее см. [Генерирование UserSig](https://intl.cloud.tencent.com/document/product/1047/34385). |
+| random | Случайное 32-битное целое число без знака в диапазоне от 0 до 4294967295. |
+| contenttype | Формат запроса, всегда должен быть `json`. |
+
+### Максимальная частота вызовов
+
+200 вызовов в секунду
+
+### Пример запроса
+
+- **Базовый формат**
+
+```
+{  "From_Account":"id",  "UpdateItem":  [      {          "To_Account":"id1",          "SnsItem":          [              {                  "Tag":"Tag_SNS_IM_Remark",                  "Value":"remark1"              }          ]      }  ]}
+```
+
+- **Ответ на полный запрос**
+
+```
+{  "From_Account":"id",  "UpdateItem":  [      {          "To_Account":"id1",          "SnsItem":          [              {                  "Tag":"Tag_SNS_IM_Remark",                  "Value":"remark1"              },              {                  "Tag":"Tag_SNS_IM_Group",                  "Value":                  [                      "group1",                      "group2"                  ]              },              {                  "Tag":"Tag_SNS_Custom_Test",                  "Value":"test"              }          ]      }  ]}
+```
+
+- **Ответ на массовый запрос**
+
+```
+{  "From_Account":"id",  "UpdateItem":  [      {          "To_Account":"id1",          "SnsItem":          [              {                  "Tag":"Tag_SNS_IM_Remark",                  "Value":"remark1"              }          ]      },      {          "To_Account":"id2",          "SnsItem":          [              {                  "Tag":"Tag_SNS_IM_Remark",                  "Value":"remark2"              },              {                  "Tag":"Tag_SNS_IM_Group",                  "Value":                  [                      "group1",                      "group2"                  ]              }          ]      },      {          "To_Account":"id3",          "SnsItem":          [              {                  "Tag":"Tag_SNS_IM_Remark",                  "Value":"remark3"              },              {                  "Tag":"Tag_SNS_IM_Group",                  "Value":                  [                      "group3"                  ]              },              {                  "Tag":"Tag_SNS_Custom_Test",                  "Value":"test"              }          ]      }  ]}
+```
+
+### Поля запроса
+
+| Поле | Тип | Обязательно | Описание |
+| --- | --- | --- | --- |
+| From_Account | String | Да | `UserID` учётной записи, для которой требуется обновить данные контактов. |
+| UpdateItem | Array | Да | Массив объектов друзей для обновления.Количество друзей в одном запросе не должно превышать 1000. |
+| To_Account | String | Да | `UserID` друга. |
+| SnsItem | Array | Да | Массив объектов данных контактов для обновления. |
+| Tag | String | Да | Имя поля контактов для обновления. Пользователям разрешено обновлять только примечания, группу и пользовательские поля контактов. Для получения дополнительной информации о полях контактов см. раздел **Списки друзей** в [Управление цепочкой отношений](https://intl.cloud.tencent.com/document/product/1047/33521). |
+| Value | Array/String/Integer | Да | Значение поля контактов. Для информации о типах значений см. раздел **Списки друзей** в [Управление цепочкой отношений](https://intl.cloud.tencent.com/document/product/1047/33521). |
+
+### Пример ответа
+
+- **Ответ на базовый или полный запрос**
+
+```
+{  "ResultItem":  [      {          "To_Account":"id1",          "ResultCode":0,          "ResultInfo":""      }  ],  "ActionStatus":"OK",  "ErrorCode":0,  "ErrorInfo":"",  "ErrorDisplay":""}
+```
+
+- **Ответ на массовый запрос**
+
+```
+{  "ResultItem":  [      {          "To_Account":"id1",          "ResultCode":0,          "ResultInfo":""      },      {          "To_Account":"id2",          "ResultCode":30011,          "ResultInfo":"Err_SNS_FriendUpdate_Group_Num_Exceed_Threshold"      },      {          "To_Account":"id3",          "ResultCode":30002,          "ResultInfo":"Err_SNS_FriendImport_SdkAppId_Illegal"      }  ],  "Fail_Account":["id2","id3"],  "ActionStatus":"OK",  "ErrorCode":0,  "ErrorInfo":"",  "ErrorDisplay":""}
+```
+
+### Поля ответа
+
+| Поле | Тип | Описание |
+| --- | --- | --- |
+| ResultItem | Array | Результат обновления друзей — массив UserID и соответствующих результатов. |
+| To_Account | String | `UserID` друга, который вы запросили обновить. |
+| ResultCode | Integer | Результат `To_Account`. `0`: успешно. Остальные значения: ошибка. Подробнее о ненулевых результатах см. [Коды ошибок](#ErrorCode). |
+| ResultInfo | String | Описание ошибки `To_Account`. Это поле пусто при успешном запросе. |
+| Fail_Account | Array | Пользователи, которые не были успешно проверены. Это поле возвращается только при ошибке как минимум одного пользователя. |
+| ActionStatus | String | Результат запроса. `OK`: успешно. `FAIL`: ошибка. |
+| ErrorCode | Integer | Код ошибки. `0`: успешно. Остальные значения: ошибка. Подробнее о ненулевых результатах см. [Коды ошибок](#ErrorCode). |
+| ErrorInfo | String | Детальная информация об ошибке. |
+| ErrorDisplay | String | Детальная информация, отображаемая на клиенте |
+
+## Коды ошибок
+
+| Код ошибки | Описание |
+| --- | --- |
+| 30001 | Неправильный параметр запроса. Проверьте ваш запрос в соответствии с описанием ошибки. |
+| 30002 | SDKAppID не совпадает. |
+| 30003 | Запрашиваемая учётная запись не существует. |
+| 30004 | Запрос требует прав администратора приложения. |
+| 30006 | Внутренняя ошибка сервера. Попробуйте снова. |
+| 30007 | Timeout сети. Попробуйте позже. |
+| 30008 | Произошёл конфликт записи из-за параллельных операций записи. Рекомендуется использовать массовую обработку. |
+| 30011 | Достигнут максимальный размер списков друзей. |
+
+## Инструмент отладки API
+
+Используйте [инструмент онлайн-отладки RESTful API](https://tcc.tencentcs.com/im-api-tool/index.html#/v4/sns/friend_update) для отладки этого API.
+
+## Ссылки
+
+- [Добавление друзей](https://intl.cloud.tencent.com/document/product/1047/34902)
+- [Импорт друзей](https://intl.cloud.tencent.com/document/product/1047/34903)
+- [Удаление друзей](https://intl.cloud.tencent.com/document/product/1047/34905)
+- [Удаление всех друзей](https://intl.cloud.tencent.com/document/product/1047/34906)
+- [Проверка друзей](https://intl.cloud.tencent.com/document/product/1047/34907)
+- [Получение друзей](https://intl.cloud.tencent.com/document/product/1047/34908)
+- [Получение указанных друзей](https://intl.cloud.tencent.com/document/product/1047/34910)
+
+
+---
+*Источник: [https://trtc.io/document/34904](https://trtc.io/document/34904)*
+
+---
+*Источник (EN): [updating-friends.md](./updating-friends.md)*

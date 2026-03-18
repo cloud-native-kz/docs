@@ -1,0 +1,157 @@
+# Подписка
+
+## Описание
+
+- Функция **подписки** позволяет пользователям следить за другими пользователями, которые их интересуют, чтобы своевременно получать последние новости, ленты или информацию о событиях этих пользователей. Система может предоставлять персонализированные рекомендации контента на основе списка подписок пользователя.
+- Функция **подписчиков** относится к состоянию пользователя, на которого подписаны другие люди. Когда пользователь A подписывается на пользователя B, A становится подписчиком B. Пользователи могут просматривать количество подписчиков, список подписчиков или профиль подписчиков на своей странице профиля.
+
+С помощью этих функций вы можете создать активную взаимосвязанную сеть пользователей, способствуя распространению информации и укреплению сообщества.
+
+> **Примечание:** Эта функция доступна только в SDK v7.8 или позже. Эта функция поддерживается только в издании Pro, Pro-plus и Enterprise. Пожалуйста, [приобретите Pro, Pro-plus или Enterprise](https://console.trtc.io/subscription/buy/chat?language=en) для использования.
+
+## Эффект отображения
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/6aeb3b1269c911ef9664525400d5f8ef.png)
+
+## Описание API
+
+### Подписаться на пользователя
+
+Вы можете вызвать API `followUser` для подписки на указанных пользователей.
+
+Пример кода:
+
+```
+V2TimValueCallback<List<V2TimFollowOperationResult>> followResults = await friendshipManager.followUser(userIDList: ['user1']);if (followResults.code == 0) {    // Follow users successfully    followResults.data?.forEach((element) {        element?.userID;        element?.resultCode;        element.resultInfo;    });}
+```
+
+> **Примечание:** Этот API поддерживает подписку на до 20 пользователей одновременно (исключая себя, вы можете подписаться на любого другого пользователя). Максимальное количество подписчиков на одного пользователя составляет 5000, и на количество подписчиков ограничений нет.
+
+### Отписаться от пользователя
+
+Вы можете вызвать API `unfollowUser` для отписки от указанных пользователей.
+
+Пример кода:
+
+```
+V2TimValueCallback<List<V2TimFollowOperationResult>> unfollowResults = await friendshipManager.unFollowUser(userIDList: ['user1']);if (unfollowResults.code == 0) {        // Unfollow users successfully        unfollowResults.data?.forEach((element) {        element?.userID;  // User ID        element?.resultCode;  // Operation result code        element?.resultInfo;  // Operation result information    });}
+```
+
+> **Примечание:**
+> Этот API поддерживает отписку от до 20 пользователей одновременно.
+
+### Получить список моих подписок
+
+Вы можете использовать API `getMyFollowingList` для получения списка пользователей, на которых вы подписаны.
+
+Пример кода:
+
+```
+V2TimValueCallback<V2TimUserInfoResult> userInfoListRes = await friendshipManager.getMyFollowingList(nextCursor: "");if (userInfoListRes.code == 0) {    // Get following list successfully    userInfoListRes.data?.nextCursor;  // The next cursor for paging pull    userInfoListRes.data?.userFullInfoList?.forEach((element) {        element?.userID;  // User ID        element?.nickName;  // User nick name        element?.faceUrl;  // User avatar url        element?.selfSignature;  // User signature        element?.gender;  // User gender        element?.allowType;  // User option for allowing others to add friends        element?.customInfo;  // User coustom info        element?.role;  // User role        element?.level;  // User level        element?.birthday;  // User birthday    });}
+```
+
+> **Примечание:** Этот API возвращает максимум 500 пользователей за раз. При первом вызове API вы можете ввести параметр nextCursor как "". Если возвращенный nextCursor не является "" после успешного обратного вызова, вы можете передать это значение и вызвать еще раз, пока nextCursor не вернет "", что указывает на завершение получения.
+
+### Получить список моих подписчиков
+
+Вы можете использовать API `getMyFollowersList` для получения списка ваших подписчиков.
+
+Пример кода:
+
+```
+getMyFollowersList
+```
+
+> **Примечание:** Этот API возвращает максимум 500 пользователей за раз. При первом вызове вы можете заполнить параметр `nextCursor` API значением `""`. После успешного обратного вызова, если возвращенный `nextCursor` не является `""`, вы можете ввести это значение и вызвать еще раз, пока `nextCursor` не вернет `""`, что указывает на завершение получения.
+
+### Получить список взаимных подписчиков
+
+Вы можете вызвать API `getMutualFollowersList` для получения списка пользователей, которые взаимно подписаны друг на друга (**Пользователи, которые взаимно подписаны, могут найти друг друга в своих списках подписок и подписчиков**).
+
+Пример кода:
+
+```
+getMutualFollowersList
+```
+
+> **Примечание:** Этот API возвращает максимум 500 пользователей за раз. При первом вызове вы можете заполнить параметр `nextCursor` API значением `""`. После успешного обратного вызова, если возвращенный `nextCursor` не является `""`, вы можете ввести это значение и вызвать еще раз, пока `nextCursor` не вернет `""`, что указывает на завершение получения.
+
+### Получить количество подписок/подписчиков/взаимных подписчиков
+
+Вы можете вызвать API `getUserFollowInfo` для получения количества подписок/подписчиков/взаимных подписчиков для конкретных пользователей.
+
+Пример кода:
+
+```
+V2TimValueCallback<List<V2TimFollowInfo>> userFollowInfoListRes = await friendshipManager.getUserFollowInfo(userIDList:  ['user1']);if (userFollowInfoListRes.code == 0) {    // Obtained successfully    userFollowInfoListRes.data?.forEach((element) {        element?.resultCode;  // Result code: 0 indicates success, while any other value indicates failure        element?.resultInfo;  // Result information        element?.userID;  // User ID        element?.followingCount;  // The count of users this user is following        element?.followersCount;  // The count of followers for this user        element?.mutualFollowersCount;  // The count of mutual followers for this user    });}
+```
+
+### Проверить тип подписки
+
+Вы можете вызвать API `checkFollowType` для проверки вашего отношения подписки с указанными пользователями.
+
+При успешном обратном вызове вы можете получить ваше отношение с указанным пользователем через `followType` из `V2TimFollowTypeCheckResul`:
+
+| `V2TimFollowTypeCheckResult.followType` | Отношение с вами |
+| --- | --- |
+| `V2TIM_FOLLOW_TYPE_NONE = 0` | Нет отношения подписки |
+| `V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST = 1` | Пользователь только в моем списке подписок |
+| `V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWERS_LIST = 2` | Пользователь только в моем списке подписчиков |
+| `V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST = 3` | Взаимная подписка с пользователем (пользователь одновременно в моем списке подписок и в моем списке подписчиков) |
+
+Пример кода:
+
+```
+V2TimValueCallback<List<V2TimFollowTypeCheckResult>> followTypeCheckRes = await friendshipManager.checkFollowType(userIDList:  ['user1']);if (followTypeCheckRes.code == 0) {    // Checked the follow relationship successfully    followTypeCheckRes.data?.forEach((element) {        element?.resultCode;  // Result code: 0 indicates success, while any other value indicates failure        element?.resultInfo;  // Result information        element?.userID;  // User ID        element?.followType;  // Type of following relationship    });}
+```
+
+> **Примечание:** Частота вызовов API `checkFollowType` ограничена до 20 вызовов в течение 5 секунд, и каждый вызов может поддерживать до 100 пользователей.
+
+### Уведомления
+
+Конкретные уведомления об изменении списка следующие:
+
+| Уведомление об изменении списка | Описание |
+| --- | --- |
+| Уведомление об изменении списка подписок `onMyFollowingListChanged` | Когда `isAdd` в уведомлении имеет значение `true`, это означает уведомление об **добавлении пользователя** в список, в этот момент **возвращается полный профиль пользователя**. Когда `isAdd` в уведомлении имеет значение `false`, это означает уведомление об **удалении пользователя** из списка, в этот момент **в возвращаемом профиле пользователя включен только идентификатор пользователя** |
+| Уведомление об изменении списка подписчиков `onMyFollowersListChanged` |  |
+| Уведомление об изменении списка взаимных подписчиков `onMutualFollowersListChanged` |  |
+
+> **Примечание:** Для получения уведомлений вышеуказанных событий, пожалуйста, предварительно вызовите `addFriendListener` для добавления слушателя событий отношений.
+
+### Уведомления об добавлении пользователей в список
+
+Предположим, есть два пользователя `Alice` и `Bob`. В процессе взаимной подписки соответствующие уведомления об изменении списка и изменения отношений следующие:
+
+| Событие | `Alice` |  | `Bob` |  |
+| --- | --- | --- | --- | --- |
+|  | Полученные уведомления | Отношение с `Bob` | Полученные уведомления | Отношение с `Alice` |
+| `Alice` подписывается на `Bob` | [Уведомление об добавлении пользователей в список подписок](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowingListChanged) | [Подписка](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST) | [Уведомление об добавлении пользователей в список подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowersListChanged) | [Подписчик](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWERS_LIST) |
+| `Bob` подписывается на `Alice` | [Уведомление об добавлении пользователей в список подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowersListChanged) [Уведомление об добавлении пользователей в список взаимных подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMutualFollowersListChanged) | [Взаимный подписчик](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST) | [Уведомление об добавлении пользователей в список подписок](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowingListChanged) [Уведомление об добавлении пользователей в список взаимных подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMutualFollowersListChanged) | [Взаимный подписчик](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST) |
+
+### Уведомления об удалении пользователей из списка
+
+Предположим, есть два пользователя, `Alice` и `Bob`, которые взаимно подписаны, в процессе взаимной отписки соответствующие уведомления об изменении списка и изменения отношений следующие:
+
+| Событие | `Alice` |  | `Bob` |  |
+| --- | --- | --- | --- | --- |
+|  | Полученные уведомления | Отношение с `Bob` | Полученные уведомления | Отношение с `Alice` |
+| `Alice` отписывается от `Bob` | [Уведомление об удалении пользователей из списка подписок](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowingListChanged) [Уведомление об удалении пользователей из списка взаимных подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMutualFollowersListChanged) | [Подписчик](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWERS_LIST) | [Уведомление об удалении пользователей из списка подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowersListChanged) [Уведомление об удалении пользователей из списка взаимных подписок](https://www.tencentcloud.com/document/product/1047/64330#onMutualFollowersListChanged) | [Подписка](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST) |
+| `Bob` отписывается от `Alice` | [Уведомление об удалении пользователей из списка подписчиков](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowersListChanged) | [Нет отношения подписки](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_NONE) | [Уведомление об удалении пользователей из списка подписок](https://www.tencentcloud.com/document/product/1047/64330#onMyFollowingListChanged) | [Нет отношения подписки](https://www.tencentcloud.com/document/product/1047/64330#V2TIM_FOLLOW_TYPE_NONE) |
+
+Пример кода:
+
+```
+V2TimFriendshipListener listener = V2TimFriendshipListener(    OnMyFollowingListChanged: (List<V2TimUserFullInfo> userInfoList, bool isAdd) async {       if (isAdd) {            // Receive notification of users added to following list        } else {            // Receive notification of users deleted from following list        }    },    OnMyFollowersListChanged: (List<V2TimUserFullInfo> userInfoList, bool isAdd) async {        if (isAdd) {            // Receive notification of users added to followers list        } else {            // Receive notification of users deleted from followers list        }    },    OnMutualFollowersListChanged: (List<V2TimUserFullInfo> userInfoList, bool isAdd) async {        if (isAdd) {            // Receive notification of users added to  mutual followers list        } else {            // Receive notification of users deleted from mutual follow list        }    }    // Other member functions ...);// Add a relationship chain listenerTencentImSDKPlugin.v2TIMManager.getFriendshipManager().addFriendListener(listener: listener);// Remove a relationship chain listenerfriendshipManager.removeFriendListener(listener : friendshipListener);
+```
+
+## Свяжитесь с нами
+
+Если у вас есть вопросы по этой статье, не стесняйтесь присоединиться к [технической группе Telegram](https://t.me/+EPk6TMZEZMM5OGY1), где вы получите надежную техническую поддержку.
+
+
+---
+*Источник: [https://trtc.io/document/64330](https://trtc.io/document/64330)*
+
+---
+*Источник (EN): [follow.md](./follow.md)*

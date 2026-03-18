@@ -1,0 +1,46 @@
+# Поиск групп
+
+## Обзор
+
+Поиск возможен только в локально сохранённых группах, таких как список присоединённых групп и профили групп, которые были загружены.
+
+> **Примечание:** Функция локального поиска групп поддерживается только в Enhanced SDK версии 5.4.666 и выше. Функция локального поиска групп доступна только в редакциях IM Pro, Pro Plus и Enterprise. Чтобы использовать эту функцию, [приобретите редакцию Pro, Pro Plus или Enterprise](https://trtc.io/buy/chat).
+
+## Поиск локальной группы
+
+Вызовите API `searchGroups` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMGroupManager.html#a94a72082b7e2682942f35196a7e28023) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Group.html#v2timmanager.searchgroups(searchparam:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Group_08.html#ac9a960921e512621340159d82a4b5259) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMGroupManager.html#a63b463ce1a5952adf8d88bc794b32f22)) для поиска локальной группы.
+
+Вы можете задать ключевые слова поиска `keywordList` и указать область поиска, задав, нужно ли выполнять поиск по полям `groupID` и `groupName` группы.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+V2TIMGroupSearchParam searchParam = new V2TIMGroupSearchParam();searchParam.setKeywordList(keywordList);searchParam.setSearchGroupID(true);searchParam.setSearchGroupName(true);V2TIMManager.getGroupManager().searchGroups(searchParam, new V2TIMValueCallback<List<V2TIMGroupInfo>>() {  @Override  public void onSuccess(List<V2TIMGroupInfo> v2TIMGroupInfos) {        // Group found successfully  }  @Override  public void onError(int code, String desc) {      // Failed to find the group  }});
+```
+
+```
+let param = V2TIMGroupSearchParam()param.keywordList = ["2", "key2"]param.isSearchGroupID = trueparam.isSearchGroupName = trueV2TIMManager.shared.searchGroups(searchParam: param) { groupList in    groupList.forEach { item in        print( item.description)    }} fail: { code, desc in    print( "searchGroups fail, \\(code), \\(desc)")}
+```
+
+```
+V2TIMGroupSearchParam *searchParam = [[V2TIMGroupSearchParam alloc] init];searchParam.keywordList = @[@"keyword1", @"keyword2"];searchParam.isSearchGroupID = YES;searchParam.isSearchGroupName = YES;[[V2TIMManager sharedInstance] searchGroups:searchParam succ:^(NSArray<V2TIMGroupInfo *> *groupList) {        // Group found successfully} fail:^(int code, NSString *desc) {      // Failed to find the group}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMGroupSearchParam searchParam;searchParam.keywordList = keywordList;searchParam.isSearchGroupID = true;searchParam.isSearchGroupName = true;auto callback = new ValueCallback<V2TIMGroupInfoVector>{};callback->SetCallback(    [=](const V2TIMGroupInfoVector& groupInfoList) {        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        delete callback;    });V2TIMManager::GetInstance()->GetGroupManager()->SearchGroups(searchParam, callback);
+```
+
+
+---
+*Источник: [https://trtc.io/document/48138](https://trtc.io/document/48138)*
+
+---
+*Источник (EN): [search-groups.md](./search-groups.md)*

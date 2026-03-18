@@ -1,0 +1,110 @@
+# ИИ чатбот
+
+С глобальной популярностью ChatGPT искусственный интеллект (ИИ) стал сфокусом внимания разработчиков, и ведущие поставщики услуг в Китае запустили свои собственные приложения и продукты больших моделей (BM). Многие поставщики объединили свои приложения с ИИ, чтобы открыть новые возможности. Мощные возможности диалогового взаимодействия моделей большого языка нового поколения (LLM) естественным образом совместимы со всеми видами сценариев мгновенного обмена сообщениями, что открывает широкие возможности для комбинации Tencent Chat и ИИ.
+
+В офисных сценариях пользователи могут общаться с диалоговым ИИ для эффективного ведения рабочих заметок, написания документов, сбора информации и т. д. В сценариях обслуживания клиентов ИИ-powered интеллектуальное обслуживание клиентов может обеспечить опыт общения, похожий на человеческое обслуживание, и помочь пользователям более эффективно покупать и использовать продукты. В социальных сценариях чатботы на основе ИИ могут предоставлять пользователям 24-часовое онлайн-консультирование по вопросам психического здоровья и эмоциональную поддержку, увеличивая вовлечённость пользователей и т. д. Tencent Chat, ведущий в мире поставщик услуг облачного взаимодействия, также увидел огромный потенциал ИИ в сценарии мгновенного обмена сообщениями и быстро запустил API вызова возможностей ИИ. На основе коммуникационной базы, предоставленной Tencent Chat, разработчики могут свободно вызывать возможности BM, ведущие в отрасли, и расширять свои возможности, обогащаясь возможностями ИИ для эффективной реализации инноваций, специфичных для сценариев.
+
+В этом документе описывается, как интегрировать возможности сервиса ИИ в Tencent Chat через функцию webhook для создания чатбота ИИ, позволяющего пользователям реализовать такие функции, как интеллектуальное обслуживание клиентов, помощь в творчестве и рабочий ассистент. (Процедура в этом документе использует LLM MiniMax в качестве примера. Вы можете использовать тот же метод для интеграции других услуг, подобных ChatGPT.)
+
+## Подготовка
+
+### Создание учётной записи Tencent Chat
+
+Войдите в свою учётную запись Tencent, перейдите на [консоль Tencent Chat](https://console.trtc.io/), создайте приложение.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/b6e82c5024a511f0b44b5254007c27c5.png)
+
+Получите SDKAppID приложения и ключ (ключ Tencent Chat), и создайте учётную запись администратора `administrator`.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/a71a064f24a511f0b47352540044a08e.png)
+
+### Регистрация учётной записи у соответствующего поставщика услуг ИИ
+
+Зарегистрируйте учётную запись у поставщика услуги ИИ, которую необходимо интегрировать, войдите и получите ключ API (`AI_SECRET_KEY`).
+
+> **Примечание:** Пожалуйста, посетите официальный веб-сайт поставщика услуг ИИ, чтобы получить API-KEY, например [OpenAI](https://platform.openai.com/api-keys), [Gemini](https://aistudio.google.com/app/apikey) и т. д.
+
+### Создание учётной записи чатбота Tencent Chat
+
+Создайте учётную запись чатбота Tencent Chat через [RESTful API](https://trtc.io/document/55281?product=chat&menulabel=restfulapi). Чатбот Tencent Chat — это специальный пользователь, чей ID пользователя начинается с `@RBT#`.
+
+```
+curl -d '{"UserID":"@RBT#001","Nick":"MyRobot"}' "https://adminapisgp.im.qcloud.com/v4/openim_robot_http_svc/create_robot?sdkappid= {}&identifier=administrator&usersig={}&random=123456789&contenttype=json"
+```
+
+Замените `sdkappid={}` и `usersig={}` в команде выше на ваш SDKAppID и UserSig, созданный на основе ключа Tencent Chat. Дополнительную информацию см. в разделе [Создание UserSig](https://trtc.io/document/34385#6d6ec4f0-c138-4b70-ac19-7ba056e988bb). После выполнения команды в Linux сервер Tencent возвращает следующую информацию:
+
+```
+{"ActionStatus": "OK", "ErrorCode": 0, "ErrorInfo": ""}
+```
+
+Приведённая выше информация указывает на то, что чатбот `@RBT#001` с ником `MyRobot` был успешно создан.
+
+### Настройка вебхуков Tencent Chat
+
+Вебхук Tencent Chat — это запрос, отправляемый серверной частью Tencent Chat на серверную часть соответствующего приложения до или после события. Серверная часть приложения может затем выполнить необходимую синхронизацию данных или вмешаться в последующую обработку события. Мы будем использовать «webhook события робота» для прослушивания и реагирования на сообщения пользователя, отправленные чатботу или события @RBT# в групповых чатах. Вам необходимо найти и нажать «Robot Event Webhook» в консоли Tencent Chat, чтобы включить функцию и сохранить настройки.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/f987078b24a511f0b47352540044a08e.png)
+
+## Написание сервиса серверной части приложения
+
+Рассмотрев пример одностороннего чата, общий процесс работы выглядит следующим образом:
+
+1. Пользователь `user1` отправляет сообщение «hello» чатботу `@RBT#001`.
+2. Серверная часть Tencent Chat отправляет вебхук для уведомления серверной части приложения о событии.
+3. Серверная часть приложения получает уведомление о событии, содержащее информацию, такую как отправитель сообщения `user1`, получатель сообщения `@RBT#001` и содержание сообщения `hello`.
+4. Серверная часть приложения вызывает API услуги ИИ (MiniMax API) и получает ответ, содержащий ответное сообщение, например «nice to meet you».
+5. Серверная часть приложения вызывает RESTful API Tencent Chat (API `sendmsg` для одностороннего чата и API `send_group_msg` для группового чата) для отправки ответного сообщения пользователю `user1` от имени `@RBT#001`.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/1003c43e24a611f08caa5254005ef0f7.png)
+
+Рассмотрев пример на языке программирования Go, ключевой код серверной части приложения выглядит следующим образом.
+
+> **Примечание:** Следующий код приведён только в демонстрационных целях и пропускает большое количество кода обработки исключений. Он не может быть использован непосредственно в производственных средах.
+
+### Распределение и обработка команды вебхука
+
+Мы создаём HTTP-сервис, прослушиваемый на порту 80, и регистрируем обработчик с URL `/im`, который обрабатывает все запросы, отправленные на `http://im`. Все запросы вебхука, отправляемые Tencent Chat, содержат параметр `CallbackCommand`, различные значения которого представляют различные команды вебхука. Обработчик выполняет обработку в соответствии с параметром `CallbackCommand`, установленным Tencent Chat.
+
+```
+func handler(w http.ResponseWriter, r *http.Request) {   command := r.URL.Query().Get("CallbackCommand")   reqbody, _ := io.ReadAll(r.Body)   var rspbody []byte   switch command {   case "Bot.OnC2CMessage": // Chatbotâs webhook command word for a one-to-one message       dealC2c(context.Background(), reqbody)       rspbody = []byte("{\\"ActionStatus\\": \\"OK\\", \\"ErrorCode\\": 0, \\"ErrorInfo\\": \\"\\"}")   default:       rspbody = []byte("invalid CallbackCommand.")   }   w.Write(rspbody)} func main() {  // Register a handler to process the webhook command sent to the application backend    http.HandleFunc("/im", handler)    http.ListenAndServe(":80", nil)}
+```
+
+### Обработка одностороннего сообщения, полученного чатботом
+
+При обработке одностороннего сообщения мы сначала проверяем, что отправитель не является чатботом (обычно чатбот не отправляет сообщение другому чатботу), чтобы предотвратить бесконечные циклы вебхука. Затем мы анализируем тело сообщения, чтобы получить текстовое содержание сообщения, отправленного пользователем чатботу, сохраняем UserID отправителя в контексте, чтобы упростить последующее действие вызова RESTful API для ответа, и наконец вызываем `askAI` для запроса к услуге ИИ.
+
+```
+func dealC2c(ctx context.Context, reqbody []byte) error {  root, _ := simplejson.NewJson(reqbody)  jFromAccount := root.Get("From_Account")  fromAccount, _ = jFromAccount.String()  // Check the sender's ID to avoid processing requests sent by one chatbot to another chatbot, which leads to infinite loops.  if strings.HasPrefix(fromAccount, "@RBT#") {    return nil  }  jToAccount := root.Get("To_Account")  toAccount, _ := jToAccount.String()  msgBodyList, _ := root.Get("MsgBody").Array()  for _, m := range msgBodyList {    msgBody, _ := m.(map[string]interface{})    msgType, _ := msgBody["MsgType"].(string)    if msgType != "TIMTextElem" {      continue    }    msgContent, _ := msgBody["MsgContent"].(map[string]interface{})    text, _ := msgContent["Text"].(string)    ctx = context.WithValue(ctx, "from", fromAccount)    ctx = context.WithValue(ctx, "to", toAccount)    go askAI(ctx, text)  }  return nil}
+```
+
+### Вызов API услуги ИИ
+
+На этом этапе мы используем сторонний сервис ИИ, MiniMax LLM, для реализации интеллектуального чата. Вместо сервиса MiniMax LLM может быть использована любая другая услуга ИИ. Обратите внимание, что здесь мы демонстрируем простой API `completion`, который не содержит контекста разговора. Вы можете обратиться к документации MiniMax для получения подробной информации о других API при необходимости.
+
+```
+type MiniMaxRsp struct {  Reply string `json:"reply"`}// Send a request to MiniMax and get a replyfunc askAI(ctx context.Context, prompt string) {  url := "https://api.minimax.chat/v1/text/completion"  var reqData = []byte(`{    "model": "abab5-completion",    "prompt": prompt  }`)  request, _ := http.NewRequest("POST", url, bytes.NewBuffer(reqData))  request.Header.Set("Content-Type", "application/json; charset=UTF-8  request.Header.Set("Authorization", API_SECRET_KEY)  client := &http.Client{}  response, _ := client.Do(request)  defer response.Body.Close()  body, _ := ioutil.ReadAll(response.Body)  rsp := &MiniMaxRsp{}  json.Unmarshal(body, rsp)  reply(ctx, rsp.Reply) // Send the content replied by the AI service to the user}
+```
+
+### Возврат результата, полученного от услуги ИИ, пользователю
+
+После получения ответа от услуги ИИ нам нужно только вызвать RESTful API `sendmsg` Tencent Chat для имитации ответа чатбота пользователю, указав отправителя сообщения как `@RBT#001` и получателя как `user1`.
+
+```
+// Send a RESTful API requestfunc doRestAPI(host string, sdkappid int, admin, usersig, command, body string) {  url := fmt.Sprintf("https://%s/v4/%s?sdkappid=%d&identifier=%s&usersig=%s&random=%d&contenttype=json",    host, command, sdkappid, admin, usersig, rand.Uint32())  req, _ := http.NewRequest("POST", url, bytes.NewBufferString(body))  req.Header.Set("Content-Type", "application/json")  cli := &http.Client{}  rsp, err := cli.Do(req)  if err != nil {    log.Printf("REST API failed. %s", err.Error())    return  }  defer rsp.Body.Close()  rsptext, _ := io.ReadAll(rsp.Body)  log.Printf("rsp:%s", rsptext)}// Call the RESTful API of Tencent Chat to reply to the userfunc reply(ctx context.Context, text string) {  rsp := make(map[string]interface{})  msgbody := []map[string]interface{}{{    "MsgType":    "TIMTextElem",    "MsgContent": map[string]interface{}{"Text": text},  }}  // For the implementation of `GenUserSig`, see the Tencent  documentation.  usersig, _ := GenUserSig(IM_SDKAPPID, IM_KEY, "administrator", 60)  rsp["From_Account"] = ctx.Value("to").(string) //"@RBT#001"  rsp["To_Account"] = ctx.Value("from").(string)  rsp["SyncOtherMachine"] = 2  rsp["MsgLifeTime"] = 60 * 60 * 24 * 7  rsp["MsgSeq"] = rand.Uint32()  rsp["MsgRandom"] = rand.Uint32()  rsp["MsgBody"] = msgbody  rspbody, _ := json.Marshal(rsp)  doRestAPI("console.tim.qq.com", IM_SDKAPPID, "administrator", usersig, "openim/sendmsg", string(rspbody))}
+```
+
+## Демонстрация эффекта
+
+Ниже демонстрируется итоговый эффект реализации демонстрационного чатбота Tencent Chat:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/2c77de4b24a611f0a62e525400454e06.png)
+
+С помощью указанных выше шагов мы реализовали связь одностороннего чата между серверной частью сервера Tencent Chat и открытой платформой MiniMax AI. Также возможна интеграция услуг ИИ от другого поставщика услуг ИИ, выполнив указанные выше шаги, просто заменив функцию `askAI` на соответствующий вызов API этого поставщика услуг ИИ. Для чатботов группового чата необходимо только дополнить реализацию обработки команды вебхука `Bot.OnGroupMessage`.
+
+
+---
+*Источник: [https://trtc.io/document/54925](https://trtc.io/document/54925)*
+
+---
+*Источник (EN): [ai-chatbot.md](./ai-chatbot.md)*

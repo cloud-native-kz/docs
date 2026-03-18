@@ -1,0 +1,177 @@
+# Трансляция с хоста
+
+**Страница трансляции хоста TUILiveKit** предоставляет **полнофункциональный пользовательский интерфейс** для сценариев прямой трансляции. Он поддерживает быстрое развертывание основных возможностей хоста, позволяя эффективно интегрировать рабочий процесс прямой трансляции без беспокойства о сложной реализации пользовательского интерфейса и логики.
+
+## Обзор функций
+
+- **Подготовка до трансляции:** Поддерживает различные персонализированные конфигурации перед началом трансляции хостом, включая название комнаты, фон, предпросмотр видео, отладку фильтров красоты (эффекты красоты), отладку звуковых эффектов и шаблоны макетов.
+- **Взаимодействие с соведущим:** Поддерживает реальное взаимодействие (совместное ведение) со зрителями или другими хостами во время прямой трансляции.
+- **Взаимодействие со зрителями:** Поддерживает разнообразные формы взаимодействия, такие как сообщения (баллистический экран) и подарки.
+- **Управление прямой комнатой:** Поддерживает отображение списка онлайн-пользователей и различные операции управления внутри комнаты, такие как отключение звука (запрет) и исключение пользователей.
+
+| **Подготовка до трансляции** | **Взаимодействие с соведущим** | **Взаимодействие со зрителями** | **Управление прямой комнатой** |
+| --- | --- | --- | --- |
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/5b961ac1991011f0aa4252540044a08e.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/b579594a990f11f0961e52540099c741.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/b3f97a5c990f11f0a3b8525400e889b2.png) |  ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/ed59521b991511f0a207525400bf7822.png) |
+
+## Быстрый старт
+
+### Шаг 1. Активируйте сервис
+
+Обратитесь к документации [Активация сервиса](https://www.tencentcloud.com/document/product/647/60033) для включения бесплатной пробной версии или платной версии.
+
+### Шаг 2. Интеграция кода
+
+Обратитесь к руководству [Подготовка](https://www.tencentcloud.com/document/product/647/72217) для интеграции SDK TUILiveKit.
+
+### Шаг 3. Добавьте представление подготовки до трансляции
+
+Компонент `AnchorPrepareView` уже имеет встроенные функции для предпросмотра камеры, параметров звуковых эффектов, параметров макета и другие функциональные конфигурации. Вам нужно создать и загрузить `AnchorPrepareView`. Конкретный пример кода выглядит следующим образом:
+
+Kotlin
+
+Java
+
+```
+import android.os.Bundleimport androidx.appcompat.app.AppCompatActivityimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewclass AnchorActivity : AppCompatActivity() {    lateinit var anchorPrepareView: AnchorPrepareView    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        // 1. Create and initialize AnchorPrepareView        anchorPrepareView = AnchorPrepareView(this)        anchorPrepareView.init("live_1235858", null)        // 2. Add AnchorPrepareView to the UI        setContentView(anchorPrepareView)    }}
+```
+
+```
+import android.os.Bundle;import androidx.appcompat.app.AppCompatActivity;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareView;public class AnchorActivity extends AppCompatActivity {    private AnchorPrepareView anchorPrepareView;    @Override    protected void onCreate(Bundle savedInstanceState) {        super.onCreate(savedInstanceState);        // 1. Create and initialize AnchorPrepareView        anchorPrepareView = new AnchorPrepareView(this);        anchorPrepareView.init("live_1235858", null);        // 2. Add AnchorPrepareView to the interface        setContentView(anchorPrepareView);    }}
+```
+
+### Шаг 4. Добавьте представление трансляции хоста
+
+Компонент `AnchorView` имеет встроенные функции для передачи аудио/видео (трансляция), совместного ведения со зрителями, взаимодействия в прямом эфире и управления прямой комнатой. Вам просто нужно создать и загрузить `AnchorView`. Конкретный пример кода выглядит следующим образом:
+
+Kotlin
+
+Java
+
+```
+import android.os.Bundleimport androidx.appcompat.app.AppCompatActivityimport com.trtc.uikit.livekit.features.anchorboardcast.AnchorViewimport com.trtc.uikit.livekit.features.anchorboardcast.RoomBehaviorimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewimport com.trtc.uikit.livekit.features.anchorprepare.LiveStreamPrivacyStatusimport io.trtc.tuikit.atomicxcore.api.live.LiveInfoclass AnchorActivity : AppCompatActivity() {    lateinit var anchorPrepareView: AnchorPrepareView    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        // 1. Create and initialize AnchorPrepareView        anchorPrepareView = AnchorPrepareView(this)        anchorPrepareView.init("live_1235858", null)        // 2. Add AnchorPrepareView to the interface        setContentView(anchorPrepareView)    }    fun initAnchorView() {        // 1. Create AnchorView        val anchorView = AnchorView(this)        // 2. Initialize AnchorView, where liveInfo is the live stream information and anchorPrepareView is your preparation page before starting your broadcast.        val liveInfo = LiveInfo()        liveInfo.liveID = "live_1236666"        liveInfo.liveName = anchorPrepareView.getState()?.roomName?.getValue() ?: ""        liveInfo.isPublicVisible = anchorPrepareView.getState()?.liveMode?.getValue() == LiveStreamPrivacyStatus.PUBLIC        liveInfo.coverURL = anchorPrepareView.getState()?.coverURL?.getValue() ?: ""        liveInfo.seatTemplate = SeatLayoutTemplate.VideoDynamicGrid9Seats                // Entering the room:        // RoomBehavior.CREATE_ROOM: The host creates the room        // RoomBehavior.ENTER_ROOM: Viewers enter the room        anchorView.init(liveInfo, anchorPrepareView.getCoreView(), RoomBehavior.CREATE_ROOM, null)        // 3. Add AnchorView to the interface        setContentView(anchorView)    }}
+```
+
+```
+import android.os.Bundle;import androidx.appcompat.app.AppCompatActivity;import com.trtc.uikit.livekit.features.anchorboardcast.AnchorView;import com.trtc.uikit.livekit.features.anchorboardcast.RoomBehavior;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareView;import com.trtc.uikit.livekit.features.anchorprepare.LiveStreamPrivacyStatus;import io.trtc.tuikit.atomicxcore.api.live.LiveInfo;public class AnchorActivity extends AppCompatActivity {    private AnchorPrepareView anchorPrepareView;    @Override    protected void onCreate(Bundle savedInstanceState) {        super.onCreate(savedInstanceState);        // 1. Create and initialize AnchorPrepareView        anchorPrepareView = new AnchorPrepareView(this);        anchorPrepareView.init("live_1235858", null);        // 2.Add AnchorPrepareView to the interface        setContentView(anchorPrepareView);    }    private void initAnchorView() {        // 1.Create AnchorView        AnchorView anchorView = new AnchorView(this);        // 2.Initialize AnchorView        LiveInfo liveInfo = new LiveInfo();        liveInfo.setLiveID("live_1236666");        liveInfo.setLiveName(anchorPrepareView.getState().roomName.getValue());        liveInfo.setPublicVisible(anchorPrepareView.getState().liveMode.getValue() == LiveStreamPrivacyStatus.PUBLIC);        liveInfo.setCoverURL(anchorPrepareView.getState().coverURL.getValue());        liveInfo.setSeatTemplate(SeatLayoutTemplate.VideoDynamicGrid9Seats);        // Entering the room:        // RoomBehavior.CREATE_ROOM: The host creates the room        // RoomBehavior.ENTER_ROOM: Viewers enter the room        anchorView.init(liveInfo, anchorPrepareView.getCoreView(), RoomBehavior.CREATE_ROOM, null);        // 3.Add AnchorView to the interface        setContentView(anchorView);    }
+```
+
+### Шаг 5. Переход от подготовки до трансляции к трансляции хоста
+
+Объедините это с [Шаг 3](#a3df8949-a9ed-48f3-81ea-c62832b06612) для реализации событий делегата компонента `AnchorPrepareView`, завершив переход на страницу трансляции хоста. Конкретный пример кода выглядит следующим образом:
+
+Kotlin
+
+Java
+
+```
+import android.os.Bundleimport androidx.appcompat.app.AppCompatActivityimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewListenerclass AnchorActivity : AppCompatActivity() {    lateinit var anchorPrepareView: AnchorPrepareView    lateinit var anchorPrepareViewListener: AnchorPrepareViewListener    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        // 1. Create and initialize AnchorPrepareView        anchorPrepareView = AnchorPrepareView(this)        anchorPrepareView.init("live_1235858", null)        // 2. Add AnchorPrepareView to the interface        setContentView(anchorPrepareView)        anchorPrepareViewListener = object : AnchorPrepareViewListener {            override fun onClickStartButton() {                initAnchorView()            }                        override fun onClickBackButton() {                finish()            }        }        // 3. Set the callback for AnchorPrepareView        anchorPrepareView.addAnchorPrepareViewListener(anchorPrepareViewListener)    }}
+```
+
+```
+import android.os.Bundle;import androidx.appcompat.app.AppCompatActivity;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareView;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewListener;public class AnchorActivity extends AppCompatActivity {    private AnchorPrepareView         anchorPrepareView;    private AnchorPrepareViewListener anchorPrepareViewListener;        @Override    protected void onCreate(Bundle savedInstanceState) {        super.onCreate(savedInstanceState);        // 1. Create and initialize AnchorPrepareView        anchorPrepareView = new AnchorPrepareView(this);        anchorPrepareView.init("live_1235858", null);        // 2. Add AnchorPrepareView to the interface        setContentView(anchorPrepareView);        anchorPrepareViewListener = new AnchorPrepareViewListener() {            @Override            public void onClickStartButton() {                initAnchorView();            }            @Override            public void onClickBackButton() {                finish();            }        };        // 3. Set the callback for AnchorPrepareView        anchorPrepareView.addAnchorPrepareViewListener(anchorPrepareViewListener);    }}
+```
+
+## Настройка макета пользовательского интерфейса
+
+**TUILiveKit** поддерживает гибкую настройку страниц подготовки хоста и прямых трансляций, позволяя корректировать макет и скрывать/отображать функциональные модули в соответствии с требованиями вашего бизнеса.
+
+### Выбор шаблона макета прямой трансляции
+
+**TUILiveKit** предоставляет **4 шаблона макета прямой трансляции**. Вы можете выбрать подходящий стиль в входе **"Layout" UI взаимодействие** на странице подготовки хоста:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/19795759991911f0961e52540099c741.png)
+
+#### Обзор шаблонов макета
+
+| Название | Динамический сеточный макет | Динамический плавающий макет | Статический сеточный макет | Статический плавающий макет |
+| --- | --- | --- | --- | --- |
+| ID шаблона | VideoDynamicGrid9Seats | VideoDynamicFloat7Seats | VideoFixedGrid9Seats | VideoFixedFloat7Seats |
+| Описание | Макет по умолчанию; размер сетки динамически корректируется в зависимости от количества соведущих. | Соведущие отображаются в плавающих небольших окнах. | Количество соведущих фиксировано, и каждый соведущий занимает фиксированную ячейку сетки. | Количество соведущих фиксировано, и соведущие отображаются в фиксированных небольших окнах. |
+| Предпросмотр | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/a6db917e991611f08bb25254005ef0f7.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/ab320e8e991611f0aa4252540044a08e.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/b14b1e19991611f08bb25254005ef0f7.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/b507b0bf991611f0b7a5525400454e06.png) |
+
+### Настройка области функций `AnchorPrepareView`
+
+Вызывая API `prepareView`, созданный в [Шаг 3](#a3df8949-a9ed-48f3-81ea-c62832b06612), вы можете настроить и скрыть область операций или конкретные функции на странице подготовки хоста:
+
+Kotlin
+
+Java
+
+```
+import android.os.Bundleimport androidx.appcompat.app.AppCompatActivityimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewclass AnchorActivity : AppCompatActivity() {    lateinit var anchorPrepareView: AnchorPrepareView    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        anchorPrepareView = AnchorPrepareView(this)        anchorPrepareView.init("live_1235858", null)        // 1. Customize the ribbon - Example: Hide the entire ribbon        anchorPrepareView.disableFeatureMenu(true)                setContentView(anchorPrepareView)    }}
+```
+
+```
+import android.os.Bundle;import androidx.appcompat.app.AppCompatActivity;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareView;public class AnchorActivity extends AppCompatActivity {    private AnchorPrepareView anchorPrepareView;    @Override    protected void onCreate(Bundle savedInstanceState) {        super.onCreate(savedInstanceState);        // 1. Customize the ribbon - Example: Hide the entire ribbon        anchorPrepareView = new AnchorPrepareView(this);        anchorPrepareView.init("live_1235858", null);        anchorPrepareView.disableFeatureMenu(true);                setContentView(anchorPrepareView);    }}
+```
+
+| **API** | **Описание** |
+| --- | --- |
+| `disableFeatureMenu(true)` | Скрыть всю область функций |
+| `disableMenuBeautyButton(true)` | Скрыть кнопку эффекта красоты |
+| `disableMenuAudioEffectButton(true)` | Скрыть кнопку звукового эффекта |
+| `disableMenuSwitchCameraButton(true)` | Скрыть кнопку переключения камеры |
+
+### Настройка области функций `AnchorView`
+
+Вызывая API `anchorView`, созданный в [Шаг 4](#654104fa-469a-4296-9ffd-0b5a11d48e87), вы можете настроить и скрыть область операций или конкретные функции на странице прямой трансляции хоста:
+
+Kotlin
+
+Java
+
+```
+import android.os.Bundleimport androidx.appcompat.app.AppCompatActivityimport com.trtc.uikit.livekit.features.anchorboardcast.AnchorViewimport com.trtc.uikit.livekit.features.anchorboardcast.RoomBehaviorimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewimport com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewListenerimport com.trtc.uikit.livekit.features.anchorprepare.LiveStreamPrivacyStatusimport io.trtc.tuikit.atomicxcore.api.live.LiveInfoclass AnchorActivity : AppCompatActivity() {    ...    fun initAnchorView() {        val anchorView = AnchorView(this)        val liveInfo = LiveInfo()        liveInfo.liveID = "live_1236666"        liveInfo.liveName = anchorPrepareView.getState()?.roomName?.getValue() ?: ""        liveInfo.isPublicVisible = anchorPrepareView.getState()?.liveMode?.getValue() == LiveStreamPrivacyStatus.PUBLIC        liveInfo.coverURL = anchorPrepareView.getState()?.coverURL?.getValue() ?: ""        liveInfo.seatLayoutTemplateID = anchorPrepareView.getState()?.coGuestTemplateId?.getValue() ?: 600        anchorView.init(liveInfo, anchorPrepareView.getCoreView(), RoomBehavior.CREATE_ROOM, null)        // 1. Customize the ribbon - Example: Hide the streamer connection function        anchorView.disableFooterCoHost(true)        setContentView(anchorView)    }}
+```
+
+```
+import android.os.Bundle;import androidx.appcompat.app.AppCompatActivity;import com.trtc.uikit.livekit.features.anchorboardcast.AnchorView;import com.trtc.uikit.livekit.features.anchorboardcast.RoomBehavior;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareView;import com.trtc.uikit.livekit.features.anchorprepare.AnchorPrepareViewListener;import com.trtc.uikit.livekit.features.anchorprepare.LiveStreamPrivacyStatus;import io.trtc.tuikit.atomicxcore.api.live.LiveInfo;public class AnchorActivity extends AppCompatActivity {    ...    private void initAnchorView() {        AnchorView anchorView = new AnchorView(this);        LiveInfo liveInfo = new LiveInfo();        liveInfo.setLiveID("live_1236666");        liveInfo.setLiveName(anchorPrepareView.getState().roomName.getValue());        liveInfo.setPublicVisible(anchorPrepareView.getState().liveMode.getValue() == LiveStreamPrivacyStatus.PUBLIC);        liveInfo.setCoverURL(anchorPrepareView.getState().coverURL.getValue());        liveInfo.setSeatLayoutTemplateID(anchorPrepareView.getState().seatTemplate.getValue());        anchorView.init(liveInfo, anchorPrepareView.getCoreView(), RoomBehavior.CREATE_ROOM, null);        // 1. Customize the ribbon - Example: Hide the streamer connection function        anchorView.disableFooterCoHost(true);        setContentView(anchorView);    }
+```
+
+| **API** | **Описание** |
+| --- | --- |
+| `disableHeaderVisitorCnt(true)` | Скрыть функцию списка аудитории в верхней части |
+| `disableFooterCoGuest(true)` | Скрыть функцию подключения микрофона аудитории в нижней части |
+| `disableFooterCoHost(true)` | Скрыть функцию подключения якоря в нижней части |
+| `disableFooterBattle(true)` | Скрыть функцию ПК якоря в нижней части |
+
+### Настройка текста (строковые ресурсы)
+
+TUILiveKit использует стандартные **файлы ресурсов Android XML** для управления текстом, отображаемым в пользовательском интерфейсе. Вы можете напрямую изменить строки, которые нуждаются в корректировке, через XML-файл:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/3dc7eb5c991e11f081465254007c27c5.png)
+
+### Настройка значков (ресурсы Drawable)
+
+TUILiveKit использует стандартную **папку ресурсов Android drawable** для управления ресурсами изображений пользовательского интерфейса. Вы можете быстро изменить пользовательские значки, заменив файлы ресурсов. При замене убедитесь, что новые имена файлов совпадают с исходными названиями файлов.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/5a418a63991e11f0b38f5254001c06ec.png)
+
+## Следующие шаги
+
+Поздравляем! Вы успешно интегрировали компонент **Трансляция хоста**. Далее вы можете реализовать такие функции, как **просмотр аудиторией**, **список прямых трансляций** и **система подарков**. Обратитесь к таблице ниже:
+
+| **Функция** | **Описание** | **Руководство интеграции** |
+| --- | --- | --- |
+| **Просмотр аудиторией** | Аудитория может смотреть прямую трансляцию после входа в прямую комнату якоря с такими функциями, как подключение микрофона аудитории, информация о прямой комнате, онлайн аудитория и отображение сообщений. | [Просмотр аудиторией](https://www.tencentcloud.com/document/product/647/72221) |
+| **Список прямых трансляций** | Отображение интерфейса и функций списка прямых трансляций, включая список прямых трансляций и отображение информации о комнате. | [Список прямых трансляций](https://www.tencentcloud.com/document/product/647/72220) |
+| **Система подарков** | Поддержка пользовательской конфигурации активов подарков, интеграция системы выставления счетов и отправка подарков в сценариях ПК. | [Система подарков](https://www.tencentcloud.com/document/product/647/69849) |
+
+## Часто задаваемые вопросы
+
+### Почему нет видеотрансляции после запуска трансляции?
+
+Пожалуйста, перейдите в **App Info > Permissions > Camera** и проверьте, включено ли разрешение камеры. Обратитесь к изображению ниже:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/13ef0396991e11f0a207525400bf7822.png)
+
+### Почему щелчок по кнопке "Начать трансляцию" завершается ошибкой с сообщением "Not Logged In"?
+
+Обратитесь к [Завершение входа](https://www.tencentcloud.com/document/product/647/72217#4b12969e-204b-4bcc-bdd3-702d8e20ea18) для подтверждения того, что вы завершили интеграцию функции входа.
+
+
+---
+*Источник: [https://trtc.io/document/72219](https://trtc.io/document/72219)*
+
+---
+*Источник (EN): [host-streaming.md](./host-streaming.md)*

@@ -1,0 +1,186 @@
+# Не беспокоить
+
+## Обзор
+
+Установив параметры получения сообщений для личных чатов, групповых чатов или всех сообщений, вы можете реализовать функцию, аналогичную WhatsApp, при которой сообщения не беспокоят.
+
+> **Примечание:** Параметры получения сообщений в личных чатах и групповых чатах поддерживаются только в Enhanced SDK версии 5.3.425 или выше. Параметры получения глобальных сообщений поддерживаются только в Enhanced SDK версии 7.4.4643 или выше.
+
+SDK предлагает три типа параметров получения сообщений, определённых в `V2TIMReceiveMessageOpt`:
+
+| Параметр получения сообщений | Поддерживаемый тип | Описание |
+| --- | --- | --- |
+| V2TIM_RECEIVE_MESSAGE | Личный чат, групповой чат, все сообщения | Получать сообщения нормально в интернете, получать уведомления об автономном push при отключении |
+| V2TIM_NOT_RECEIVE_MESSAGE | Личный чат, групповой чат | Не получать сообщения ни в интернете, ни автономно |
+| V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE | Личный чат, групповой чат, все сообщения | Получать сообщения нормально в интернете, но не получать уведомления об автономном push при отключении |
+| V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT | Групповой чат | Получать сообщения в интернете, получать push только сообщений `at` при отключении |
+| V2TIM_NOT_RECEIVE_MESSAGE_EXCEPT_AT | Тема | Получать только сообщения `at` в интернете или автономно |
+
+Установка различных параметров `V2TIMReceiveMessageOpt` позволяет реализовать различные эффекты "не беспокоить":
+
+| Эффект "не беспокоить" | Параметр получения сообщений | Описание |
+| --- | --- | --- |
+| Не получать никакие сообщения | V2TIM_NOT_RECEIVE_MESSAGE | Сообщения не могут быть получены, список разговоров не будет обновлён. |
+| Получать сообщения без уведомлений | V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE | В этом случае рекомендуется отображать красную точку в списке разговоров (без отображения числа непрочитанных): Когда новое сообщение получено и список разговоров требует обновления, получите количество непрочитанных сообщений через unreadCount в V2TIMConversation разговора. Если количество непрочитанных больше нуля, отобразите красную точку вместо номера непрочитанного. |
+| Получать сообщения, но оповещать только для сообщений `at` | V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE_EXCEPT_AT | В течение указанного промежутка времени все сообщения для вошедшей в систему учётной записи могут быть получены в интернете; push не будет при отключении. |
+| Получать только сообщения `at` | V2TIM_NOT_RECEIVE_MESSAGE_EXCEPT_AT | Получать только сообщения `at` в теме в интернете или автономно |
+
+> **Примечание:** В приведённых выше реализациях, если требуется функция `unreadCount` в `V2TIMConversation`, она применяется только к рабочим группам (Work), публичным группам (Public) и сообществам (Community), но не к аудиовизуальным группам (AVChatRoom) или группам встреч (Meeting). Для получения дополнительной информации о типах групп см. [Система групп](https://intl.cloud.tencent.com/document/product/1047/33529).
+
+## Установка параметра личного чата
+
+Вызовите `setC2CReceiveMessageOpt` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a6524143895cdee25fabd9aeeae73a3c5) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.setc2creceivemessageopt(useridlist:opt:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#ae628f19d856921d27081c3f40005e9d9) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#adf166f08b68a5df8de19d152bcf868b3)) для установки параметра получения сообщений для личного чата.
+Вы можете использовать параметр `userIDList`, чтобы одновременно указать до 30 пользователей.
+
+> **Примечание:** Этот API может быть вызван пользователем не более 5 раз в секунду.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+// Установить, чтобы не получать сообщения независимо от того, находится ли пользователь в интернете или автономноList<String> userList = new ArrayList<>();userList.add("user1");userList.add("user2");V2TIMManager.getMessageManager().setC2CReceiveMessageOpt(userList, V2TIMMessage.V2TIM_NOT_RECEIVE_MESSAGE, new V2TIMCallback() {    @Override    public void onSuccess() {        Log.i("imsdk", "success");    }    @Override    public void onError(int code, String desc) {        Log.i("imsdk", "failure, code:" + code + ", desc:" + desc);    }});
+```
+
+```
+// Установить, чтобы не получать сообщения независимо от того, находится ли пользователь в интернете или автономноlet array: [String] = ["user1", "user2"]V2TIMManager.shared.setC2CReceiveMessageOpt(userIDList: array, opt: .V2TIM_NOT_RECEIVE_MESSAGE, succ: {    print("success")}, fail: { code, desc in    print("failure, code: \\(code), desc: \\(desc ?? "")")})
+```
+
+```
+// Установить, чтобы не получать сообщения независимо от того, находится ли пользователь в интернете или автономноNSArray* array = [NSArray arrayWithObjects:@"user1", @"user2", nil]];[[V2TIMManager sharedInstance] setC2CReceiveMessageOpt:array opt:V2TIM_NOT_RECEIVE_MESSAGE succ:^{    NSLog(@"success");} fail:^(int code, NSString *desc) {    NSLog(@"failure, code:%d, desc:%@", code, desc);}];
+```
+
+```
+class Callback final : public V2TIMCallback {public:    using SuccessCallback = std::function<void()>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    Callback() = default;    ~Callback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess() override {        if (success_callback_) {            success_callback_();        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMStringVector userIDList;userIDList.PushBack("user1");userIDList.PushBack("user2");V2TIMReceiveMessageOpt opt = V2TIMReceiveMessageOpt::V2TIM_NOT_RECEIVE_MESSAGE;auto callback = new Callback;callback->SetCallback(    [=]() {        // Успешно настроено        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка при настройке        delete callback;    });V2TIMManager::GetInstance()->GetMessageManager()->SetC2CReceiveMessageOpt(userIDList, opt, callback);
+```
+
+## Получение параметра личного чата
+
+Вызовите `getC2CReceiveMessageOpt` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a9693dd66432f931ac0a1f2168d899501) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.getc2creceivemessageopt(useridlist:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a1c743a6fe1d17a21dc80e584fd1de2d1) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#a30a4979460e73c897b6130ba40356afa)) для получения параметра получения сообщений для личного чата.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+List<String> userList = new ArrayList<>();userList.add("user1");userList.add("user2");V2TIMManager.getMessageManager().getC2CReceiveMessageOpt(userList, new V2TIMValueCallback<List<V2TIMReceiveMessageOptInfo>>() {    @Override    public void onSuccess(List<V2TIMReceiveMessageOptInfo> v2TIMReceiveMessageOptInfos) {        for (int i = 0; i < v2TIMReceiveMessageOptInfos.size(); i++){            V2TIMReceiveMessageOptInfo info = v2TIMReceiveMessageOptInfos.get(i);            Log.i("imsdk", "userId: " + info.getUserID() ", receiveOpt: " + info.getC2CReceiveMessageOpt());        }    }    @Override    public void onError(int code, String desc) {        Log.i("imsdk", "failure, code:" + code + ", desc:" + desc);    }});
+```
+
+```
+let array: [String] = ["user1", "user2"]V2TIMManager.shared.getC2CReceiveMessageOpt(userIDList: array, succ: { optList in    for info in optList {        print("userId: \\(info.userID), receiveOpt: \\(info.receiveOpt)")    }}, fail: { code, desc in    print("failure, code: \\(code), desc: \\(desc ?? "")")})
+```
+
+```
+NSArray* array = [NSArray arrayWithObjects:@"user1", @"user2", nil]];[[V2TIMManager sharedInstance] getC2CReceiveMessageOpt:array succ:^(NSArray<V2TIMReceiveMessageOptInfo *> *optList) {    for (int i = 0; i < optList.count; i++) {        V2TIMReceiveMessageOptInfo* info = optList[i];        NSLog(@"userId: %@, receiveOpt: %@", info.userID, info.receiveOpt);    }} fail:^(int code, NSString *desc) {    NSLog(@"failure, code:%d, desc:%@", code, desc);}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMStringVector userIDList;userIDList.PushBack("user1");userIDList.PushBack("user2");auto callback = new ValueCallback<V2TIMReceiveMessageOptInfoVector>{};callback->SetCallback(    [=](const V2TIMReceiveMessageOptInfoVector& receiveMessageOptInfoList) {        for (size_t i = 0; i < receiveMessageOptInfoList.Size(); ++i) {            const V2TIMReceiveMessageOptInfo& opt = receiveMessageOptInfoList[i];            V2TIMString userID = opt.userID;            V2TIMReceiveMessageOpt receiveOpt = opt.receiveOpt;        }        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка получения        delete callback;    });V2TIMManager::GetInstance()->GetMessageManager()->GetC2CReceiveMessageOpt(userIDList, callback);
+```
+
+## Установка параметра группового чата
+
+Вызовите `setGroupReceiveMessageOpt` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a2735427ac22485626aea278a9d465b3e) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.setgroupreceivemessageopt(groupid:opt:succ:fail:)) /  [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a379eeef926e41ec5d48287e7fb55b80a) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#a866d06c28faf058f253f29be6f5b3fe2)) для установки параметра получения сообщений для группового чата.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+// Установить, чтобы не получать сообщения независимо от того, находится ли пользователь в интернете или автономноString groupID = "groupID";V2TIMManager.getMessageManager().setGroupReceiveMessageOpt(groupID, V2TIMMessage.V2TIM_NOT_RECEIVE_MESSAGE, new V2TIMCallback() {    @Override    public void onSuccess() {        Log.i("imsdk", "success");    }    @Override    public void onError(int code, String desc) {        Log.i("imsdk", "failure, code:" + code + ", desc:" + desc);    }});
+```
+
+```
+// Установить, чтобы не получать сообщения независимо от того, находится ли пользователь в интернете или автономноlet groupID = "groupID"V2TIMManager.shared.setGroupReceiveMessageOpt(groupID: groupID, opt: .V2TIM_NOT_RECEIVE_MESSAGE, succ: {    print("success")}, fail: { code, desc in    print("failure, code: \\(code), desc: \\(desc ?? "")")})
+```
+
+```
+// Установить, чтобы не получать сообщения независимо от того, находится ли пользователь в интернете или автономноNSString *groupID = @"groupID";[[V2TIMManager sharedInstance] setGroupReceiveMessageOpt:groupID opt:V2TIM_NOT_RECEIVE_MESSAGE succ:^{    NSLog(@"success");} fail:^(int code, NSString *desc) {    NSLog(@"failure, code:%d, desc:%@", code, desc);}];
+```
+
+```
+class Callback final : public V2TIMCallback {public:    using SuccessCallback = std::function<void()>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    Callback() = default;    ~Callback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess() override {        if (success_callback_) {            success_callback_();        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMString groupID = "groupID";V2TIMReceiveMessageOpt opt = V2TIMReceiveMessageOpt::V2TIM_NOT_RECEIVE_MESSAGE;auto callback = new Callback;callback->SetCallback(    [=]() {        // Успешно настроено        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка при настройке        delete callback;    });V2TIMManager::GetInstance()->GetMessageManager()->SetGroupReceiveMessageOpt(groupID, opt, callback);
+```
+
+## Получение параметра группового чата
+
+Вызовите API `getGroupsInfo` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMGroupManager.html#ada614335043d548c11f121500e279154) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Group.html#v2timmanager.getgroupsinfo(groupidlist:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Group_08.html#a9bca7e5318cfed44335566a783a6b568) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMGroupManager.html#a8c98b92b45c3a2c4e57901e6c4cd3435)) для получения списка объектов `V2TIMGroupInfo` в профиле группы. Здесь поле `recvOpt` объекта указывает параметр получения сообщений для группового чата.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+List<String> groupIDList = new ArrayList<>();groupIDList.add("groupID1");groupIDList.add("groupID2");V2TIMManager.getGroupManager().getGroupsInfo(groupIDList, new V2TIMValueCallback<List<V2TIMGroupInfoResult>>() {    @Override    public void onSuccess(List<V2TIMGroupInfoResult> v2TIMGroupProfileResults) {        for (V2TIMGroupInfoResult result : v2TIMGroupProfileResults) {            V2TIMGroupInfo info = result.getGroupInfo();            Log.i("imsdk", "recvOpt: " + info.getRecvOpt());        }    }    @Override    public void onError(int code, String desc) {        Log.i("imsdk", "failure, code:" + code + ", desc:" + desc);    }});
+```
+
+```
+let array: [String] = ["groupID1", "groupID2"]V2TIMManager.shared.getGroupsInfo(groupIDList: array, succ: { groupResultList in    for result in groupResultList {        let info = result.info        print("recvOpt: \\(info?.recvOpt)")    }}, fail: { code, desc in    print("failure, code: \\(code), desc: \\(desc ?? "")")})
+```
+
+```
+NSArray* array = [NSArray arrayWithObjects:@"groupID1", @"groupID2", nil]];[[V2TIMManager sharedInstance] getGroupsInfo:array succ:^(NSArray<V2TIMGroupInfoResult *> * groupResultList) {    for (V2TIMGroupInfoResult *result in groupResultList){        V2TIMGroupInfo *info = result.info;        NSLog(@"recvOpt, %d", (int)info.recvOpt);    }} fail:^(int code, NSString *desc) {    NSLog(@"failure, code:%d, desc:%@", code, desc);}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMStringVector groupIDList;groupIDList.PushBack("groupID1");groupIDList.PushBack("groupID2");auto callback = new ValueCallback<V2TIMGroupInfoResultVector>{};callback->SetCallback(    [=](const V2TIMGroupInfoResultVector& groupInfoResultList) {        for (size_t i = 0; i < groupInfoResultList.Size(); ++i) {            const V2TIMGroupInfo& info = groupInfoResultList[i].info;            V2TIMReceiveMessageOpt recvOpt = info.recvOpt;        }        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка получения        delete callback;    });V2TIMManager::GetInstance()->GetGroupManager()->GetGroupsInfo(groupIDList, callback);
+```
+
+## Установка параметра для всех сообщений
+
+Вызовите `setAllReceiveMessageOpt`([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a21424ee9df839376ad67d824f95ceb51) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.setallreceivemessageopt(opt:starthour:startminute:startsecond:duration:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a6495713ce966d3e6cc769616cdfdb846) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#aa158b82be5ef2fdc24118a28cb232aec)) для установки параметра получения сообщений для всех сообщений. Поддерживается установка ежедневного повтора, а также указание определённого промежутка времени для активации.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+// Установить вошедшую в систему учётную запись, чтобы получать сообщения нормально в интернете с 22:00 до 06:00 каждый день, не получая уведомлений о push при отключении.V2TIMManager.getMessageManager().setAllReceiveMessageOpt(V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE, 22, 0, 0, 8*60*60, new V2TIMCallback() {    @Override    public void onSuccess() {        Log.d("imsdk", "setAllReceiveMessageOpt onSuccess");        }    @Override    public void onError(int code, String desc) {        Log.d("imsdk", "setAllReceiveMessageOpt onError code = " + code + ", desc = " + desc);}});// Предположим, что 22:00 времени UTC сегодня — это 12345678// установить вошедшую в систему учётную запись, чтобы она получала сообщения нормально в интернете и не получала уведомления о push при отключении в течение непрерывного периода в три дня, начиная с 22:00 сегодня вечером (время UTC 12345678).V2TIMManager.getMessageManager().setAllReceiveMessageOpt(V2TIMMessage.V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE, 12345678, 3*24*60*60, new V2TIMCallback() {    @Override    public void onSuccess() {        Log.d("imsdk", "setAllReceiveMessageOpt onSuccess");        }    @Override    public void onError(int code, String desc) {        Log.d("imsdk", "setAllReceiveMessageOpt onError code = " + code + ", desc = " + desc);}});
+```
+
+```
+// Установить вошедшую в систему учётную запись, чтобы получать сообщения нормально в интернете с 22:00 до 06:00 каждый день, не получая уведомлений о push при отключении.V2TIMManager.shared.setAllReceiveMessageOpt(opt: .V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE, startHour: 22, startMinute: 0, startSecond: 0, duration: 8 * 60 * 60, succ: {    print("success")}, fail: { code, desc in    print("failure, code: \\(code), desc: \\(desc ?? "")")})// Предположим, что 22:00 времени UTC сегодня — это 12345678// установить вошедшую в систему учётную запись, чтобы она получала сообщения нормально в интернете и не получала уведомления о push при отключении в течение непрерывного периода в три дня, начиная с 22:00 сегодня вечером (время UTC 12345678).let startTimeStamp: Int64 = 12345678 V2TIMManager.shared.setAllReceiveMessageOpt(opt: .V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE, startTimeStamp: Int(startTimeStamp), duration: 3 * 24 * 60 * 60, succ: {    print("success")}, fail: { code, desc in    print("failure, code: \\(code), desc: \\(desc ?? "")")})
+```
+
+```
+// Установить вошедшую в систему учётную запись, чтобы получать сообщения нормально в интернете с 22:00 до 06:00 каждый день, не получая уведомлений о push при отключении.[[V2TIMManager sharedInstance] setAllReceiveMessageOpt:V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE startHour:22 startMinute:0 startSecond:0 duration:8*60*60 succ:^{    NSLog(@"success");} fail:^(int code, NSString *desc) {    NSLog(@"failure, code:%d, desc:%@", code, desc);}];// Предположим, что 22:00 времени UTC сегодня — это 12345678// установить вошедшую в систему учётную запись, чтобы она получала сообщения нормально в интернете и не получала уведомления о push при отключении в течение непрерывного периода в три дня, начиная с 22:00 сегодня вечером (время UTC 12345678).[[V2TIMManager sharedInstance] setAllReceiveMessageOpt:V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE startTimeStamp:12345678 duration:3*24*60*60 succ:^{    NSLog(@"success");} fail:^(int code, NSString *desc) {    NSLog(@"failure, code:%d, desc:%@", code, desc);}];
+```
+
+```
+class Callback final : public V2TIMCallback {public:    using SuccessCallback = std::function<void()>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    Callback() = default;    ~Callback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess() override {        if (success_callback_) {            success_callback_();        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMReceiveMessageOpt opt = V2TIMReceiveMessageOpt::V2TIM_RECEIVE_NOT_NOTIFY_MESSAGE;auto callback = new Callback;callback->SetCallback(    [=]() {        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        delete callback;    });// Установить вошедшую в систему учётную запись, чтобы получать сообщения нормально в интернете с 22:00 до 06:00 каждый день, не получая уведомлений о push при отключении.V2TIMManager::GetInstance()->GetMessageManager()->SetAllReceiveMessageOpt(opt, 22, 0, 0, 8*60*60, callback);// Предположим, что 22:00 времени UTC сегодня — это 12345678// установить вошедшую в систему учётную запись, чтобы она получала сообщения нормально в интернете и не получала уведомления о push при отключении в течение непрерывного периода в три дня, начиная с 22:00 сегодня вечером (время UTC 12345678).V2TIMManager::GetInstance()->GetMessageManager()->SetAllReceiveMessageOpt(opt, 12345678, 3*24*60*60, callback);
+```
+
+##
+
+---
+*Источник (EN): [do-not-notify.md](./do-not-notify.md)*

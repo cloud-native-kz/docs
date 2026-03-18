@@ -1,0 +1,126 @@
+# Расширения "ключ-значение"
+
+## Обзор функции
+
+Расширение сообщения позволяет настроить ключи и значения для сообщений, чтобы реализовать опросы, групповые объявления, анкеты и другие типы сообщений.
+
+- В сценарии голосования мы можем сначала использовать API `createCustomMessage` для создания пользовательского сообщения для голосования, где `data` содержит название голосования и параметры. Затем использовать ключ расширения сообщения для хранения ID голосующего пользователя и значение расширения сообщения для хранения выбранного пользователем варианта. С каждым выбором голосующего пользователя мы можем динамически рассчитывать долю пользователей для каждого варианта голосования.
+- В сценариях цепной реакции мы можем сначала создать пользовательское сообщение для цепной реакции через API `createCustomMessage`, где `data` содержит название цепной реакции. Затем использовать ключ расширения сообщения для хранения ID пользователей и значение расширения сообщения для хранения информации о цепной реакции.
+- В сценариях опроса анкеты мы можем сначала создать пользовательское сообщение для опроса через API `createCustomMessage`, где `data` содержит название и параметры опроса. Затем использовать ключ расширения сообщения для хранения ID респондентов и значение расширения сообщения для хранения информации об опросе.
+
+> **Примечание** Эта функция доступна только для клиентов Advanced Edition, [приобретите Premium Edition](https://trtc.io/buy/chat) для использования. Эта функция должна быть включена в [консоли Chat](https://console.trtc.io/). Путь переключения: Applications > Your App > Chat > Configuration > Login and Message > Set message extension. Ключ расширения поддерживает до 100 байт, значение расширения поддерживает до 1 КБ, за один раз можно установить максимум 20 расширений, а одно сообщение может содержать до 300 расширений. Когда несколько пользователей устанавливают одинаковый ключ расширения одновременно, только первый пользователь может успешно выполнить операцию. Другие пользователи получат код ошибки 23001 и обновленную информацию о расширении. Получив код ошибки и последнюю информацию о расширении, при необходимости повторно инициируйте операцию установки. Рекомендуется, чтобы разные пользователи устанавливали разные ключи расширения, чтобы избежать большинства конфликтов в сценариях, таких как голосование, цепная реакция и опросы анкеты. Каждый пользователь может использовать собственный userID в качестве ключа расширения. Эта функция не поддерживается в сообщениях группы Live Broadcast Groups (AVChatRoom). Community и Topic поддерживают расширения сообщений.
+
+## Отображение интерфейса
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/24ebab93cbe211ef9d3a5254001c06ec.png)
+
+## setMessageExtensions
+
+Вызов интерфейса `setMessageExtensions` позволяет установить расширения сообщения. Если ключ расширения уже существует, он изменяет значение расширения. Если ключ расширения не существует, добавляется новое расширение. После успешной установки отправитель и получатель (C2C) или члены группы (Group) получат событие `TencentCloudChat.EVENT.MESSAGE_EXTENSIONS_UPDATED`.
+
+##### **API**
+
+```
+chat.setMessageExtensions(message, extensions);
+```
+
+**Параметры**
+
+| Параметр | Тип | Описание |
+| --- | --- | --- |
+| message | Message | Экземпляр сообщения, должны быть выполнены три условия: атрибут `isSupportExtension` сообщения должен быть true, сообщение должно быть успешно отправлено, сообщение не может быть сообщением AVChatRoom |
+| extensions | Array | Список пар ключ-значение расширения сообщения: если ключ расширения существует, обновить его значение; если его нет, добавить новые расширения. |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+let promise = chat.setMessageExtensions(message, [{ key: 'a', value: '1' }, { key: 'b', value: '2' }]);promise.then(function(imResponse) {  // Расширения сообщения установлены успешно   const { extensions } = imResponse.data;   extensions.forEach((item) => {     const { code, key, value } = item;     if (code === 23001) {       // Обнаружен конфликт ключей. Повторите попытку при необходимости на основе возвращенной последней информации о расширении     }   });}).catch(function(imError) {  // Ошибка установки расширений сообщения  console.warn('setMessageExtensions error:', imError);});
+```
+
+## getMessageExtensions
+
+Вызовите API `getMessageExtensions` для получения списка расширений сообщения.
+
+##### **API**
+
+```
+chat.getMessageExtensions(message);
+```
+
+##### **Параметры**
+
+| Параметр | Тип | Описание |
+| --- | --- | --- |
+| message | Message | Экземпляр сообщения, должны быть выполнены три условия: атрибут `isSupportExtension` сообщения должен быть true, сообщение должно быть успешно отправлено, сообщение не может быть из группы live broadcast group (AVChatRoom) |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+let promise = chat.getMessageExtensions(message);promise.then(function(imResponse) {  // Расширения сообщения получены успешно   const { extensions } = imResponse.data;   extensions.forEach((item) => {     const { key, value } = item;     // key - Ключ расширения сообщения     // value - Значение, соответствующее ключу расширения сообщения   });}).catch(function(imError) {  // Ошибка получения расширений сообщения  console.warn('getMessageExtensions error:', imError);});
+```
+
+## deleteMessageExtensions
+
+Вызовите API `deleteMessageExtensions` для удаления указанных расширений сообщения. Если поле `keyList` не предоставлено, все расширения сообщения будут удалены. После успешного удаления вы и другая сторона (C2C) или члены группы (Group) получат событие `TencentCloudChat.EVENT.MESSAGE_EXTENSIONS_DELETED`.
+
+##### **API**
+
+```
+chat.deleteMessageExtensions(message, keyList);
+```
+
+##### **Параметры**
+
+| Параметр | Тип | Описание |
+| --- | --- | --- |
+| message | Message | Экземпляр сообщения, должны быть выполнены три условия: атрибут isSupportExtension сообщения должен быть true, сообщение должно быть успешно отправлено, сообщение не может быть из группы live broadcast group (AVChatRoom) |
+| keyList | Array \| undefined | Список ключей расширения сообщения. |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+// Удалить ключ расширения сообщенияlet promise = chat.deleteMessageExtensions(message, ['a', 'b']);promise.then(function(imResponse) {   // Расширения сообщения удалены успешно   const { extensions } = imResponse.data;   extensions.forEach((item) => {     const { code, key, value } = item;     if (code === 23001) {       // Обнаружен конфликт удаления ключа. Повторите попытку при необходимости на основе возвращенной последней информации о расширении     }   });}).catch(function(imError) {  // Ошибка удаления расширений сообщения  console.warn('deleteMessageExtensions error:', imError);});
+```
+
+```
+// Очистить все ключи расширения сообщенияlet promise = chat.deleteMessageExtensions(message);promise.then(function(imResponse) {   // Расширения сообщения очищены успешно   console.log('deleteMessageExtensions ok:', imResponse)}).catch(function(imError) {  // Ошибка очистки расширений сообщения  console.warn('deleteMessageExtensions error:', imError);});
+```
+
+## Расширение сообщения обновлено
+
+Когда расширение сообщения добавляется или обновляется, SDK отправляет событие `TencentCloudChat.EVENT.MESSAGE_EXTENSIONS_UPDATED`. Вы можете получить обновленную информацию ключ-значение в зарегистрированном обратном вызове.
+
+##### **Примеры**
+
+```
+let onMessageExtensionsUpdated = function(event) {  const { messageID, extensions } = event.data;  // messageID - ID сообщения  // extensions - Информация о расширении сообщения  extensions.forEach((item) => {   const { key, value } = item;   // key - Ключ расширения сообщения   // value - Значение, соответствующее ключу расширения сообщения  });};chat.on(TencentCloudChat.EVENT.MESSAGE_EXTENSIONS_UPDATED, onMessageExtensionsUpdated);
+```
+
+## Расширение сообщения удалено
+
+Когда расширение сообщения удаляется, SDK отправляет событие `TencentCloudChat.EVENT.MESSAGE_EXTENSIONS_DELETED`. Вы можете получить удаленный ключ в зарегистрированном обратном вызове.
+
+##### **Примеры**
+
+```
+let onMessageExtensionsDeleted = function(event) {  const { messageID, keyList } = event.data;  // messageID - ID сообщения  // keyList - Список удаленных ключей расширения сообщения  keyList.forEach((key) => {   // console.log(key)  });};chat.on(TencentCloudChat.EVENT.MESSAGE_EXTENSIONS_DELETED, onMessageExtensionsDeleted);
+```
+
+
+---
+*Источник: [https://trtc.io/document/54166](https://trtc.io/document/54166)*
+
+---
+*Источник (EN): [key-value-extensions.md](./key-value-extensions.md)*

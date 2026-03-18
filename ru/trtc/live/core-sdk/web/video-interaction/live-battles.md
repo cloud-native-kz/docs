@@ -1,0 +1,135 @@
+# Живые баттлы
+
+**AtomicXCore** включает основной модуль [CoHostState](https://web.sdk.qcloud.com/trtc/live/web/doc/en/index.html#module-CoHostState), предназначенный для управления **кросс-румовым совместным хостингом**. Данное руководство объясняет, как интегрировать и использовать CoHostState для построения полного рабочего процесса совместного хостинга для приложений прямой трансляции.
+
+## Основной сценарий
+
+Типичный сеанс совместного хостинга включает две основные фазы. Общий рабочий процесс показан ниже:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/dde11d22d1a911f0a73852540099c741.png)
+
+## Пример проекта
+
+Полный пример реализации см. в компоненте [CoHostPanel](https://github.com/Tencent-RTC/TUIKit_Vue3/blob/main/packages/tuikit-atomicx-vue3/src/components/CoHostPanel/CoHostPanel.vue) на GitHub.
+
+## Реализация
+
+### Интеграция компонента
+
+Следуйте [Руководству быстрого старта](https://www.tencentcloud.com/document/product/647/74840) для интеграции **AtomicXCore** и настройки `LiveCoreView`.
+
+> **Примечание:** Перед тем как продолжить, убедитесь, что вы создали или присоединились к комнате, как описано в [Руководстве быстрого старта](https://www.tencentcloud.com/document/product/647/74840). Затем вы можете выполнить следующие шаги.
+
+### Кросс-румовый совместный хостинг
+
+Цель здесь — отобразить видеопотоки обоих хостов в одном представлении. Используйте [CoHostState](https://web.sdk.qcloud.com/trtc/live/web/doc/en/index.html#module-CoHostState) для включения этой функциональности.
+
+#### Реализация приглашающего (Хост A)
+
+**Отправка приглашения на совместный хостинг**
+
+Когда Хост A выбирает Хост B в пользовательском интерфейсе и инициирует запрос совместного хостинга, вызовите метод `requestHostConnection`:
+
+```
+import { useCoHostState, CoHostLayoutTemplate } from "tuikit-atomicx-vue3";// Получить экземпляр CoHostStateconst { requestHostConnection } = useCoHostState();// Пользователь нажимает кнопку "Совместный хостинг" и выбирает Хост B (targetLiveId)const inviteHostB = async (targetLiveId: string) => {  try {    await requestHostConnection({      liveId: targetLiveId, // ID комнаты целевого Хоста B      layoutTemplate: CoHostLayoutTemplate.Grid, // Выберите шаблон макета      timeout: 30, // Тайм-аут приглашения (секунды)      extensionInfo: '', // Дополнительная информация расширения    });    console.log("Приглашение на совместный хостинг отправлено, ожидание ответа...");  } catch (error) {    console.error("Ошибка отправки приглашения", error);    // При необходимости покажите уведомление Toast здесь  }};
+```
+
+**Подписка на результат приглашения**
+
+Используйте метод `subscribeEvent` из `useCoHostState` для прослушивания ответа Хоста B:
+
+```
+import { useCoHostState, CoHostEvent } from "tuikit-atomicx-vue3";import { onMounted, onUnmounted } from 'vue';const { subscribeEvent, unsubscribeEvent } = useCoHostState();const onAccepted = (eventInfo: any) => {    console.log(`Хост ${eventInfo.invitee.userName} принял приглашение на совместный хостинг`);};const onRejected = (eventInfo: any) => {    console.log(`Хост ${eventInfo.invitee.userName} отклонил приглашение на совместный хостинг`);};const onTimeout = (eventInfo: any) => {    console.log('Время ожидания истекло, ответ от другой стороны не получен');};onMounted(() => {    subscribeEvent(CoHostEvent.onCoHostRequestAccepted, onAccepted);    subscribeEvent(CoHostEvent.onCoHostRequestRejected, onRejected);    subscribeEvent(CoHostEvent.onCoHostRequestTimeout, onTimeout);});onUnmounted(() => {    unsubscribeEvent(CoHostEvent.onCoHostRequestAccepted, onAccepted);    unsubscribeEvent(CoHostEvent.onCoHostRequestRejected, onRejected);    unsubscribeEvent(CoHostEvent.onCoHostRequestTimeout, onTimeout);});
+```
+
+#### Реализация приглашаемого (Хост B)
+
+**Получение приглашения на совместный хостинг**
+
+Хост B может прослушивать входящие приглашения от Хоста A, подписавшись на событие `onCoHostRequestReceived`:
+
+```
+import { useCoHostState, CoHostEvent } from "tuikit-atomicx-vue3";import { onMounted, onUnmounted } from 'vue';const { subscribeEvent, unsubscribeEvent } = useCoHostState();const onRequestReceived = (eventInfo: any) => {    const { inviter } = eventInfo;    console.log(`Получено приглашение на совместный хостинг от Хоста ${inviter.userName}`);    // Отобразить диалог, чтобы пользователь мог принять или отклонить};onMounted(() => {    subscribeEvent(CoHostEvent.onCoHostRequestReceived, onRequestReceived);});onUnmounted(() => {    unsubscribeEvent(CoHostEvent.onCoHostRequestReceived, onRequestReceived);});
+```
+
+**Ответ на приглашение совместного хостинга**
+
+Когда Хост B делает выбор в диалоге, вызовите соответствующий метод:
+
+```
+import { useCoHostState } from "tuikit-atomicx-vue3";// Получить экземпляр CoHostStateconst { acceptHostConnection, rejectHostConnection, applicant } = useCoHostState();// Принять приглашениеconst acceptInvitation = async () => {    if (applicant.value) {        try {            // Передать liveId (roomId) приглашающего            await acceptHostConnection({ liveId: applicant.value.liveId });            console.log('Совместный хостинг принят');        } catch (error) {            console.error('Ошибка принятия совместного хостинга', error);        }    } };// Отклонить приглашениеconst rejectInvitation = async () => {    if (applicant.value) {        try {            await rejectHostConnection({ liveId: applicant.value.liveId });            console.log('Совместный хостинг отклонен');        } catch (error) {            console.error('Ошибка отклонения совместного хостинга', error);        }    } };
+```
+
+### Завершение совместного хостинга
+
+Во время сеанса PK любой из хостов может завершить соединение совместного хостинга. Вам также нужно обработать случаи, когда другой хост уходит, чтобы вы могли вернуться к макету с одним хостом.
+
+#### Завершение совместного хостинга вручную
+
+Чтобы разорвать текущий сеанс кросс-румового совместного хостинга, вызовите `exitHostConnection`. Оба — приглашающий и приглашаемый — могут использовать этот метод.
+
+```
+import { useCoHostState, CoHostStatus } from "tuikit-atomicx-vue3";// Получить экземпляр CoHostStateconst { exitHostConnection, coHostStatus } = useCoHostState();// Обработчик кнопки "Завершить PK"const stopPK = async () => {  // Проверить, находимся ли мы в состоянии совместного хостинга  if (coHostStatus.value === CoHostStatus.Connected) {    try {      await exitHostConnection();      console.log('Вышли из совместного хостинга');      // Сбросить макет пользовательского интерфейса и обработать любую дополнительную бизнес-логику здесь    } catch (error) {      console.error('Ошибка выхода из совместного хостинга:', error);    }  }};
+```
+
+#### Обнаружение выхода другого хоста
+
+Подпишитесь на событие `onCoHostUserLeft`, чтобы обнаружить, когда другой хост отключается или теряет соединение из-за исключения, и соответствующим образом обновите пользовательский интерфейс.
+
+```
+import { useCoHostState, CoHostEvent } from "tuikit-atomicx-vue3";import { onMounted, onUnmounted } from 'vue';const { subscribeEvent, unsubscribeEvent } = useCoHostState();const onUserLeft = (eventInfo: any) => {    const { userInfo } = eventInfo;    console.log(`Хост ${userInfo.userName} отключился от совместного хостинга`);        // Восстановить макет с одним хостом и удалить видеопоток другого хоста};onMounted(() => {    // Подписаться на событие ухода пользователя    subscribeEvent(CoHostEvent.onCoHostUserLeft, onUserLeft);});onUnmounted(() => {    unsubscribeEvent(CoHostEvent.onCoHostUserLeft, onUserLeft);});
+```
+
+### Демонстрация
+
+После интеграции этих функций используйте Хост A и Хост B для выполнения соответствующих операций. Эффект выполнения показан ниже.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/d039b7e7d1a911f0931a5254005ef0f7.png)
+
+## Документация API
+
+Для получения полной информации по всем публичным интерфейсам, свойствам и методам [CoHostState](https://web.sdk.qcloud.com/trtc/live/web/doc/en/index.html#module-CoHostState) и связанных классов см. официальную документацию API для фреймворка [AtomicXCore](https://web.sdk.qcloud.com/trtc/live/web/doc/en/index.html). Ключевые состояния, упомянутые в этом руководстве:
+
+| **Состояние** | **Описание функции** | **Документация API** |
+| --- | --- | --- |
+| DeviceState | Управление аудио и видеоустройствами: микрофон (отключение/включение звука, громкость), камера (включение/выключение, переключение, качество), общий доступ к экрану и мониторинг состояния устройства в реальном времени. | [Документация API](https://web.sdk.qcloud.com/trtc/live/web/doc/en/index.html#module-DeviceState) |
+| CoHostState | Управление кросс-румовым совместным хостингом хостов: поддержка нескольких шаблонов макета (динамическая сетка и т. д.), инициирование/принятие/отклонение совместного хостинга и управление взаимодействием совместных хостов. | [Документация API](https://web.sdk.qcloud.com/trtc/live/web/doc/en/index.html#module-CoHostState) |
+
+## Часто задаваемые вопросы
+
+### Приглашаемый не получает обратный вызов приглашения на совместный хостинг
+
+Если Хост B не срабатывает при событии `onCoHostRequestReceived` после того, как Хост A вызовет `requestHostConnection`, проверьте следующее:
+
+- **Проверка параметров:** Убедитесь, что `liveId` — это фактический ID комнаты целевого хоста, а не ID пользователя или другой бизнес-идентификатор.
+- **Подписка на событие:** Приглашаемый должен вызвать `subscribeEvent` для события `CoHostEvent.onCoHostRequestReceived` во время монтирования компонента (`onMounted`); в противном случае уведомления не будут получены.
+
+### Хост не отображается в кандидатах
+
+Вычисляемое свойство `candidates` автоматически отфильтровывает пользователей, которые не соответствуют критериям приглашения. Если целевой хост отсутствует, возможные причины:
+
+- **Уже отфильтрован:** Пользователь уже участвует в текущем сеансе совместного хостинга (`connected`), был приглашен (`invitees`) или в настоящее время применяет (`applicant`).
+- **Самоисключение:** Текущий вошедший в систему пользователь автоматически исключается из списка.
+- **Список не обновляется:** Убедитесь, что `liveList` был загружен правильно. Вы можете вручную вызвать `fetchLiveList` для обновления.
+
+### Обработка тайм-аута приглашения совместного хостинга
+
+При вызове `requestHostConnection` вы можете установить `timeout` (в секундах).
+
+- **Приглашающий:** Если ответ не получен в течение тайм-аута, SDK автоматически удаляет пользователя из списка приглашений и срабатывает событие `CoHostEvent.onCoHostRequestTimeout`.
+- **Приглашаемый:** Если не обработано в течение тайм-аута, срабатывает то же событие тайм-аута и состояние `applicant` сбрасывается.
+- **Рекомендация:** Оба хоста должны прослушивать событие `onCoHostRequestTimeout` для обновления пользовательского интерфейса (например, закрытие всплывающего окна ожидания).
+
+### Ошибка при принятии совместного хостинга
+
+Принятие совместного хостинга может не пройти из-за проблем с сетью или изменений в состоянии комнаты.
+
+- **Обработка ошибок:** Всегда используйте `try...catch` при вызове `acceptHostConnection`.
+- **Проверка состояния:** Перед вызовом проверьте, что `applicant.value` существует и что `liveId` действителен. Это помогает предотвратить несогласованность состояния из-за тайм-аутов или отмены другим хостом.
+
+
+---
+*Источник: [https://trtc.io/document/74844](https://trtc.io/document/74844)*
+
+---
+*Источник (EN): [live-battles.md](./live-battles.md)*

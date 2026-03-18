@@ -1,0 +1,52 @@
+# Синхронизация текстов песен
+
+## 1.1 Процесс реализации
+
+В решении для синхронизации текстов песен действия трех различных ролей следующие:
+
+| Основной вокалист | Подпевающий | Зритель |
+| --- | --- | --- |
+| Калибровка NTP времениВключение вставки черных кадровОтправка SEI сообщенийЛокальная синхронизация текстовОбновление управления текстами | Калибровка NTP времениЛокальная синхронизация текстовОбновление управления текстами | Калибровка NTP времениПолучение SEI сообщенийОбновление управления текстами |
+
+Среди них основной вокалист и подпевающий обновляют прогресс текстов локально на основе синхронизированного прогресса воспроизведения песни; конечная точка зрителя должна получать SEI сообщения, содержащие последний прогресс текстов, отправленные конечной точкой основного вокалиста, для обновления локального прогресса текстов.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/5af106675c4c11ee9ff8525400d917da.png)
+
+## Временная диаграмма
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/ddc7ebb85cde11ee94c3525400d793d0.png)
+
+Синхронизация синхронизации текстов песен может быть в основном разделена на три части: синхронизация времени NTP, включение черных кадров компенсации и синхронизация локальных и удаленных текстов. Реализация кода для синхронизации времени NTP была предоставлена в документе [Синхронизация песни](https://www.tencentcloud.com/document/product/647/57026). Далее будет предоставлена конкретная реализация кода для последних двух частей.
+
+## Ключевая реализация кода
+
+### **1. Включение вставки черных кадров**
+
+```
+// In pure audio mode, the main instance (vocal instance) // needs to enable black frame padding to carry SEI messages.NSDictionary *jsonDic = @{                            @"api": @"enableBlackStream",                            @"params":                                  @{                                    @"enable": @(1)                                  }                          };NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];[trtcCloud callExperimentalAPI:jsonString];
+```
+
+> **Примечание:** Экспериментальный интерфейс `enableBlackStream` необходимо вызвать после входа в комнату; на Android тип значения параметра `enable` — Boolean, а на iOS — Integer; сторона, принимающая данные, должна вызвать `startRemoteView(userId, null)` после получения `onUserVideoAvailable(userId, true)`.
+
+### **2. Отправка прогресса песни через SEI сообщение**
+
+```
+TXAudioMusicProgressBlock progressBlock = ^(NSInteger progressMs, NSInteger durationMs) {    // current ntp time    NSInteger ntpTime = [TXLiveBase getNetworkTimestamp];    // Notify the song progress, users will scroll the lyrics here.    NSDictionary *progressMsg = @{            @"bgmProgressTime":@(progressMs),            @"ntpTime":@(ntpTime),            @"musicId": @(musicId),            @"duration": @(durationMs),    };    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:progressMsg options:NSJSONWritingPrettyPrinted error:nil];    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];    [trtcCloud sendSEIMsg:[jsonString dataUsingEncoding:NSUTF8StringEncoding] repeatCount:1];};
+```
+
+> **Примечание:** Частота, с которой основной вокалист отправляет SEI сообщения, определяется частотой обратных вызовов событий воспроизведения фоновой музыки, которая обычно составляет 200 мс; причина **неиспользования CMD сообщений для отправки прогресса песни** заключается в том, что сигнализация, передаваемая через канал SEI, может быть передана вместе с видеокадром на CDN прямой трансляции, что обеспечивает лучшую совместимость для зрителей, которые извлекают поток CDN.
+
+### **3. Синхронизация локальных и удаленных текстов**
+
+```
+// local lyrics synchronizationTXAudioMusicProgressBlock progressBlock = ^(NSInteger progressMs, NSInteger durationMs) {    ...    // TODO Update the logic of the lyrics control.    // Determine whether it is necessary to seek the lyrics control     // based on the latest progress and the error of the local lyrics progress.    ...};// remote lyrics synchronization.- (void)onRecvSEIMsg:(NSString *)userId message:(NSData *)message {    NSError *err = nil;    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:message options:NSJSONReadingMutableContainers error:&err];    if (err || ![dic isKindOfClass:[NSDictionary class]]) {        // Parsing error.        return;    }    NSInteger bgmProgressTime = [[dic objectForKey:@"bgmProgressTime"] integerValue];    NSInteger ntpTime = [[dic objectForKey:@"ntpTime"] integerValue];    int32_t musicId = [[dic objectForKey:@"musicId"] intValue];    NSInteger duration = [[dic objectForKey:@"duration"] integerValue];    ...    // TODO Update the logic of the lyrics control.    // Determine whether it is necessary to seek the lyrics control     // based on the received latest progress and the error of the local lyrics progress.    ...}
+```
+
+> **Примечание:** Если вы повторно используете элемент управления текстами компонента TUIKaraoke, обратитесь к логике кода в разделе [TUIKaraoke TRTCLyricView](https://github.com/tencentyun/TUIKaraoke/blob/main/iOS/Source/ui/TUILyricKit/TUILyricsView.swift) для синхронизации прогресса элемента управления текстами.
+
+
+---
+*Источник: [https://trtc.io/document/57028](https://trtc.io/document/57028)*
+
+---
+*Источник (EN): [lyric-synchronization.md](./lyric-synchronization.md)*

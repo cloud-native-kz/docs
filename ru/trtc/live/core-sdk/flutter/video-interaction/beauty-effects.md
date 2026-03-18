@@ -1,0 +1,131 @@
+# Эффекты красоты
+
+`BaseBeautyStore` — это модуль в `AtomicXCore` для управления базовыми эффектами красоты для портретов. С его помощью вы можете легко добавить естественные эффекты красоты в приложения прямого эфира или вызовов.
+
+## Основные возможности
+
+- **Настройка сглаживания кожи**: установка интенсивности сглаживания кожи (0-9).
+- **Настройка эффекта осветления**: установка интенсивности осветления (0-9).
+- **Настройка эффекта румянца**: установка интенсивности румянца (0-9).
+- **Сброс эффектов**: восстановление всех параметров красоты на значения по умолчанию одним щелчком.
+- **Прослушивание статуса**: получение в реальном времени действующих параметров красоты.
+
+## Основные концепции
+
+Перед началом интеграции ознакомьтесь с основными концепциями, связанными с `BaseBeautyStore`, в таблице ниже:
+
+| **Основные концепции** | **Тип** | **Основные обязанности и описание** |
+| --- | --- | --- |
+| [BaseBeautyState](https://tencent-rtc.github.io/TUIKit_Flutter/api_device_base_beauty_store/BaseBeautyState-class.html) | `class` | Представляет текущее состояние модуля красоты. Включает значения интенсивности действующих эффектов сглаживания кожи (`smoothLevel`), отбеливания (`whitenessLevel`) и румянца (`ruddyLevel`). Все атрибуты имеют тип данных `ValueListenable<double>` и поддерживают подписку на изменения. |
+| [BaseBeautyStore](https://tencent-rtc.github.io/TUIKit_Flutter/api_device_base_beauty_store/BaseBeautyStore-class.html) | `class` | Это основной класс управления для взаимодействия с функцией базовых фильтров красоты. Это глобальный синглтон (`shared`), отвечающий за ВСЕ настройки базовых параметров красоты, сброс и синхронизацию состояния. |
+
+## Этапы реализации
+
+### Этап 1: интеграция компонента
+
+Обратитесь к [Быстрому подключению](https://www.tencentcloud.com/document/product/647/77552) для безупречной интеграции с **AtomicXCore** и получения доступа к завершенному компоненту.
+
+### Этап 2: получение экземпляра и прослушивание состояния
+
+Получите глобальный синглтон `BaseBeautyStore` и установите прослушиватель для получения в реальном времени текущего статуса параметров эффекта красоты.
+
+1. **Получение синглтона**: используйте напрямую `BaseBeautyStore.shared` для получения глобально уникального экземпляра `BaseBeautyStore`.
+2. **Подписка на состояние**: прослушивайте изменения свойств `baseBeautyState` через `addListener`, чтобы получать обновления параметров красоты в реальном времени.
+
+#### Пример кода
+
+```
+import 'package:flutter/material.dart';import 'package:atomic_x_core/atomicxcore.dart';class BeautyManager {  // 1. Получение синглтона  final _baseBeautyStore = BaseBeautyStore.shared;  late final VoidCallback _smoothLevelChangedListener = _onSmoothLevelChanged;  late final VoidCallback _whitenessLevelChangedListener = _onWhitenessLevelChanged;  late final VoidCallback _ruddyLevelChangedListener = _onRuddyLevelChanged;  // 2. Подписка на состояние  void subscribeToBeautyState() {    _baseBeautyStore.baseBeautyState.smoothLevel.addListener(_smoothLevelChangedListener);    _baseBeautyStore.baseBeautyState.whitenessLevel.addListener(_whitenessLevelChangedListener);    _baseBeautyStore.baseBeautyState.ruddyLevel.addListener(_ruddyLevelChangedListener);  }  void _onSmoothLevelChanged() {    final level = _baseBeautyStore.baseBeautyState.smoothLevel.value;    debugPrint('Skin smoothing strength adjustment: $level');  }  void _onWhitenessLevelChanged() {    final level = _baseBeautyStore.baseBeautyState.whitenessLevel.value;    debugPrint('Whitening strength adjustment: $level');  }  void _onRuddyLevelChanged() {    final level = _baseBeautyStore.baseBeautyState.ruddyLevel.value;    debugPrint('Rosy strength adjustment: $level');  }  // Выполните dispose перед выходом из приложения  void dispose() {    _baseBeautyStore.baseBeautyState.smoothLevel.removeListener(_smoothLevelChangedListener);    _baseBeautyStore.baseBeautyState.whitenessLevel.removeListener(_whitenessLevelChangedListener);    _baseBeautyStore.baseBeautyState.ruddyLevel.removeListener(_ruddyLevelChangedListener);  }}
+```
+
+### Этап 3: установка параметров красоты
+
+Когда пользователь перемещает ползунок эффекта красоты или нажимает кнопку предустановки, вызовите соответствующий API для установки интенсивности эффектов красоты.
+
+1. **Получение значения интенсивности**: получите значение интенсивности, установленное пользователем из элемента управления пользовательского интерфейса (например, `Slider`). Диапазон параметров, принимаемых API SDK, составляет `0-9`, где `0` означает отключение эффекта, а `9` указывает на наиболее выраженный эффект. Необходимо сопоставить значение элемента управления пользовательского интерфейса (например, `0.0 - 1.0` ползунка) с диапазоном `0 - 9`.
+2. **Вызов API**: вызовите `setSmoothLevel()`, `setWhitenessLevel()` и `setRuddyLevel()` для установки интенсивности эффектов сглаживания кожи, отбеливания и румянца.
+
+#### Пример кода
+
+```
+extension BeautyManagerExtension on BeautyManager {  /// Установка интенсивности сглаживания кожи (диапазон ввода 0.0 ~ 1.0, внутреннее преобразование в 0 ~ 9)  void updateSmoothLevel(double uiLevel) {    // Сопоставить UI 0.0 ~ 1.0 с SDK 0 ~ 9    final sdkLevel = uiLevel * 9.0;    _baseBeautyStore.setSmoothLevel(sdkLevel);  }  /// Установка интенсивности отбеливания (диапазон ввода 0.0 ~ 1.0, внутреннее преобразование в 0 ~ 9)  void updateWhitenessLevel(double uiLevel) {    final sdkLevel = uiLevel * 9.0;    _baseBeautyStore.setWhitenessLevel(sdkLevel);  }  /// Установка уровня румянца (диапазон ввода 0.0 ~ 1.0, внутреннее преобразование в 0 ~ 9)  void updateRuddyLevel(double uiLevel) {    final sdkLevel = uiLevel * 9.0;    _baseBeautyStore.setRuddyLevel(sdkLevel);  }}
+```
+
+### Этап 4: сброс эффектов красоты
+
+Когда пользователь нажимает кнопку "**Сброс**" или "**Отключить эффекты красоты**", вызовите метод `baseBeautyStore.reset()` для восстановления всех параметров красоты на значение по умолчанию (обычно 0).
+
+#### Пример кода
+
+```
+extension BeautyManagerReset on BeautyManager {  /// Сброс ВСЕХ базовых эффектов красоты  void resetBeautyEffects() {    _baseBeautyStore.reset();  }}
+```
+
+## Построение пользовательского интерфейса эффектов красоты
+
+Flutter рекомендует использовать `ValueListenableBuilder` для построения реактивного пользовательского интерфейса, который автоматически обновляет интерфейс при изменении параметров эффектов красоты:
+
+```
+class BeautySliderWidget extends StatelessWidget {  final beautyStore = BaseBeautyStore.shared;  @override  Widget build(BuildContext context) {    return Column(      children: [        // Ползунок сглаживания кожи        ValueListenableBuilder<double>(          valueListenable: beautyStore.baseBeautyState.smoothLevel,          builder: (context, smoothLevel, child) {            return Row(              children: [                Text('Skin smoothing')                Expanded(                  child: Slider(                    value: smoothLevel,                    min: 0,                    max: 9,                    divisions: 9,                    onChanged: (value) {                      beautyStore.setSmoothLevel(value);                    },                  ),                ),                Text('${smoothLevel.toInt()}'),              ],            );          },        ),        // Ползунок отбеливания        ValueListenableBuilder<double>(          valueListenable: beautyStore.baseBeautyState.whitenessLevel,          builder: (context, whitenessLevel, child) {            return Row(              children: [                Text('Whitening')                Expanded(                  child: Slider(                    value: whitenessLevel,                    min: 0,                    max: 9,                    divisions: 9,                    onChanged: (value) {                      beautyStore.setWhitenessLevel(value);                    },                  ),                ),                Text('${whitenessLevel.toInt()}'),              ],            );          },        ),        // Ползунок румянца        ValueListenableBuilder<double>(          valueListenable: beautyStore.baseBeautyState.ruddyLevel,          builder: (context, ruddyLevel, child) {            return Row(              children: [                Text('Rosy')                Expanded(                  child: Slider(                    value: ruddyLevel,                    min: 0,                    max: 9,                    divisions: 9,                    onChanged: (value) {                      beautyStore.setRuddyLevel(value);                    },                  ),                ),                Text('${ruddyLevel.toInt()}'),              ],            );          },        ),      ],    );  }}
+```
+
+## Полный пример кода
+
+```
+import 'package:flutter/material.dart';import 'package:atomic_x_core/atomicxcore.dart';class BeautySettingsPage extends StatelessWidget {  final beautyStore = BaseBeautyStore.shared;  @override  Widget build(BuildContext context) {    return Scaffold(      appBar: AppBar(title: Text('Beauty settings')),      body: Padding(        padding: EdgeInsets.all(16),        child: Column(          children: [            // Сглаживание кожи            _buildBeautySlider(              title: 'Skin smoothing'              valueListenable: beautyStore.baseBeautyState.smoothLevel,              onChanged: (value) => beautyStore.setSmoothLevel(value),            ),            SizedBox(height: 20),            // Отбеливание            _buildBeautySlider(              title: 'Whitening',              valueListenable: beautyStore.baseBeautyState.whitenessLevel,              onChanged: (value) => beautyStore.setWhitenessLevel(value),            ),            SizedBox(height: 20),            // Румянец            _buildBeautySlider(              title: 'Rosy'              valueListenable: beautyStore.baseBeautyState.ruddyLevel,              onChanged: (value) => beautyStore.setRuddyLevel(value),            ),            SizedBox(height: 40),            // кнопка сброса            ElevatedButton(              onPressed: () {                beautyStore.reset();              },              child: Text('Reset beauty effect'),            ),          ],        ),      ),    );  }  Widget _buildBeautySlider({    required String title,    required ValueListenable<double> valueListenable,    required ValueChanged<double> onChanged,  }) {    return ValueListenableBuilder<double>(      valueListenable: valueListenable,      builder: (context, value, child) {        return Column(          crossAxisAlignment: CrossAxisAlignment.start,          children: [            Row(              mainAxisAlignment: MainAxisAlignment.spaceBetween,              children: [                Text(title, style: TextStyle(fontSize: 16)),                Text('${value.toInt()}', style: TextStyle(fontSize: 16)),              ],            ),            Slider(              value: value,              min: 0,              max: 9,              divisions: 9,              onChanged: onChanged,            ),          ],        );      },    );  }}
+```
+
+## Расширенные возможности
+
+### Базовый фильтр красоты и продвинутый эффект красоты
+
+AtomicXCore также предоставляет расширенные функции красоты для более требовательных сценариев:
+
+| Элемент сравнения | Базовая красота (BaseBeautyStore) | Продвинутая красота (TencentEffect, требует дополнительной интеграции) |
+| --- | --- | --- |
+| Основные возможности | Сглаживание кожи, отбеливание, румянец | Все функции базовой красоты, плюс V-образное лицо, расстояние между глазами, сужение носа, трехмерные наклейки, фильтры, макияж и многое другое |
+| Цены | Бесплатно (включено в лицензию AtomicXCore) | Платно (требует отдельной лицензии SDK TencentEffect) |
+| Метод интеграции | Встроено по умолчанию, используйте BaseBeautyStore.shared напрямую | Требует дополнительной интеграции компонента TencentEffect и аутентификации |
+| Рекомендуемые сценарии | Используйте для простых требований к красоте или когда вам необходимо быстро включить базовые функции красоты | Используйте для расширенных требований к красоте, включая формирование лица, наклейки, фильтры и другие улучшенные эффекты |
+
+### Интеграция продвинутой красоты
+
+Если вам необходимо использовать функцию продвинутой красоты, обратитесь к документу [Продвинутая красота](https://trtc.io/document/73778?product=beautyar&menulabel=core%20sdk&platform=flutter) для интеграции. После успешной интеграции и аутентификации `TencentEffect` вы можете контролировать ВСЕ эффекты красоты через API, предоставленный `TencentEffect`.
+
+## Справочник API
+
+### BaseBeautyStore
+
+| **Свойство/Метод** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `shared` | `BaseBeautyStore` | Экземпляр синглтона |
+| `baseBeautyState` | `BaseBeautyState` | Статус эффектов красоты |
+| `setSmoothLevel` | `void` | Установка интенсивности сглаживания кожи (0-9). |
+| `setWhitenessLevel` | `void` | Установка интенсивности осветления (0-9). |
+| `setRuddyLevel` | `void` | Установка интенсивности румянца (0-9). |
+| `reset` | `void` | Сброс всех параметров красоты на значение по умолчанию (0). |
+
+### BaseBeautyState
+
+| **Атрибут** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `smoothLevel` | `ValueListenable<double>` | Интенсивность сглаживания кожи (0-9). |
+| `whitenessLevel` | `ValueListenable<double>` | Интенсивность осветления (0-9). |
+| `ruddyLevel` | `ValueListenable<double>` | Интенсивность румянца (0-9). |
+
+## Часто задаваемые вопросы
+
+### Параметры красоты не действуют после установки
+
+Если вы не видите эффект красоты после установки параметров, проверьте следующее:
+
+1. Камера включена: убедитесь, что камера открыта (например, с помощью `DeviceStore.shared.openLocalCamera()`). Эффекты красоты применяются к видеопотоку только при активной камере.
+2. Интеграция продвинутой красоты: если вы интегрировали TencentEffect (продвинутая красота), убедитесь, что вы используете API, предоставленные TencentEffect, для настройки параметров красоты.
+3. Диапазон параметров: для базовой красоты проверьте, что значения интенсивности, которые вы предоставляете, находятся в допустимом диапазоне (от 0 до 9 в виде double).
+
+
+---
+*Источник: [https://trtc.io/document/77557](https://trtc.io/document/77557)*
+
+---
+*Источник (EN): [beauty-effects.md](./beauty-effects.md)*

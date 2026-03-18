@@ -1,0 +1,68 @@
+# Запуск примера кода
+
+В этом документе описано, как быстро запустить демонстрацию SDK TRTC для iOS.
+
+## Предварительные требования
+
+- Xcode 11.0 или более поздняя версия
+- Действительная подпись разработчика для вашего проекта
+- Qt Creator 4.13.3 (macOS) или более поздняя версия
+
+## Шаги для запуска демонстрации
+
+### Шаг 1. Загрузите демонстрацию
+
+Загрузите [iOS](https://github.com/Tencent-RTC/TRTC_iOS) пример кода демонстрации с github или выполните следующую команду в терминале:
+
+```
+git clone https://github.com/Tencent-RTC/TRTC_iOS.git
+```
+
+Вы можете выбрать между OC и Swift:
+
+- **TRTC-API-Example-OC:** выполните `pod install` в окне терминала после перехода в директорию вашего проекта и пропустите другие шаги в [iOS SDK Importing](https://trtc.io/document/35092).
+- **TRTC-API-Example-Swift:** загрузите [SDK](https://liteav.sdk.qcloud.com/download/latest/TXLiteAVSDK_TRTC_iOS_latest.zip), необходимый для проекта, и переместите распакованные файлы `TXFFmpeg.xcframework`/`TXSoundTouch.xcframework`/`TXLiteAVSDK_TRTC_Mac.xcframework`/`TXLiteAVSDK_ReplayKitExt.xcframework` в папку **TRTC_iOS/SDK**.
+
+### Шаг 2. Конфигурация демонстрации
+
+1. Войдите в [консоль TRTC](https://console.trtc.io/) и нажмите **Create Application**. Если вы уже это сделали, вы можете пропустить этот шаг.
+2. Затем в разделе **Basic Information** вы можете получить свои `SDKAppID` и `SDKSecretKey` созданного приложения.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/77146c9239ac11ef9397525400fdb830.png)
+
+3. Замените значения **SDKAPPID** и **SDKSECRETKEY** в файле `GenerateTestUserSig.h` или `GenerateTestUserSig.swift` в директории `TRTC-API-Example-XX/Debug` на информацию, полученную на шаге 2.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/76f7130e39ac11ef933a52540055f650.png)
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/6f13499b6b5c11ef839b52540055f650.png)
+
+> **Примечание:** В приведенной выше демонстрации мы использовали **SDKSecretKey** для локального создания **UserSig** чтобы помочь вам легче пройти демонстрацию. Однако в производственной среде вы не должны генерировать userSig таким образом, что может привести к утечке **SDKSecretKey**, создавая возможность для злоумышленников украсть ваш трафик TRTC. **Правильный способ генерации UserSig — это интеграция** [**Server-Side Generation of UserSig**](https://trtc.io/document/35166) **на вашем сервере.** Когда пользователь входит в комнату: Отправьте http-запрос на ваш сервер. Создайте UserSig на вашем сервере. Вернитесь к пользователю для входа в комнату. Когда вы развертываете вашу страницу в производственной среде, вам необходимо получить доступ к странице через HTTPS (например `https://domain/xxx`). Для получения дополнительной информации см. документацию [Page Access Protocol Restriction Description](https://web.sdk.qcloud.com/trtc/webrtc/v5/doc/en/tutorial-05-info-browser.html#h2-3).
+
+4. Если вы выбрали **TRTC-API-Example-OC**, перейдите в `Build Phases` и в разделе `Link Binary With Libraries` добавьте `TXFFmpeg.xcframework` и `TXSoundTouch.xcframework` для вашего проекта.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/5bbdc04e6c1a11efa25e52540075b605.png)
+
+> **Примечание:** Если вы используете эмулятор для создания вашего опыта, вы можете получить ошибку: Building for 'iOS-simulator', but linking in object file (/Path/To/TRTC_iOS/TRTC-API-Example-OC/Pods/TXLiteAVSDK_TRTC/TXLiteAVSDK_TRTC/TXLiteAVSDK_ReplayKitExt.framework/TXLiteAVSDK_ReplayKitExt[arm64][2](TXCEncodeHelper.o)) built for 'iOS'. Решение: Перейдите в `Build Settings` вашего проекта и добавьте `Any iOS Simulator SDK` со значением `arm64` в `Excluded Architecture` для обоих TRTC-API-Example-OC и TXReplayKit_Screen.
+
+### Шаг 3. Запустите демонстрацию
+
+- **OCDemo:** Откройте `TRTC-API-Example-OC.xcworkspace` с помощью Xcode (11.0 или более поздняя версия), затем скомпилируйте и запустите проект TRTC-API-Example.
+- **SwiftDemo:** Просто скомпилируйте и запустите проект TRTC-API-Example-Swift.
+
+### Шаг 4. Протестируйте демонстрацию
+
+Вы можете выбрать интересующие вас функции для тестирования.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/76f6300039ac11ef9b60525400bdab9d.png)
+
+## Часто задаваемые вопросы
+
+- Если у вас возникнут проблемы с доступом и использованием, обратитесь к [Часто задаваемым вопросам](https://trtc.io/document/36058?platform=ios&product=rtcengine).
+- Если у вас есть какие-либо требования или отзывы, вы можете связаться: info_rtc@tencent.com.
+
+
+---
+*Источник: [https://trtc.io/document/35086](https://trtc.io/document/35086)*
+
+---
+*Источник (EN): [run-sample-code.md](./run-sample-code.md)*

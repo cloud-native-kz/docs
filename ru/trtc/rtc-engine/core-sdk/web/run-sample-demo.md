@@ -1,0 +1,45 @@
+# Запуск демонстрационного примера
+
+## Введение
+
+Быстрая демонстрация показывает основные возможности аудио и видеосвязи с примерами кода:
+
+- Установка пользователя для входа в платформу сервиса TRTC
+- Включение/выключение вашей камеры и микрофона и отправка их другим пользователям
+- Совместное использование экрана с другими пользователями
+
+## Как использовать
+
+### 1. Создание приложения
+
+Пользователи в рамках одного приложения могут входить в одну комнату для аудио и видеовызовов. `SDKAppID` и `SDKSecretKey` — это уникальные учетные данные для проверки приложения.
+
+Вы можете создать их в [Console](https://console.trtc.io/app) и получить `SDKAppID` и `SDKSecretKey`. Мы будем использовать их для входа в быструю демонстрацию.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/a6d10e5b4b3c11efbaba525400d5f8ef.png)
+
+### 2. Онлайн-демонстрация
+
+Вы можете ввести `SDKAppID` и `SDKSecretKey`, полученные на первом этапе, в следующую демонстрацию и нажать кнопку "Enter Room".
+
+После успешного входа будет сгенерирована ссылка приглашения, с помощью которой вы можете пригласить другого человека присоединиться к вызову!
+
+## Дополнительные демонстрации
+
+Описанная выше демонстрация написана на native JavaScript. Вы можете получить доступ к её [исходному коду здесь](https://github.com/Tencent-RTC/TRTC_Web/tree/main/quick-demo-js), а также можете нажать на [эту ссылку](https://web.sdk.qcloud.com/trtc/webrtc/v5/demo/quick-demo-js/index.html), чтобы открыть её в отдельном окне.
+
+Мы также предоставляем демонстрации для vue2 и vue3. Вот ссылки:
+
+- [Онлайн-демонстрация Vue2](https://web.sdk.qcloud.com/trtc/webrtc/v5/demo/quick-demo-vue2-js/index.html#/)
+- [Онлайн-демонстрация Vue3](https://web.sdk.qcloud.com/trtc/webrtc/v5/demo/quick-demo-vue3-ts/index.html#/)
+- [Vue2 на Github](https://github.com/Tencent-RTC/TRTC_Web/tree/main/quick-demo-vue2-js)
+- [Vue3 на Github](https://github.com/Tencent-RTC/TRTC_Web/tree/main/quick-demo-vue3-ts)
+
+Если вы хотите интегрировать это самостоятельно, вы можете посетить [документацию по интеграции.](https://trtc.io/document/59649?platform=web&product=rtcengine)
+
+
+---
+*Источник: [https://trtc.io/document/35607](https://trtc.io/document/35607)*
+
+---
+*Источник (EN): [run-sample-demo.md](./run-sample-demo.md)*

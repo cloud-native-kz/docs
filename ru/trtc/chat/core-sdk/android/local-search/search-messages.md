@@ -1,0 +1,166 @@
+# Поиск сообщений
+
+## Описание функции
+
+Локальный поиск сообщений — это функция, необходимая для улучшения пользовательского опыта приложения. Она позволяет пользователям быстро и удобно находить необходимую информацию в больших объемах сложных данных. Она также может использоваться как инструмент управления для легкого и эффективного навигации по обширному контенту.
+
+> **Примечание**: Можно искать только локальные сообщения, например полученные сообщения или исторические сообщения, полученные после вызова API. Функция поиска сообщений поддерживается только Enhanced SDK версии 5.4.666 или выше. Функция локального поиска сообщений доступна только в редакциях Chat Pro, Pro Plus и Enterprise. Чтобы использовать её, [приобретите редакцию Pro, Pro Plus или Enterprise](https://trtc.io/buy/chat).
+
+## Класс поиска сообщений
+
+### Класс параметров поиска сообщений
+
+Класс параметров поиска сообщений — это `V2TIMMessageSearchParam` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageSearchParam.html) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMMessageSearchParam.html) / [Objective-C](https://im.sdk.qcloud.com/doc/en/interfaceV2TIMMessageSearchParam.html) / [C++](https://im.sdk.qcloud.com/doc/en/structV2TIMMessageSearchParam.html)). При поиске сообщений SDK выполняет различную логику поиска в зависимости от параметров объекта.
+
+Параметры `V2TIMMessageSearchParam` описаны ниже:
+
+| Параметр | Определение | Описание |
+| --- | --- | --- |
+| keywordList | Список ключевых слов | Может содержать до пяти ключевых слов. Если не указаны отправитель сообщения и тип сообщения, список ключевых слов должен быть установлен; в других случаях его можно оставить пустым. |
+| keywordListMatchType | Тип совпадения списка ключевых слов | Можно установить на `OR` или `AND`. Допустимые значения: `V2TIM_KEYWORD_LIST_MATCH_TYPE_OR` (по умолчанию), `V2TIM_KEYWORD_LIST_MATCH_TYPE_AND`. |
+| senderUserIDList | `userID` отправителя сообщений | Может содержать до пяти ID пользователей. |
+| messageTypeList | Набор типов сообщений для поиска | Если оставить пустым, будут искаться сообщения всех поддерживаемых типов (исключая `V2TIMFaceElem` и `V2TIMGroupTipsElem`). Дополнительную информацию о значениях других типов см. в `V2TIMElemType` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessage.html#a00455865d1a14191b8c612252bf20a1c) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMElem.html) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a849af0e4698e8db9f227f9c8e54215b8) / [C++](https://im.sdk.qcloud.com/doc/en/V2TIMMessage_8h.html#a6854ecfbc6f3b65ed381d8a2e14e2377)). |
+| conversationID | Поиск во всех беседах или в указанной беседе | Если оставить пустым, будет выполнен поиск во всех беседах; в противном случае будет выполнен поиск в указанной беседе. |
+| searchTimePosition | Начальное время поиска | По умолчанию `0`, что означает поиск с текущей временной позиции. UTC временная метка в секундах. |
+| searchTimePeriod | Прошедший период времени, начиная со времени начала | По умолчанию `0`, что означает отсутствие ограничения по диапазону времени. Указывается в секундах. `24x60x60` представляет прошедший день. |
+| pageIndex | Номер страницы | Используется для отображения результатов поиска по страницам. `0` означает первую страницу. |
+| pageSize | Количество результатов на странице | Используется для отображения результатов поиска по страницам. Установите на `0`, если не требуется постраничное отображение. Если за один раз будет получено слишком много результатов, это может привести к проблемам с производительностью. |
+
+### Класс результата поиска сообщений
+
+Класс результата поиска сообщений — это `V2TIMMessageSearchResult`([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageSearchResult.html)  / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMMessageSearchResult.html) / [Objective-C](https://im.sdk.qcloud.com/doc/en/interfaceV2TIMMessageSearchResult.html) / [C++](https://im.sdk.qcloud.com/doc/en/structV2TIMMessageSearchResult.html)). Параметры описаны ниже:
+
+| Параметр | Определение | Описание |
+| --- | --- | --- |
+| totalCount | Общее количество результатов поиска | Если выполняется поиск в указанной беседе, возвращается **общее количество сообщений**, соответствующих критериям поиска. Если выполняется поиск во всех беседах, возвращается **общее количество бесед**, к которым относятся сообщения, соответствующие критериям поиска. |
+| messageSearchResultItems | Тип совпадения списка ключевых слов | Если выполняется поиск в указанной беседе, список результатов будет содержать только элементы результата в этой беседе. Если выполняется поиск во всех беседах, сообщения, соответствующие критериям поиска, будут сгруппированы по ID беседы и возвращены постранично. |
+
+Здесь `messageSearchResultItems` — это список, содержащий объекты `V2TIMMessageSearchResultItem` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageSearchResultItem.html) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMMessageSearchResultItem.html) /  [Objective-C](https://im.sdk.qcloud.com/doc/en/interfaceV2TIMMessageSearchResultItem.html) / [C++](https://im.sdk.qcloud.com/doc/en/structV2TIMMessageSearchResultItem.html)). Параметры описаны ниже:
+
+| Параметр | Определение | Описание |
+| --- | --- | --- |
+| conversationID | ID беседы | - |
+| messageCount | Количество сообщений | Количество сообщений, соответствующих критериям поиска и найденных в текущей беседе. |
+| messageList | Список сообщений, соответствующих критериям поиска | Если выполняется поиск в указанной беседе, `messageList` — это список сообщений в этой беседе, соответствующих критериям поиска. Если выполняется поиск во всех беседах, `messageList` может показать следующие результаты: Если количество найденных сообщений в беседе больше 1, `messageList` пуста, и вы можете отобразить на UI «{`messageCount`} соответствующих записей». Если количество найденных сообщений в беседе равно 1, `messageList` содержит найденное сообщение, и вы можете отобразить его на UI с выделением найденного ключевого слова. |
+
+## Поиск сообщений во всех беседах
+
+Когда пользователь вводит ключевое слово в поле поиска для поиска сообщений, вы можете вызвать `searchLocalMessages` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a9364c8a0c6a0899b17c0a479b8ca848a) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.searchlocalmessages(param:succ:fail:)) /  [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a10878d0bd326b07ec6a605c5695c7de1) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#a46be86c0177c868f03fc939c88e2e36d)) для поиска локальных сообщений SDK Chat.
+
+Если вы хотите выполнить поиск во всех беседах, вам просто нужно оставить `conversationID` в `V2TIMMessageSearchParam` пустым или не указывать его.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+List<String> keywordList = new ArrayList<>();keywordList.add("abc");keywordList.add("123");V2TIMMessageSearchParam searchParam = new V2TIMMessageSearchParam();// Установка ключевого слова для поискаsearchParam.setKeywordList(keywordList);// Поиск данных на странице 0searchParam.setPageIndex(0);// Поиск десяти записей данных на страницуsearchParam.setPageSize(10);V2TIMManager.getMessageManager().searchLocalMessages(searchParam, new V2TIMValueCallback<V2TIMMessageSearchResult>() {  @Override  public void onSuccess(V2TIMMessageSearchResult v2TIMMessageSearchResult) {    // Данные найдены успешно  }  @Override  public void onError(int code, String desc) {    // Ошибка поиска данных  }});
+```
+
+```
+let param = V2TIMMessageSearchParam()param.keywordList = ["key1", "key2"]param.keywordListMatchType = .V2TIM_KEYWORD_LIST_MATCH_TYPE_ANDparam.senderUserIDList = ["1", "2"]param.messageTypeList = [.V2TIM_ELEM_TYPE_TEXT, .V2TIM_ELEM_TYPE_IMAGE]param.searchTimePosition = 100param.searchTimePeriod = 100// Поиск данных на странице 0param.pageIndex = 0// Поиск десяти записей данных на страницуparam.pageSize = 10V2TIMManager.shared.searchLocalMessages(param: param) { searchResult in    print(searchResult.description)} fail: { code, desc in    print("searchLocalMessages fail, \\(code), \\(desc)")}
+```
+
+```
+V2TIMMessageSearchParam *param = [[V2TIMMessageSearchParam alloc] init];// Установка ключевого слова для поискаparam.keywordList = @[@"abc", @"123"];param.messageTypeList = nil;param.conversationID = nil;param.searchTimePosition = 0;param.searchTimePeriod = 0;// Поиск данных на странице 0param.pageIndex = 0;// Поиск десяти записей данных на страницуparam.pageSize = 10;[V2TIMManager.sharedInstance searchLocalMessages:param                                            succ:^(V2TIMMessageSearchResult *searchResult) {    // Данные найдены успешно. `searchResult` возвращает результат поиска.} fail:^(int code, NSString *desc) {    // Ошибка поиска данных}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMMessageSearchParam searchParam;// Установка ключевого слова для поискаsearchParam.keywordList.PushBack("abc");searchParam.keywordList.PushBack("123");// Поиск данных на странице 0searchParam.pageIndex = 0;// Поиск десяти записей данных на страницуsearchParam.pageSize = 10;auto callback = new ValueCallback<V2TIMMessageSearchResult>{};callback->SetCallback(    [=](const V2TIMMessageSearchResult& messageSearchResult) {        // Данные найдены успешно        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка поиска данных        delete callback;    });V2TIMManager::GetInstance()->GetMessageManager()->SearchLocalMessages(searchParam, callback);
+```
+
+## Поиск сообщений в указанной беседе
+
+Когда пользователь вводит ключевое слово в поле поиска для поиска сообщений, вы можете вызвать `searchLocalMessages` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a9364c8a0c6a0899b17c0a479b8ca848a) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.searchlocalmessages(param:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a10878d0bd326b07ec6a605c5695c7de1) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#a46be86c0177c868f03fc939c88e2e36d)) для поиска локальных сообщений SDK Chat.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+List<String> keywordList = new ArrayList<>();keywordList.add("abc");keywordList.add("123");V2TIMMessageSearchParam searchParam = new V2TIMMessageSearchParam();// Поиск личных сообщений с пользователем `user1`searchParam.setConversationID("c2c_user1");// Установка ключевого слова для поискаsearchParam.setKeywordList(keywordList);// Поиск данных на странице 0searchParam.setPageIndex(0);// Поиск десяти записей данных на страницуsearchParam.setPageSize(10);V2TIMManager.getMessageManager().searchLocalMessages(searchParam, new V2TIMValueCallback<V2TIMMessageSearchResult>() {  @Override  public void onSuccess(V2TIMMessageSearchResult v2TIMMessageSearchResult) {    // Данные найдены успешно  }  @Override  public void onError(int code, String desc) {    // Ошибка поиска данных  }});
+```
+
+```
+let param = V2TIMMessageSearchParam()param.keywordList = ["key1", "key2"]// Поиск личных сообщений с пользователем `user1`param.conversationID = "c2c_user1"param.searchTimePosition = 0param.searchTimePeriod = 0// Поиск данных на странице 0param.pageIndex = 0// Поиск десяти записей данных на страницуparam.pageSize = 10V2TIMManager.shared.searchLocalMessages(param: param) { searchResult in    print(searchResult.description)} fail: { code, desc in    print("searchLocalMessages fail, \\(code), \\(desc)")}
+```
+
+```
+V2TIMMessageSearchParam *param = [[V2TIMMessageSearchParam alloc] init];// Установка ключевого слова для поискаparam.keywordList = @[@"abc", @"123"];param.messageTypeList = nil;// Поиск личных сообщений с пользователем `user1`param.conversationID = @"c2c_user1";param.searchTimePosition = 0;param.searchTimePeriod = 0;// Поиск данных на странице 0param.pageIndex = 0;// Поиск десяти записей данных на страницуparam.pageSize = 10;[V2TIMManager.sharedInstance searchLocalMessages:param                                            succ:^(V2TIMMessageSearchResult *searchResult) {    // Данные найдены успешно. `searchResult` возвращает результат поиска.} fail:^(int code, NSString *desc) {    // Ошибка поиска данных}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMMessageSearchParam searchParam;// Поиск личных сообщений с пользователем `user1`searchParam.conversationID = "c2c_user1";// Установка ключевого слова для поискаsearchParam.keywordList.PushBack("abc");searchParam.keywordList.PushBack("123");// Поиск данных на странице 0searchParam.pageIndex = 0;// Поиск десяти записей данных на страницуsearchParam.pageSize = 10;auto callback = new ValueCallback<V2TIMMessageSearchResult>{};callback->SetCallback(    [=](const V2TIMMessageSearchResult& messageSearchResult) {        // Данные найдены успешно        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка поиска данных        delete callback;    });V2TIMManager::GetInstance()->GetMessageManager()->SearchLocalMessages(searchParam, callback);
+```
+
+## Типичные примеры сценариев поиска
+
+Обычное программное обеспечение чата обычно разделяет отображение интерфейса поиска на следующие сценарии:
+
+| Рисунок 1: Поиск бесед | Рисунок 2: Поиск большего количества бесед | Рисунок 3: Поиск сообщений в указанной беседе |
+| --- | --- | --- |
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/52ea248720b011ee909c525400cea498.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/573916a220b011eea27e525400c56988.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/5bfa5a9c20b011eea27e525400c56988.png) |
+
+Мы будем показывать вам по очереди, как использовать API поиска SDK для реализации типичного сценария, представленного на рисунках выше.
+
+### Отображение недавних активных бесед
+
+Как показано на рисунке 1, нижняя часть интерфейса поиска содержит список последних трёх бесед, к которым относятся найденные сообщения. Способ реализации следующий:
+
+1. Установите параметр поиска `V2TIMMessageSearchParam`.
+  - Установите `conversationID` на `null`, что означает поиск во всех беседах.
+  - Установите `pageIndex` на `0`, что означает первую страницу бесед, к которым относятся найденные сообщения.
+  - Установите `pageSize` на `3`, что означает количество возвращаемых последних бесед. Обычно на UI отображаются последние три беседы.
+2. Обработайте результат обратного вызова поиска `V2TIMMessageSearchResult`.
+  - `totalCount` указывает количество всех бесед, к которым относятся найденные сообщения.
+  - Список `messageSearchResultItems` содержит информацию о последних трёх беседах (то есть параметр `pageSize`). Здесь `messageCount` элемента `V2TIMMessageSearchResultItem` указывает общее количество найденных сообщений в текущей беседе.
+  - Если количество найденных сообщений больше 1, `messageList` пуста, и на UI отображается уведомление «{`messageCount`} соответствующих записей чата».
+  - Если количество найденных сообщений равно 1, `messageList` содержит найденное сообщение, и содержимое сообщения отображается на UI с выделением ключевого слова поиска, например **test** на рисунках выше.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+List<String> keywordList = new ArrayList<>();keywordList.add("test");V2TIMMessageSearchParam v2TIMMessageSearchParam = new V2TIMMessageSearchParam();// Установка `conversationID` на `null` означает поиск сообщений во всех беседах, результаты будут классифицированы по беседеv2TIMMessageSearchParam.setConversationID(null);v2TIMMessageSearchParam.setKeywordList(keywordList);v2TIMMessageSearchParam.setPageSize(3);v2TIMMessageSearchParam.setPageIndex(0);V2TIMManager.getMessageManager().searchLocalMessages(v2TIMMessageSearchParam, new V2TIMValueCallback<V2TIMMessageSearchResult>() {  @Override  public void onSuccess(V2TIMMessageSearchResult v2TIMMessageSearchResult) {    // Общее количество найденных бесед, к которым относятся сообщения    int totalCount = v2TIMMessageSearchResult.getTotalCount();    // Последние три сообщения, классифицированные по беседе    List<V2TIMMessageSearchResultItem> resultItemList = v2TIMMessageSearchResult.getMessageSearchResultItems();    for (V2TIMMessageSearchResultItem resultItem : resultItemList) {      // ID беседы      String conversationID = resultItem.getConversationID();      // Общее количество сообщений, соответствующих беседе      int totalMessageCount = resultItem.getMessageCount();      // Список сообщений. Если `totalMessageCount` больше 1, список пуст. Если `totalMessageCount` равен 1, список содержит текущее сообщение.      List<V2TIMMessage> v2TIMMessageList = resultItem.getMessageList();    }  }  @Override  public void onError(int code, String desc) {}});
+```
+
+```
+let param = V2TIMMessageSearchParam()param.keywordList = ["test"]// Установка `conversationID` на `nil` означает поиск сообщений во всех беседах, результаты будут классифицированы по беседеparam.conversationID = nilparam.pageIndex = 0param.pageSize = 3V2TIMManager.shared.searchLocalMessages(param: param, succ: { searchResult in     // Общее количество найденных бесед, к которым относятся сообщения    let totalCount = searchResult.totalCount     // Последние три сообщения, классифицированные по беседе    let messageSearchResultItems = searchResult.messageSearchResultItems        for searchItem in messageSearchResultItems {        // ID беседы        let conversationID = searchItem.conversationID        // Общее количество сообщений, соответствующих беседе        let messageCount = searchItem.messageCount        // Список сообщений        let messageList = searchItem.messageList ?? []    }}, fail: { code, desc in    // fail})
+```
+
+```
+V2TIMMessageSearchParam *param = [[V2TIMMessageSearchParam alloc] init];param.keywordList = @[@"test"];// Установка `conversationID` на `nil` означает поиск сообщений во всех беседах, результаты будут классифицированы по беседеparam.conversationID = nil;param.pageIndex = 0;param.pageSize = 3;[V2TIMManager.sharedInstance searchLocalMessages:param succ:^(V2TIMMessageSearchResult *searchResult) {  // Общее количество найденных бесед, к которым относятся сообщения  NSInteger totalCount = searchResult.totalCount;  // Последние три сообщения, классифицированные по беседе  NSArray<V2TIMMessageSearchResultItem *> *messageSearchResultItems = searchResult.messageSearchResultItems;  for (V2TIMMessageSearchResultItem *searchItem in messageSearchResultItems) {    // ID беседы    NSString *conversationID = searchItem.conversationID;    // Общее количество сообщений, соответствующих беседе    NSUInteger messageCount = searchItem.messageCount;    // Список сообщений    NSArray<V2TIMMessage *> *messageList = searchItem.messageList ?: @[];  }} fail:^(int code, NSString *desc) {    // fail}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMMessageSearchParam searchParam;// Если `conversationID` оставить пустым, будут искаться сообщения во всех беседах, результаты будут классифицированы по беседе.searchParam.conversationID = {};searchParam.keywordList.PushBack("test");searchParam.pageIndex = 0;searchParam.pageSize = 3;auto callback = new ValueCallback<V2TIMMessageSearchResult>{};callback->SetCallback(    [=](const V2TIMMessageSearchResult& messageSearchResult) {        // Общее количество найденных бесед, к которым относятся сообщения        uint32_t totalCount = messageSearchResult.totalCount;        // Последние три сообщения, классифицированные по беседе        V2TIMMessageSearchResultItemVector messageSearchResultItems =            messageSearchResult.messageSearchResultItems;        for (size_t i = 0; i < messageSearchResultItems.Size(); ++i) {            // ID беседы            V2TIMString conversationID = messageSearchResultItems[i].conversationID;            // Общее количество сообщений, соответствующих беседе            uint32_t messageCount = messageSearchResultItems[i].messageCount;            // Список сообщений. Если `messageCount` больше 1, список пуст. Если `messageCount` равен 1, список содержит найденное сообщение.            V2TIMMessageVector messageList = messageSearchResultItems[i].messageList;        }        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка поиска данных        delete callback;    });V2TIMManager::GetInstance()->GetMessageManager()->SearchLocalMessages(searchParam, callback);
+```
+
+### Отображение списка бесед, к которым относятся найденные сообщения
+
+Нажмите **Ещё история чата** на странице результатов поиска, как показано на рисунке 1, чтобы перейти на страницу, показанную на рисунке 2, которая отображает список бесед, к которым относятся найденные сообщения. Параметры поиска и результаты в этом сценарии подобны параметрам и результатам в предыдущем сценарии.
+
+Чтобы избежать расхода памяти, мы настоятельно рекомендуем загружать список бесед постранично.
+Например, чтобы загружать и отображать по
+
+---
+*Источник (EN): [search-messages.md](./search-messages.md)*

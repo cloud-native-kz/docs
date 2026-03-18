@@ -1,0 +1,79 @@
+# Управление контактами
+
+## Обзор
+
+Chat SDK поддерживает управление контактами, и пользователи могут добавлять и удалять контакты, а также устанавливать отправку сообщений только контактам.
+
+### Получение контактов
+
+Chat SDK поддерживает логику работы с контактами. Вы можете вызвать API `FriendshipGetFriendProfileList` ([подробнее](https://comm.qq.com/im/doc/unity/zh/api/FriendshipApi/FriendshipGetFriendProfileList.html)) для получения контактов.
+
+Пример кода:
+
+```
+// Obtain the contactsTIMResult res = TencentIMSDK.FriendshipGetFriendProfileList((int code, string desc, List<FriendProfile> profile_list, string user_data)=>{ // Process the async logic});
+```
+
+### Добавление контактов
+
+Вызовите API `FriendshipAddFriend` ([подробнее](https://comm.qq.com/im/doc/unity/zh/api/FriendshipApi/FriendshipAddFriend.html)) для добавления контакта.
+
+Пример кода:
+
+```
+// Add a two-way friendFriendshipAddFriendParam param = new FriendshipAddFriendParam{  friendship_add_friend_param_identifier = "friend_userid",  friendship_add_friend_param_friend_type = TIMFriendType.FriendTypeBoth,  friendship_add_friend_param_remark = "nickname",  friendship_add_friend_param_add_wording = "greeting"};TIMResult res = TencentIMSDK.FriendshipAddFriend(param, (int code, string desc, FriendResult result, string user_data)=>{ // Process the async logic});
+```
+
+Процесс имеет следующие варианты в зависимости от того, требуется ли подтверждение запроса на добавление в контакты.
+
+#### Подтверждение запроса не требуется
+
+1. Пользователи A и B вызывают `SetOnAddFriendCallback` для установки слушателя контактов.
+2. Пользователь B указывает, что подтверждение запроса на добавление в контакты не требуется (`kTIMProfileAddPermission_AllowAny`) через параметр `user_profile_item_add_permission` ([подробнее](https://comm.qq.com/im/doc/unity/zh/api/UserApi/ProfileModifySelfUserProfile.html)) в функции `ProfileModifySelfUserProfile`.
+3. Пользователь A может успешно добавить пользователя B в контакты, вызвав `FriendshipAddFriend`. После этого параметр `friendship_add_friend_param_friend_type` запроса `FriendshipAddFriendParam` можно установить на любое из следующих значений:
+  - Если установлено `TIMFriendType.FriendTypeBoth` (двусторонний контакт), оба пользователя A и B получат обратный вызов `OnAddFriendCallback` ([подробнее](https://comm.qq.com/im/doc/unity/zh/callback/OnAddFriendCallback.html)).
+  - Если установлено `TIMFriendType.FriendTypeSignle` (односторонний контакт), только пользователь A получит обратный вызов `OnAddFriendCallback`.
+
+#### Подтверждение запроса требуется
+
+1. Пользователи A и B вызывают `SetOnAddFriendCallback` для установки слушателя контактов.
+2. Пользователь B указывает, что подтверждение запроса на добавление в контакты требуется (`kTIMProfileAddPermission_NeedConfirm`) через параметр `user_profile_item_add_permission` в функции `ProfileModifySelfUserProfile`.
+3. Пользователь A вызывает `FriendshipAddFriend` для отправки запроса на добавление пользователя B в контакты. Параметр `code` в обратном вызове успешного вызова API возвращает `30539`, что указывает на то, что запрос требует подтверждения от пользователя B.
+4. Пользователь B получит обратный вызов `SetFriendAddRequestCallback` и может принять или отклонить запрос.
+  - Пользователь B вызывает API `FriendshipHandleFriendAddRequest` ([подробнее](https://comm.qq.com/im/doc/unity/zh/api/FriendshipApi/FriendshipHandleFriendAddRequest.html)) для принятия запроса на добавление в контакты. Если тип `TIMFriendResponseAction.ResponseActionAgree` (односторонний контакт):
+    - Пользователь A получит обратный вызов `OnAddFriendCallback`, указывающий на то, что односторонний контакт был успешно добавлен.
+    - Пользователь B получит обратный вызов `FriendApplicationListDeletedCallback` ([подробнее](https://comm.qq.com/im/doc/unity/zh/callback/FriendApplicationListDeletedCallback.html)). В этот момент пользователь B стал контактом пользователя A, но не наоборот.
+  - Пользователь B вызывает `FriendshipHandleFriendAddRequest` для принятия запроса на добавление в контакты. Если тип `TIMFriendResponseAction.ResponseActionAgreeAndAdd` (двусторонний контакт), оба пользователя A и B получат обратный вызов `OnAddFriendCallback`, указывающий на то, что они успешно добавили друг друга в контакты.
+  - Пользователь B вызывает `FriendshipHandleFriendAddRequest` с передачей параметра `TIMFriendResponseAction` для отклонения запроса на добавление в контакты, и оба пользователя получат обратный вызов `FriendApplicationListDeletedCallback`.
+
+### Удаление контактов
+
+Вызовите API `FriendshipDeleteFriend` ([подробнее](https://comm.qq.com/im/doc/unity/zh/api/FriendshipApi/FriendshipDeleteFriend.html)) для удаления контакта.
+
+Пример кода:
+
+```
+// Two-way deletionFriendshipDeleteFriendParam param = new FriendshipDeleteFriendParam{  friendship_delete_friend_param_friend_type = TIMFriendType.FriendTypeBoth,  friendship_delete_friend_param_identifier_array = new List<string>  {    "user_id"  }};TIMResult res = TencentIMSDK.FriendshipDeleteFriend(param, (int code, string desc, FriendResult result, string user_data)=>{ // Process the async logic});
+```
+
+### Проверка отношения с контактом
+
+Вызовите API `FriendshipCheckFriendType` ([подробнее](https://comm.qq.com/im/doc/unity/zh/api/FriendshipApi/FriendshipCheckFriendType.html)) для проверки отношения с контактом.
+
+Пример кода:
+
+```
+// Check whether the friend relationship is one-way or two-wayFriendshipCheckFriendTypeParam param = new FriendshipCheckFriendTypeParam{  friendship_check_friendtype_param_check_type = TIMFriendType.FriendTypeBoth,  friendship_check_friendtype_param_identifier_array = new List<string>{    "user_id"  }};TIMResult res = TencentIMSDK.FriendshipCheckFriendType(param, (int code, string desc, List<FriendshipCheckFriendTypeResult> result_list, string user_data)=>{ // Process the async logic});
+```
+
+### Установка отправки сообщений только контактам
+
+По умолчанию Chat SDK не проверяет отношение при отправке личных сообщений. Эта настройка по умолчанию обычно применяется в сценариях обслуживания клиентов, где требование добавить агента обслуживания в контакты перед общением неэффективно.
+Если вы хотите реализовать режим взаимодействия «добавить в контакты перед общением», как в WeChat и QQ, перейдите на [консоль Chat](https://console.tencentcloud.com/im) -> **Конфигурация функций** -> **Вход и сообщения** -> **Проверка отношения** и включите опцию «Проверить отношение для личных сообщений». Когда эта функция включена, пользователи могут отправлять сообщения только контактам, и при попытке отправить сообщение пользователю, не являющемуся контактом, получат код ошибки 20009 от SDK.
+
+
+---
+*Источник: [https://trtc.io/document/49563](https://trtc.io/document/49563)*
+
+---
+*Источник (EN): [friend-management.md](./friend-management.md)*

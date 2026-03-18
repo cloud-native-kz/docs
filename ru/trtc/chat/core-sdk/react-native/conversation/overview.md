@@ -1,0 +1,53 @@
+# Обзор
+
+## Обзор разговоров
+
+В Chat SDK есть три типа `Conversation`:
+
+- One-to-one (C2C): личная беседа между двумя пользователями. Формат композиции: `C2C${userID}`.
+- GROUP: групповая беседа между участниками группы. Формат композиции: `GROUP${groupID}`.
+- `@TIM#SYSTEM` (сеанс системных уведомлений)
+
+Вы можете использовать API класса conversation для отображения/обновления списка разговоров, обновления количества непрочитанных сообщений, закрепления разговора в начале списка и отключения уведомлений о сообщениях.
+
+## Отображение пользовательского интерфейса
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/dde69c9bc74511ef82565254005ef0f7.png)
+
+## Политика хранения разговоров
+
+По умолчанию клиент может загружать из облака 100 последних разговоров с контактами. После обновления до [Pro edition, Pro Plus edition или Enterprise edition](https://trtc.io/buy/chat) можно настроить загрузку до 500 последних разговоров с контактами. Продолжительность разговора соответствует времени сохранения последнего сообщения в разговоре. По умолчанию сообщения сохраняются в течение 7 дней, это означает, что разговор также сохраняется в течение 7 дней по умолчанию. Дополнительную информацию см. в разделе [Pricing](https://trtc.io/pricing/chat).
+
+## Класс разговора
+
+| Атрибут | Тип | Описание |
+| --- | --- | --- |
+| conversationID | String | Формат композиции:`C2C${userID}` - личная беседа между двумя пользователями`GROUP${groupID}` - групповая беседа между участниками группы`@TIM#SYSTEM` - сеанс системных уведомлений |
+| type | String | `TencentCloudChat.TYPES.CONV_C2C` - личная беседа между двумя пользователями`TencentCloudChat.TYPES.CONV_GROUP` - групповая беседа между участниками группы`TencentCloudChat.TYPES.CONV_SYSTEM` - сеанс системных уведомлений |
+| unreadCount | Number | Количество непрочитанных сообщений. Групповые разговоры типа `TencentCloudChat.TYPES.GRP_MEETING` / `TencentCloudChat.TYPES.GRP_AVCHATROOM` не учитывают количество непрочитанных сообщений, и значение этого поля равно 0. |
+| lastMessage | Object | Последнее сообщение в разговоре. Его атрибуты описаны следующим образом.`nick` - String - прозвище отправителя сообщения`nameCard` - String - групповая карточка отправителя сообщения`lastTime` - Number - отметка времени сообщения в секундах`lastSequence` - Number - порядковый номер сообщения`fromAccount` - String - userID отправителя сообщения`isRevoked` - Boolean - отозвано ли сообщение; значение `true` указывает на отзыв, значение по умолчанию `false``revoker` - String \| null - userID инициатора отзыва сообщения`isPeerRead` - Boolean - прочитано ли сообщение в личной беседе другой стороной; после того как другая сторона вызовет `setMessageRead` для отчета о прочтении, `isPeerRead` становится `true`. Значение по умолчанию `false``messageForShow` - String - содержимое сообщения для отображения. Возможные значения: содержимое текстового сообщения, "[Image]", "[Voice]", "[Location]", "[Emoji]", "[File]", "[Custom Message]". Если это поле не соответствует вашим потребностям, вы можете использовать payload для пользовательского отображения.`type` - String`TencentCloudChat.TYPES.MSG_TEXT` \| текстовое сообщение`TencentCloudChat.TYPES.MSG_IMAGE` \| сообщение с изображением`TencentCloudChat.TYPES.MSG_AUDIO` \| аудиосообщение`TencentCloudChat.TYPES.MSG_VIDEO` \| видеосообщение`TencentCloudChat.TYPES.MSG_FILE` \| сообщение с файлом`TencentCloudChat.TYPES.MSG_LOCATION` \| геолокационное сообщение`TencentCloudChat.TYPES.MSG_CUSTOM` \| пользовательское сообщение`TencentCloudChat.TYPES.MSG_GRP_TIP` \| сообщение с советом по группе`TencentCloudChat.TYPES.MSG_GRP_SYS_NOTICE` \| сообщение системного уведомления группы.`payload` - Object - содержимое сообщения |
+| groupProfile | Group | профиль группы группового разговора. |
+| userProfile | Profile | профиль пользователя личной беседы. |
+| groupAtInfoList | Array.<GroupAtInfo> | список информации об упоминаниях (@) в групповой беседе. Разработчик может отображать эффекты, такие как [Someone @ me] или [@all], в списке разговоров на основе этой информации. |
+| remark | String | примечание друга. Имеет значение только при наличии разговора C2C, другая сторона является моим другом, и я установил примечание для этого друга. |
+| isPinned | Boolean | закреплена ли беседа. |
+| messageRemindType | String | типы напоминания о сообщениях, конкретно следующим образом:`TencentCloudChat.TYPES.MSG_REMIND_ACPT_AND_NOTE` - сообщения будут получены, когда пользователь в сети, и уведомления об автономной отправке будут получены, когда пользователь в автономном режиме.`TencentCloudChat.TYPES.MSG_REMIND_ACPT_NOT_NOTE` - SDK получает сообщение и уведомляет вас (путем отчета о событии получения сообщения), и вы не отображаете уведомление. Этот параметр обычно используется для реализации отключения уведомлений о сообщениях.`TencentCloudChat.TYPES.MSG_REMIND_DISCARD` - SDK отклоняет сообщение.`TencentCloudChat.TYPES.NOT_RECEIVE_OFFLINE_PUSH_EXCEPT_AT` - сообщения будут получены, когда пользователь в сети, и только групповые сообщения с упоминаниями (@) будут получены, когда пользователь в автономном режиме. |
+| markList | Array | список тегов разговора, конкретно следующим образом:`TencentCloudChat.TYPES.CONV_MARK_TYPE_STAR` - пометить разговор звездочкой`TencentCloudChat.TYPES.CONV_MARK_TYPE_UNREAD` - отметить разговор как непрочитанный`TencentCloudChat.TYPES.CONV_MARK_TYPE_FOLD` - свернуть разговор`TencentCloudChat.TYPES.CONV_MARK_TYPE_HIDE` - скрыть разговор |
+| customData | String | пользовательские данные для разговора. |
+| conversationGroupList | Array | список групп разговоров, к которым принадлежит разговор. |
+| draftText | String | черновик разговора. Сохраняется только локально, не в облаке. |
+
+### GroupAtInfo
+
+| Имя | Тип | Описание |
+| --- | --- | --- |
+| groupID | String | ID группы. |
+| messageSequence | Number | порядковый номер сообщения с информацией об упоминании. |
+| atTypeArray | Array.<Number> | массив типов упоминания (@), значения перечисления упоминаний в групповых разговорах следующие:`TencentCloudChat.TYPES.CONV_AT_ME` - Кто-то упомянул меня.`TencentCloudChat.TYPES.CONV_AT_ALL` - упомянул всех в группе.`TencentCloudChat.TYPES.CONV_AT_ALL_AT_ME` - упомянул всех в группе и также упомянул меня отдельно. |
+
+
+---
+*Источник: [https://trtc.io/document/48844](https://trtc.io/document/48844)*
+
+---
+*Источник (EN): [overview.md](./overview.md)*

@@ -1,0 +1,107 @@
+# Включение совместного использования экрана
+
+TRTC поддерживает две схемы совместного использования экрана на iOS:
+
+- **Совместное использование в приложении**
+При совместном использовании в приложении совместное использование ограничено представлениями текущего приложения. Эта функция поддерживается в iOS 13 и более поздних версиях. Поскольку содержимое вне текущего приложения не может быть общим, эта функция подходит для сценариев с высокими требованиями к защите конфиденциальности.
+- **Совместное использование между приложениями**
+На основе схемы Apple ReplayKit совместное использование между приложениями позволяет совместное использование содержимого по всей системе, но шаги, необходимые для реализации этой функции, более сложны, чем шаги для совместного использования в приложении, поскольку требуется дополнительное расширение.
+
+## Поддерживаемые платформы
+
+| iOS | Android | macOS | Windows | Electron | Chrome |
+| --- | --- | --- | --- | --- | --- |
+| â | â | â | â | â | â |
+
+## Совместное использование в приложении
+
+Вы можете реализовать совместное использование в приложении, просто вызвав API [startScreenCaptureInApp](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#abf51acf26b2212192f7145468886b791) SDK TRTC, передав параметр кодирования `TRTCVideoEncParam`. Если `TRTCVideoEncParam` установлен на `nil`, SDK будет использовать ранее установленные параметры кодирования.
+
+Мы рекомендуем следующие параметры кодирования для совместного использования экрана на iOS:
+
+| Элемент | Параметр | Рекомендуемое значение для обычных сценариев | Рекомендуемое значение для обучения на основе текста |
+| --- | --- | --- | --- |
+| Разрешение | videoResolution | 1280 Ã 720 | 1920 Ã 1080 |
+| Частота кадров | videoFps | 10 fps | 8 fps |
+| Максимальный битрейт | videoBitrate | 1600 Kbps | 2000 Kbps |
+| Адаптация разрешения | enableAdjustRes | NO | NO |
+
+- Поскольку содержимое экрана обычно не изменяется резко, использование высокой частоты кадров неэкономично. Мы рекомендуем установить его на 10 fps.
+- Если общий экран содержит большое количество текста, вы можете соответственно увеличить разрешение и битрейт.
+- Максимальный битрейт (`videoBitrate`) относится к максимальному выходному битрейту при резком изменении общего экрана. Если общее содержимое не изменяется значительно, фактический битрейт кодирования будет ниже.
+
+## Совместное использование между приложениями
+
+Чтобы включить совместное использование экрана между приложениями на iOS, необходимо добавить процесс записи экрана **Broadcast Upload Extension**, который работает с хост-приложением для отправки потоков. Broadcast Upload Extension создается системой при запросе совместного использования экрана и отвечает за получение изображений экрана, захваченных системой. Для этого необходимо выполнить следующие действия:
+
+1. Создайте **App Group** и настройте его в Xcode (опционально) для включения взаимодействия между Broadcast Upload Extension и хост-приложением.
+2. Создайте целевую папку **Broadcast Upload Extension** в вашем проекте и импортируйте в нее `TXLiteAVSDK_ReplayKitExt.framework` из пакета SDK.
+3. Переведите хост-приложение в режим ожидания для получения данных записи экрана из **Broadcast Upload Extension**.
+
+> **примечание** Если вы пропустите шаг 1, то есть если вы не настроите App Group (передав `nil` в API), вы все еще сможете включить совместное использование экрана, но его стабильность будет скомпрометирована. Мы предлагаем настроить App Group, как описано ниже.
+
+#### Шаг 1. Создание App Group
+
+1. Нажмите **Certificates, IDs & Profiles**.
+2. Нажмите **+** рядом с **Identifiers**.
+3. Выберите **App Groups** и нажмите **Continue**.
+4. Заполните поля **Description** и **Identifier**. Для **Identifier** введите значение `AppGroup`, передаваемое в API. Нажмите **Continue**.
+ ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/26bb382a37f411ed8088525400463ef7.jpeg)
+5. Выберите **Identifiers** на левой боковой панели и щелкните ваш App ID (необходимо настроить App ID для хост-приложения и расширения одинаково).
+6. Выберите **App Groups** и нажмите **Edit**.
+7. Выберите созданную App Group, нажмите **Continue**, чтобы вернуться на страницу редактирования, и нажмите **Save** для сохранения параметров.
+ ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/26ad2cd237f411ed8088525400463ef7.jpeg)
+8. Загрузите профиль provisioning еще раз и импортируйте его в Xcode.
+
+#### Шаг 2. Создание Broadcast Upload Extension
+
+2. В появившемся диалоговом окне введите необходимую информацию. Вам **не нужно** выбирать **Include UI Extension**. После введения необходимой информации нажмите **Finish**.
+3. Перетащите `TXLiteAVSDK_ReplayKitExt.framework` из пакета SDK в проект и выберите созданную целевую папку.
+4. Выберите созданную целевую папку, нажмите **+ Capability** и дважды щелкните **App Groups**.
+ ![AddCapability](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/269c48e037f411edb1de525400c56988.png)
+ В списке файлов появится файл с именем `target name.entitlements`, как показано ниже. Выберите его, нажмите **+** и введите созданную ранее App Group.
+ ![AddGroup](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/26b9adb337f411ed8088525400463ef7.png)
+5. Выберите целевую папку хост-приложения **и настройте ее так же, как описано выше.**
+6. В новой целевой папке Xcode автоматически создаст файл с именем `SampleHandler.h`. Замените содержимое файла следующим кодом. Вам необходимо **изменить**`APPGROUP`**в коде на идентификатор App Group, созданный ранее**.
+
+```
+#import "SampleHandler.h"@import TXLiteAVSDK_ReplayKitExt;#define APPGROUP @"group.com.tencent.liteav.RPLiveStreamShare"@interface SampleHandler() <TXReplayKitExtDelegate>@end@implementation SampleHandler// Note: Replace `APPGROUP` with the ID of the App Group created earlier.- (void)broadcastStartedWithSetupInfo:(NSDictionary<NSString *,NSObject *> *)setupInfo {    [[TXReplayKitExt sharedInstance] setupWithAppGroup:APPGROUP delegate:self];}- (void)broadcastPaused {    // User has requested to pause the broadcast. Samples will stop being delivered.}- (void)broadcastResumed {    // User has requested to resume the broadcast. Samples delivery will resume.}- (void)broadcastFinished {    [[TXReplayKitExt sharedInstance] finishBroadcast];    // User has requested to finish the broadcast.}#pragma mark - TXReplayKitExtDelegate- (void)broadcastFinished:(TXReplayKitExt *)broadcast reason:(TXReplayKitExtReason)reason{    NSString *tip = @"";    switch (reason) {        case TXReplayKitExtReasonRequestedByMain:            tip = @"Screen sharing ended";            break;        case TXReplayKitExtReasonDisconnected:            tip = @"Application disconnected";            break;        case TXReplayKitExtReasonVersionMismatch:            tip = @"Integration error (SDK version mismatch)";            break;    }    NSError *error = [NSError errorWithDomain:NSStringFromClass(self.class)                                         code:0                                     userInfo:@{                                         NSLocalizedFailureReasonErrorKey:tip                                     }];    [self finishBroadcastWithError:error];}- (void)processSampleBuffer:(CMSampleBufferRef)sampleBuffer withType:(RPSampleBufferType)sampleBufferType {    switch (sampleBufferType) {        case RPSampleBufferTypeVideo:            [[TXReplayKitExt sharedInstance] sendVideoSampleBuffer:sampleBuffer];            break;        case RPSampleBufferTypeAudioApp:            // Handle audio sample buffer for app audio            break;        case RPSampleBufferTypeAudioMic:            // Handle audio sample buffer for mic audio            break;        default:            break;    }}@end
+```
+
+#### Шаг 3. Перевод хост-приложения в режим ожидания получения данных
+
+1. Убедитесь, что захват камеры отключен в `TRTCCloud`; если нет, вызовите [stopLocalPreview](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a01ee967e3180a5e2fc0e37e9e99e85b3) для его отключения.
+2. Вызовите API [startScreenCaptureByReplaykit:appGroup:](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a78a8da8c2f235446d03cd2db26f97b60), передав установленную на [шаге 1](#createGroup) `AppGroup` для перевода SDK в режим ожидания.
+3. SDK будет ждать, пока пользователь запустит совместное использование экрана. Если кнопка "спускового механизма" не была добавлена, как описано в [шаге 4](/document/product/647/37338#step-4.-add-a-screen-sharing-triggering-button-(optional)), пользователям необходимо нажать и удерживать кнопку записи экрана в Центре управления iOS, чтобы начать совместное использование экрана.
+4. Вы можете в любой момент вызвать [stopScreenCapture](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#aa8ea0235691fc9cde0a64833249230bb) для остановки совместного использования экрана.
+
+```
+// Start screen sharing. You need to replace `APPGROUP` with the ID of the App Group created earlier.- (void)startScreenCapture {    TRTCVideoEncParam *videoEncConfig = [[TRTCVideoEncParam alloc] init];    videoEncConfig.videoResolution = TRTCVideoResolution_1280_720;    videoEncConfig.videoFps = 10;    videoEncConfig.videoBitrate = 2000;    // You need to replace `APPGROUP` with the App Group Identifier created earlier.    [[TRTCCloud sharedInstance] startScreenCaptureByReplaykit:videoEncConfig                                                     appGroup:APPGROUP];}// Stop screen sharing- (void)stopScreenCapture {    [[TRTCCloud sharedInstance] stopScreenCapture];}// Event notification for the start of screen sharing, which can be received through `TRTCCloudDelegate`- (void)onScreenCaptureStarted    [self showTip:@"Screen sharing started"];}
+```
+
+#### Шаг 4. Добавление кнопки запуска совместного использования экрана (опционально)
+
+1. Файл [TRTCBroadcastExtensionLauncher](https://github.com/LiteAVSDK/TRTC_iOS/blob/main/TRTC-API-Example-OC/Basic/ScreenShare/TRTCBroadcastExtensionLauncher.h#L14) в [Demo](https://github.com/LiteAVSDK/TRTC_iOS/tree/main/TRTC-API-Example-OC/Basic/ScreenShare) реализует совместное использование экрана. Найдите и добавьте его в свой проект.
+2. Добавьте кнопку в ваш пользовательский интерфейс и вызовите функцию `launch` `TRTCBroadcastExtensionLauncher` в функции ответа кнопки для запуска совместного использования экрана.
+
+```
+// Customize a response for button tapping- (IBAction)onScreenButtonTapped:(id)sender {    [TRTCBroadcastExtensionLauncher launch];}
+```
+
+> **примечание** Apple добавил `RPSystemBroadcastPickerView` в iOS 12.0, который может показывать представление выбора в приложениях для пользователей, чтобы выбрать, начинать ли совместное использование экрана. В настоящее время `RPSystemBroadcastPickerView` не поддерживает пользовательский интерфейс, и Apple не предоставляет официальный метод запуска. `TRTCBroadcastExtensionLauncher` работает, проходя через подпредставления `RPSystemBroadcastPickerView`, находя кнопку пользовательского интерфейса и запускаю событие ее нажатия. **Обратите внимание, что эта схема не рекомендуется Apple и может стать недействительной в следующем обновлении. Поэтому мы сделали**[шаг 4](/document/product/647/37338#step-4.-add-a-screen-sharing-triggering-button-(optional))**опциональным. Вы должны самостоятельно нести риски использования этой схемы.**
+
+## Просмотр общего экрана
+
+- **Просмотр экранов, общих для пользователей macOS/Windows**
+Когда пользователь macOS/Windows в комнате начинает совместное использование экрана, экран совместно используется через подпоток, и другие пользователи в комнате будут уведомлены через [onUserSubStreamAvailable](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__ITRTCCloudCallback__csharp.html#a52ad5b09959df6e940aec7fb9615de9c) в `TRTCCloudDelegate`.
+Пользователи, которые хотят просмотреть общий экран, могут начать визуализацию подпотока удаленного пользователя, вызвав API [startRemoteSubStreamView](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__ITRTCCloud__csharp.html#ae029514645970e7d32470cf1c7aca716).
+- **Просмотр экранов, общих для пользователей Android/iOS**
+Когда пользователь Android/iOS начинает совместное использование экрана, экран совместно используется через основной поток, и другие пользователи в комнате будут уведомлены через [onUserVideoAvailable](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloudDelegate__ios.html#a533d6ea3982a922dd6c0f3d05af4ce80) в `TRTCCloudDelegate`.
+Пользователи, которые хотят просмотреть общий экран, могут начать визуализацию основного потока удаленного пользователя, вызвав API [startRemoteView](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#af85283710ba6071e9fd77cc485baed49).
+
+
+---
+*Источник: [https://trtc.io/document/37338](https://trtc.io/document/37338)*
+
+---
+*Источник (EN): [enabling-screen-sharing.md](./enabling-screen-sharing.md)*

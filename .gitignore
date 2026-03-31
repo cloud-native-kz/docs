@@ -51,5 +51,6 @@ app.*.map.json
 
 .vscode/settings.json
 .fvmrc
+tools/
 
 .cxx/

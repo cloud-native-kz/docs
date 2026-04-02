@@ -25,4 +25,4 @@
 *Источник: [https://www.tencentcloud.com/document/product/267/65997](https://www.tencentcloud.com/document/product/267/65997)*
 
 ---
-*Источник (EN): [announcement-on-optimization-of-css-billing-method-following-policy.md](./announcement-on-optimization-of-css-billing-method-following-policy.md)*
+*Источник (EN): [announcement-on-optimization-of-css-billing-method-following-policy.md](./css-оптимизация-метода-биллинга.md)*

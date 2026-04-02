@@ -98,4 +98,4 @@ https://xxxxxx/v4/group_open_http_svc/get_online_member_num?sdkappid=88888888&id
 *Источник: [https://trtc.io/document/38521](https://trtc.io/document/38521)*
 
 ---
-*Источник (EN): [getting-the-number-of-online-users-in-an-audio-video-group.md](получение-количества-активных-пользователей-в-аудиовизуальной-группе.md)*
+*Источник (EN): [getting-the-number-of-online-users-in-an-audio-video-group.md](число-активных-пользователей-в-av-группе.md)*

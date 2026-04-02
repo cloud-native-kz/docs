@@ -199,7 +199,7 @@
 - [Live Stream Moderation](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/live-stream-moderation.md) | [RU](css/purchase-guide/value-added-service-fee/live-stream-moderation-ru.md)
 - [Live Stream Package](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/live-stream-package.md) | [RU](css/purchase-guide/value-added-service-fee/live-stream-package-ru.md)
 - [Live Streaming Bandwidth Billing](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/live-streaming-bandwidth-billing.md) | [RU](css/purchase-guide/value-added-service-fee/live-streaming-bandwidth-billing-ru.md)
-- [Live Transcoding (Watermarking, Stream Mixing, Subtitles, Dynamic Overlays)](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/live-transcoding-watermarking-stream-mixing-subtitles-dynamic-overlays.md) | [RU](css/purchase-guide/value-added-service-fee/live-transcoding-watermarking-stream-mixing-subtitles-dynamic-overlays-ru.md)
+- [Live Transcoding (Watermarking, Stream Mixing, Subtitles, Dynamic Overlays)](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/live-transcoding-и-overlay-функции.md) | [RU](css/purchase-guide/value-added-service-fee/live-transcoding-watermarking-stream-mixing-subtitles-dynamic-overlays-ru.md)
 - [Live Video Caster](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/live-video-caster.md) | [RU](css/purchase-guide/value-added-service-fee/live-video-caster-ru.md)
 - [Overview of Basic Fees for Value-Added Features](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/overview-of-basic-fees-for-value-added-features.md) | [RU](css/purchase-guide/value-added-service-fee/overview-of-basic-fees-for-value-added-features-ru.md)
 - [Real-Time Log Shipping](css/руководство-по-покупке/тарифы-на-дополнительные-услуги/real-time-log-shipping.md) | [RU](css/purchase-guide/value-added-service-fee/real-time-log-shipping-ru.md)
@@ -212,11 +212,11 @@
 
 #### Объявления
 
-- [Announcement on Optimization of CSS Billing Method Following Policy](css/примечания-к-выпуску-и-объявления/объявления/announcement-on-optimization-of-css-billing-method-following-policy.md) | [RU](css/release-notes-and-announcements/announcements/announcement-on-optimization-of-css-billing-method-following-policy-ru.md)
-- [Announcement on the Official Billing for CSS Standby Streams Feature](css/примечания-к-выпуску-и-объявления/объявления/announcement-on-the-official-billing-for-css-standby-streams-feature.md) | [RU](css/release-notes-and-announcements/announcements/announcement-on-the-official-billing-for-css-standby-streams-feature-ru.md)
-- [Announcement on the Price Adjustment of CSS Audio/Video Enhancement Feature](css/примечания-к-выпуску-и-объявления/объявления/announcement-on-the-price-adjustment-of-css-audio-video-enhancement-feature.md) | [RU](css/release-notes-and-announcements/announcements/announcement-on-the-price-adjustment-of-css-audio-video-enhancement-feature-ru.md)
-- [Billing Content Adjustment for Cloud Streaming Services Standard Transcoding and Top Speed Codec Transcoding](css/примечания-к-выпуску-и-объявления/объявления/billing-content-adjustment-for-cloud-streaming-services-standard-transcoding-and-top-speed-codec-transcoding.md) | [RU](css/release-notes-and-announcements/announcements/billing-content-adjustment-for-cloud-streaming-services-standard-transcoding-and-top-speed-codec-transcoding-ru.md)
-- [CSS Adds Support for AV1 Codec and Audio/Video Enhancement](css/примечания-к-выпуску-и-объявления/объявления/css-adds-support-for-av1-codec-and-audio-video-enhancement.md) | [RU](css/release-notes-and-announcements/announcements/css-adds-support-for-av1-codec-and-audio-video-enhancement-ru.md)
+- [Announcement on Optimization of CSS Billing Method Following Policy](css/примечания-к-выпуску-и-объявления/объявления/css-оптимизация-метода-биллинга.md) | [RU](css/release-notes-and-announcements/announcements/announcement-on-optimization-of-css-billing-method-following-policy-ru.md)
+- [Announcement on the Official Billing for CSS Standby Streams Feature](css/примечания-к-выпуску-и-объявления/объявления/css-тарификация-standby-streams.md) | [RU](css/release-notes-and-announcements/announcements/announcement-on-the-official-billing-for-css-standby-streams-feature-ru.md)
+- [Announcement on the Price Adjustment of CSS Audio/Video Enhancement Feature](css/примечания-к-выпуску-и-объявления/объявления/css-изменение-цен-на-улучшение-аудио-видео.md) | [RU](css/release-notes-and-announcements/announcements/announcement-on-the-price-adjustment-of-css-audio-video-enhancement-feature-ru.md)
+- [Billing Content Adjustment for Cloud Streaming Services Standard Transcoding and Top Speed Codec Transcoding](css/примечания-к-выпуску-и-объявления/объявления/css-корректировка-биллинга-за-транскодирование.md) | [RU](css/release-notes-and-announcements/announcements/billing-content-adjustment-for-cloud-streaming-services-standard-transcoding-and-top-speed-codec-transcoding-ru.md)
+- [CSS Adds Support for AV1 Codec and Audio/Video Enhancement](css/примечания-к-выпуску-и-объявления/объявления/css-поддержка-av1-и-улучшения-аудио-видео.md) | [RU](css/release-notes-and-announcements/announcements/css-adds-support-for-av1-codec-and-audio-video-enhancement-ru.md)
 - [CSS to Adjust Pricing of Third-Party Relay](css/примечания-к-выпуску-и-объявления/объявления/css-to-adjust-pricing-of-third-party-relay.md) | [RU](css/release-notes-and-announcements/announcements/css-to-adjust-pricing-of-third-party-relay-ru.md)
 - [CSS to Support H.265 8K and AV1 8K Transcoding](css/примечания-к-выпуску-и-объявления/объявления/css-to-support-h-265-8k-and-av1-8k-transcoding.md) | [RU](css/release-notes-and-announcements/announcements/css-to-support-h265-8k-and-av1-8k-transcoding-ru.md)
 - [Delayed Playback to Become Paid Feature](css/примечания-к-выпуску-и-объявления/объявления/delayed-playback-to-become-paid-feature.md) | [RU](css/release-notes-and-announcements/announcements/delayed-playback-to-become-paid-feature-ru.md)
@@ -434,9 +434,9 @@
 
 ### Объявления
 
-- [Объявление о начале бета-тестирования конференции с участием нескольких человек для аудио и видео](trtc/объявления/объявление-о-начале-бета-тестирования-конференции-с-участием-нескольких-человек-для-аудио-и-видео.md) | [RU](trtc/announcements/announcement-on-the-start-of-beta-testing-for-multi-person-audio-and-video-conference-ru.md)
+- [Объявление о начале бета-тестирования конференции с участием нескольких человек для аудио и видео](trtc/объявления/бета-тест-многопользовательской-аудио-видео-конференции.md) | [RU](trtc/announcements/announcement-on-the-start-of-beta-testing-for-multi-person-audio-and-video-conference-ru.md)
 - [Объявление: переименование Chat Premium в Pro Edition](trtc/объявления/объявление-переименование-chat-premium-в-pro-edition.md) | [RU](trtc/announcements/announcement-renaming-of-chat-premium-to-pro-edition-ru.md)
-- [Лицензия требуется для воспроизведения видео в новой версии LiteAV SDK](trtc/объявления/лицензия-требуется-для-воспроизведения-видео-в-новой-версии-liteav-sdk.md) | [RU](trtc/announcements/license-required-for-video-playback-in-new-version-of-liteav-sdk-ru.md)
+- [Лицензия требуется для воспроизведения видео в новой версии LiteAV SDK](trtc/объявления/лицензия-для-воспроизведения-в-liteav-sdk.md) | [RU](trtc/announcements/license-required-for-video-playback-in-new-version-of-liteav-sdk-ru.md)
 - [Объявление о запуске продукта Live (TUILiveKit)](trtc/объявления/объявление-о-запуске-продукта-live-tuilivekit.md) | [RU](trtc/announcements/live-tuilivekit-product-launch-announcement-ru.md)
 - [Примечания к выпуску](trtc/объявления/примечания-к-выпуску.md) | [RU](trtc/announcements/release-notes-ru.md)
 - [Коммерческая версия Conference скоро появится](trtc/объявления/коммерческая-версия-conference-скоро-появится.md) | [RU](trtc/announcements/the-commercial-version-of-conference-is-coming-soon-ru.md)
@@ -481,7 +481,7 @@
 ###### Лучшие практики
 
 - [Параметры эффектов](trtc/beauty-ar/core-sdk/android/лучшие-практики/параметры-эффектов.md) | [RU](trtc/beauty-ar/core-sdk/android/best-practices/effect-parameters-ru.md)
-- [Руководство по использованию EffectMode (режим высокой производительности)](trtc/beauty-ar/core-sdk/android/лучшие-практики/руководство-по-использованию-effectmode-режим-высокой-производительности.md) | [RU](trtc/beauty-ar/core-sdk/android/best-practices/effectmode-high-performance-mode-usage-guide-ru.md)
+- [Руководство по использованию EffectMode (режим высокой производительности)](trtc/beauty-ar/core-sdk/android/лучшие-практики/effectmode-высокая-производительность.md) | [RU](trtc/beauty-ar/core-sdk/android/best-practices/effectmode-high-performance-mode-usage-guide-ru.md)
 - [Руководство пользователя расширенного режима](trtc/beauty-ar/core-sdk/android/лучшие-практики/руководство-пользователя-расширенного-режима.md) | [RU](trtc/beauty-ar/core-sdk/android/best-practices/enhanced-mode-user-guide-ru.md)
 - [Инструкции по использованию зелёного экрана V2](trtc/beauty-ar/core-sdk/android/лучшие-практики/инструкции-по-использованию-зеленого-экрана-v2.md) | [RU](trtc/beauty-ar/core-sdk/android/best-practices/green-screen-keying-v2-instructions-ru.md)
 - [Руководство по наложению материалов](trtc/beauty-ar/core-sdk/android/лучшие-практики/руководство-по-наложению-материалов.md) | [RU](trtc/beauty-ar/core-sdk/android/best-practices/material-overlay-guide-ru.md)
@@ -590,9 +590,9 @@
 - [Руководство по интеграции фильтра для лица](trtc/beauty-ar/core-sdk/web/лучшие-практики/руководство-по-интеграции-фильтра-для-лица.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/face-filter-integration-guide-ru.md)
 - [Публикация с использованием TRTC (версия 4.x)](trtc/beauty-ar/core-sdk/web/лучшие-практики/публикация-с-использованием-trtc-версия-4-x.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/publishing-using-trtc-version-4x-ru.md)
 - [Публикация с использованием TRTC (версия 5.x)](trtc/beauty-ar/core-sdk/web/лучшие-практики/публикация-с-использованием-trtc-версия-5-x.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/publishing-using-trtc-version-5x-ru.md)
-- [Публикация с помощью сервиса облачной потоковой передачи и WebRTCï»¿](trtc/beauty-ar/core-sdk/web/лучшие-практики/публикация-с-помощью-сервиса-облачной-потоковой-передачи-и-webrtcï»¿.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/publishing-with-cloud-streaming-service-and-webrtc-ru.md)
-- [Публикация с помощью сервиса облачной потоковой передачи и WebRTCï»¿ (предварительная инициализация)](trtc/beauty-ar/core-sdk/web/лучшие-практики/публикация-с-помощью-сервиса-облачной-потоковой-передачи-и-webrtcï»¿-предварительная-инициализация.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/publishing-with-cloud-streaming-service-and-webrtc-preinitialization-ru.md)
-- [Использование косметических спецэффектов для обработки изображений](trtc/beauty-ar/core-sdk/web/лучшие-практики/использование-косметических-спецэффектов-для-обработки-изображений.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/using-beauty-special-effects-to-process-images-ru.md)
+- [Публикация с помощью сервиса облачной потоковой передачи и WebRTCï»¿](trtc/beauty-ar/core-sdk/web/лучшие-практики/публикация-через-css-и-webrtc.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/publishing-with-cloud-streaming-service-and-webrtc-ru.md)
+- [Публикация с помощью сервиса облачной потоковой передачи и WebRTCï»¿ (предварительная инициализация)](trtc/beauty-ar/core-sdk/web/лучшие-практики/публикация-через-css-и-webrtc-прединициализация.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/publishing-with-cloud-streaming-service-and-webrtc-preinitialization-ru.md)
+- [Использование косметических спецэффектов для обработки изображений](trtc/beauty-ar/core-sdk/web/лучшие-практики/спецэффекты-для-обработки-изображений.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/using-beauty-special-effects-to-process-images-ru.md)
 - [Руководство по интеграции виртуальной примерки](trtc/beauty-ar/core-sdk/web/лучшие-практики/руководство-по-интеграции-виртуальной-примерки.md) | [RU](trtc/beauty-ar/core-sdk/web/best-practices/virtual-try-on-integration-guide-ru.md)
 
 ###### Руководство консоли
@@ -1233,7 +1233,7 @@
 #### Политики Trtc
 
 - [Политика конфиденциальности Apple: PrivacyInfo.xcprivacy](trtc/конфиденциальность-и-sla/политики-trtc/политика-конфиденциальности-apple-privacyinfo-xcprivacy.md) | [RU](trtc/privacy-sla/trtc-policies/apple-privacy-policy-privacyinfoxcprivacy-ru.md)
-- [Подтверждение выбора материкового Китая в качестве региона обслуживания](trtc/конфиденциальность-и-sla/политики-trtc/подтверждение-выбора-материкового-китая-в-качестве-региона-обслуживания.md) | [RU](trtc/privacy-sla/trtc-policies/selection-of-chinese-mainland-as-the-service-region-acknowledgment-ru.md)
+- [Подтверждение выбора материкового Китая в качестве региона обслуживания](trtc/конфиденциальность-и-sla/политики-trtc/подтверждение-региона-обслуживания-китай.md) | [RU](trtc/privacy-sla/trtc-policies/selection-of-chinese-mainland-as-the-service-region-acknowledgment-ru.md)
 
 ### Модуль RTC Engine
 
@@ -1252,7 +1252,7 @@
 
 - [Решение сигнализации чата с ИИ](trtc/rtc-engine/все-платформы/практические-решения/решение-сигнализации-чата-с-ии.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/ai-chat-signaling-solution-ru.md)
 - [Совместная трансляция и баттлы между комнатами](trtc/rtc-engine/все-платформы/практические-решения/совместная-трансляция-и-баттлы-между-комнатами.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/cross-room-co-hosting-battles-ru.md)
-- [Решения для поддержания мобильного приложения в активном состоянии](trtc/rtc-engine/все-платформы/практические-решения/решения-для-поддержания-мобильного-приложения-в-активном-состоянии.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/mobile-application-keep-alive-solutions-ru.md)
+- [Решения для поддержания мобильного приложения в активном состоянии](trtc/rtc-engine/все-платформы/практические-решения/поддержание-активности-мобильного-приложения.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/mobile-application-keep-alive-solutions-ru.md)
 - [Мониторинг качества сети](trtc/rtc-engine/все-платформы/практические-решения/мониторинг-качества-сети.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/network-quality-monitoring-ru.md)
 - [Решение PIP](trtc/rtc-engine/все-платформы/практические-решения/решение-pip.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/pip-solution-ru.md)
 - [Вертикальная прокрутка потоков прямой трансляции](trtc/rtc-engine/все-платформы/практические-решения/вертикальная-прокрутка-потоков-прямой-трансляции.md) | [RU](trtc/rtc-engine/all-platform/practice-solutions/vertical-scrolling-of-live-streams-ru.md)

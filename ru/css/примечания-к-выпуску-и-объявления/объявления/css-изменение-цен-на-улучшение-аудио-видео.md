@@ -295,4 +295,4 @@
 *Источник: [https://www.tencentcloud.com/document/product/267/56725](https://www.tencentcloud.com/document/product/267/56725)*
 
 ---
-*Источник (EN): [announcement-on-the-price-adjustment-of-css-audio-video-enhancement-feature.md](./announcement-on-the-price-adjustment-of-css-audio-video-enhancement-feature.md)*
+*Источник (EN): [announcement-on-the-price-adjustment-of-css-audio-video-enhancement-feature.md](./css-изменение-цен-на-улучшение-аудио-видео.md)*

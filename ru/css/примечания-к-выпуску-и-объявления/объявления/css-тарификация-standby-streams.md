@@ -58,4 +58,4 @@
 *Источник: [https://www.tencentcloud.com/document/product/267/56728](https://www.tencentcloud.com/document/product/267/56728)*
 
 ---
-*Источник (EN): [announcement-on-the-official-billing-for-css-standby-streams-feature.md](./announcement-on-the-official-billing-for-css-standby-streams-feature.md)*
+*Источник (EN): [announcement-on-the-official-billing-for-css-standby-streams-feature.md](./css-тарификация-standby-streams.md)*

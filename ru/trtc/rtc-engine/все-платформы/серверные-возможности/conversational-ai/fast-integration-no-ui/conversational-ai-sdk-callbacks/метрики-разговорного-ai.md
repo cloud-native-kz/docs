@@ -41,4 +41,4 @@
 *Источник: [https://trtc.io/document/68334](https://trtc.io/document/68334)*
 
 ---
-*Источник (EN): [conversational-ai-metrics-callback.md](callback-метрик-разговорного-ai.md)*
+*Источник (EN): [conversational-ai-metrics-callback.md](метрики-разговорного-ai.md)*

@@ -146,4 +146,4 @@ TSC transcoding использует технологии динамическо
 *Source: [https://www.tencentcloud.com/document/product/267/39604](https://www.tencentcloud.com/document/product/267/39604)*
 
 ---
-*Источник (EN): [live-transcoding-watermarking-stream-mixing-subtitles-dynamic-overlays.md](./live-transcoding-watermarking-stream-mixing-subtitles-dynamic-overlays.md)*
+*Источник (EN): [live-transcoding-watermarking-stream-mixing-subtitles-dynamic-overlays.md](./live-transcoding-и-overlay-функции.md)*

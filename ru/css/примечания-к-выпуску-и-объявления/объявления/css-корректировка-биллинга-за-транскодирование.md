@@ -24,4 +24,4 @@
 *Источник: [https://www.tencentcloud.com/document/product/267/59865](https://www.tencentcloud.com/document/product/267/59865)*
 
 ---
-*Источник (EN): [billing-content-adjustment-for-cloud-streaming-services-standard-transcoding-and-top-speed-codec-transcoding.md](./billing-content-adjustment-for-cloud-streaming-services-standard-transcoding-and-top-speed-codec-transcoding.md)*
+*Источник (EN): [billing-content-adjustment-for-cloud-streaming-services-standard-transcoding-and-top-speed-codec-transcoding.md](./css-корректировка-биллинга-за-транскодирование.md)*

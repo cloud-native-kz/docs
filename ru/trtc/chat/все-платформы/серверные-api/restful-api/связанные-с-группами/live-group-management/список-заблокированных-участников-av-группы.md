@@ -101,4 +101,4 @@ https://xxxxxx/v4/group_open_http_svc/get_group_ban_member?sdkappid=88888888&ide
 *Источник: [https://trtc.io/document/50295](https://trtc.io/document/50295)*
 
 ---
-*Источник (EN): [getting-the-list-of-banned-group-members.md](получение-списка-заблокированных-членов-аудио-видео-группы.md)*
+*Источник (EN): [getting-the-list-of-banned-group-members.md](список-заблокированных-участников-av-группы.md)*

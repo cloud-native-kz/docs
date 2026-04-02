@@ -53,4 +53,4 @@ Conversational AI платформы Tencent RTC предоставляет фу
 *Источник: [https://trtc.io/document/68335](https://trtc.io/document/68335)*
 
 ---
-*Источник (EN): [conversational-ai-error-callback.md](callback-ошибок-conversational-ai.md)*
+*Источник (EN): [conversational-ai-error-callback.md](ошибки-разговорного-ai.md)*

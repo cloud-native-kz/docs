@@ -53,4 +53,4 @@ Conversational AI Tencent RTC предоставляет возможность 
 *Источник: [https://trtc.io/document/68333](https://trtc.io/document/68333)*
 
 ---
-*Источник (EN): [conversational-ai-subtitle-callback.md](callback-субтитров-разговорного-ai.md)*
+*Источник (EN): [conversational-ai-subtitle-callback.md](субтитры-разговорного-ai.md)*

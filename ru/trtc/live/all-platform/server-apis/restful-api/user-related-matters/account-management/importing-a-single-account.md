@@ -1,0 +1,97 @@
+# Импорт одного аккаунта
+
+## Обзор функции
+
+Этот API используется для импорта аккаунта, принадлежащего приложению, в Chat и создания внутреннего ID для аккаунта, чтобы убедиться, что аккаунт может использовать сервис Chat.
+
+> **Примечание:** Если один и тот же аккаунт импортируется в Chat несколько раз, для него будет создан только один внутренний ID.
+
+## Описание вызова API
+
+### Образец URL запроса
+
+```
+https://xxxxxx/v4/im_open_login_svc/account_import?sdkappid=88888888&identifier=admin&usersig=xxx&random=99999999&contenttype=json
+```
+
+### Параметры запроса
+
+В следующей таблице описаны измененные параметры при вызове этого API. Для других параметров см. [Обзор RESTful API](https://intl.cloud.tencent.com/document/product/1047/34620).
+
+| Параметр | Описание |
+| --- | --- |
+| xxxxxx | Доменное имя, соответствующее стране/регионе, где находится ваш SDKAppID. Китай: `console.tim.qq.com` Сингапур: `adminapisgp.im.qcloud.com` Сеул: `adminapikr.im.qcloud.com` Токио: `adminapijpn.im.qcloud.com` Франкфурт: `adminapiger.im.qcloud.com` Силиконовая долина: `adminapiusa.im.qcloud.com` |
+| v4/im_open_login_svc/account_import | Запрашиваемый API |
+| sdkappid | SDKAppID, присвоенный консолью Chat при создании приложения |
+| identifier | Аккаунт администратора приложения. Дополнительную информацию см. в разделе **Администратор приложения** в документе [Аутентификация входа](https://intl.cloud.tencent.com/document/product/1047/33517). |
+| usersig | Подпись, созданная аккаунтом администратора приложения. Подробнее см. [Создание UserSig](https://intl.cloud.tencent.com/document/product/1047/34385). |
+| random | Случайное 32-битное беззнаковое целое число в диапазоне от 0 до 4294967295. |
+| contenttype | Формат запроса, который всегда должен быть `json`. |
+
+### Максимальная частота вызовов
+
+200 вызовов в секунду
+
+### Образец запроса
+
+```
+{   "UserID":"test",   "Nick":"test",   "FaceUrl":"http://www.qq.com"}
+```
+
+### Поля запроса
+
+| Поле | Тип | Обязательное | Описание |
+| --- | --- | --- | --- |
+| UserID | String | Да | Имя пользователя, строка длиной до 32 байт |
+| Nick | String | Нет | Прозвище пользователя |
+| FaceUrl | String | Нет | URL фотографии профиля пользователя |
+
+### Образец ответа
+
+```
+{   "ActionStatus":"OK",   "ErrorInfo":"",   "ErrorCode":0}
+```
+
+### Поля ответа
+
+| Поле | Тип | Описание |
+| --- | --- | --- |
+| ActionStatus | String | Результат запроса. `OK`: успешно. `FAIL`: ошибка |
+| ErrorCode | Integer | Код ошибки. `0`: Успешно. Другие значения: Ошибка |
+| ErrorInfo | String | Информация об ошибке |
+
+## Коды ошибок
+
+Код состояния HTTP, возвращаемый этим API, всегда равен 200, за исключением сетевых ошибок (например, ошибка 502). Конкретный код ошибки и детали можно найти в полях ответа `ErrorCode` и `ErrorInfo` соответственно.
+Для открытых кодов ошибок (60000–79999) см. [Коды ошибок](https://intl.cloud.tencent.com/document/product/1047/34348).
+В следующей таблице описаны коды ошибок, специфичные для этого API:
+
+| Код ошибки | Описание |
+| --- | --- |
+| 40006 | Во время установки профиля произошла внутренняя ошибка сервера. Попробуйте позже. |
+| 40601 | Значение поля профиля превышает предел длины в 500 байт. |
+| 70169 | Истечено время ожидания сервера. Попробуйте позже. |
+| 70398 | Число аккаунтов превышает допустимый лимит. Для создания более 100 аккаунтов обновите приложение на версию Premium. Подробнее см. [Руководство по покупке](https://trtc.io/document/67650?platform=web&product=chat&menulabel=uikit). |
+| 70402 | Неверные параметры. Проверьте, указаны ли обязательные поля и установлены ли они в соответствии с требованиями протокола. |
+| 70403 | Запрос не выполнен. Требуются права администратора приложения. |
+| 70500 | Внутренняя ошибка сервера. Попробуйте позже. |
+
+## Средство отладки API
+
+Используйте [инструмент онлайн-отладки RESTful API](https://tcc.tencentcs.com/im-api-tool/index.html#/v4/im_open_login_svc/account_import) для отладки этого API.
+
+## Ссылки
+
+- Импорт нескольких аккаунтов ([v4/im_open_login_svc/multiaccount_import](https://intl.cloud.tencent.com/document/product/1047/34954))
+- Удаление аккаунта ([v4/im_open_login_svc/account_delete](https://intl.cloud.tencent.com/document/product/1047/34955))
+- Запрос аккаунтов ([v4/im_open_login_svc/account_check](https://intl.cloud.tencent.com/document/product/1047/34956))
+- Установка профилей ([v4/profile/portrait_set](https://intl.cloud.tencent.com/document/product/1047/34916))
+- Инвалидация состояний входа аккаунта ([v4/im_open_login_svc/kick](https://intl.cloud.tencent.com/document/product/1047/34957))
+- Запрос статуса онлайн аккаунта ([v4/openim/query_online_status](https://intl.cloud.tencent.com/document/product/1047/35477))
+
+
+---
+*Источник: [https://trtc.io/document/34953](https://trtc.io/document/34953)*
+
+---
+*Источник (EN): [importing-a-single-account.md](./importing-a-single-account.md)*

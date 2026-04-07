@@ -1,0 +1,62 @@
+# Пользовательское представление приглашенного гостя и со-хоста
+
+Этот документ главным образом описывает, как использовать модуль `LiveStreamCore` и его `LiveCoreView` для реализации пользовательского представления совместного хостинга и подключения.
+
+## Предварительные требования
+
+Перед использованием `LiveStreamCore` необходимо [интегрировать и выполнить вход](https://www.tencentcloud.com/document/product/647/67475#) в LiveStreamCore, чтобы обеспечить надлежащую работу последующих функций.
+
+## Руководство по использованию
+
+### Шаг 1: Добавление LiveCoreView в представление
+
+Сначала необходимо импортировать модуль `LiveStreamCore`, а затем создать объект представления `LiveCoreView` и добавить его в ваше представление.
+
+iOS
+
+Android
+
+```
+LiveStreamCore
+```
+
+```
+public class CustomizeConnectionActivity extends AppCompatActivity {    @Override    protected void onCreate(@Nullable Bundle savedInstanceState) {        super.onCreate(savedInstanceState);        LiveCoreView liveCoreView = new LiveCoreView(this);        addContentView(liveCoreView,                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));    }}
+```
+
+### Шаг 2: Настройка представления совместного хостинга
+
+iOS
+
+Android
+
+Если вы хотите настроить представление совместного хостинга и подключения, необходимо реализовать делегат `LiveCoreView` `VideoViewDelegate`.
+
+```
+protocol VideoViewDelegate {    func createCoGuestView(userInfo: TUIUserInfo) -> UIView?    func updateCoGuestView(userInfo: TUIUserInfo, modifyFlag: UserInfoModifyFlag, coGuestView: UIView)    func createCoHostView(coHostUser: TUIConnectionUser) -> UIView?    func updateCoHostView(coHostUser: TUIConnectionUser, modifyFlag: UserInfoModifyFlag, coHostView: UIView)}
+```
+
+Ниже приведен пример использования:
+
+```
+SGSeatViewDelegate
+```
+
+Если вы хотите настроить представление совместного хостинга и подключения, необходимо реализовать адаптер `LiveCoreView` VideoViewAdapter.
+
+```
+public interface VideoViewAdapter {    View createCoGuestView(TUIRoomDefine.UserInfo var1);    void updateCoGuestView(TUIRoomDefine.UserInfo var1, List<UserInfoModifyFlag> var2, View var3);    View createCoHostView(CoHostUser var1);    void updateCoHostView(CoHostUser var1, List<UserInfoModifyFlag> var2, View var3);}
+```
+
+Ниже приведен пример использования:
+
+```
+liveCoreView.setVideoViewAdapter(new LiveCoreViewDefine.VideoViewAdapter() {    @Override    public View createCoGuestView(TUIRoomDefine.UserInfo userInfo) {        TextView coGuestUserName = new TextView(CustomizeConnectionActivity.this);        coGuestUserName.setText(userInfo.userName);        return coGuestUserName;    }    @Override    public void updateCoGuestView(TUIRoomDefine.UserInfo userInfo, List<LiveCoreViewDefine.UserInfoModifyFlag> list, View view) {    }    @Override    public View createCoHostView(LiveCoreViewDefine.CoHostUser coHostUser) {        TextView coHostUserName = new TextView(CustomizeConnectionActivity.this);        coHostUserName.setText(coHostUser.connectionUser.userName);        return coHostUserName;    }    @Override    public void updateCoHostView(LiveCoreViewDefine.CoHostUser coHostUser, List<LiveCoreViewDefine.UserInfoModifyFlag> list, View view) {    }});
+```
+
+
+---
+*Источник: [https://trtc.io/document/67469](https://trtc.io/document/67469)*
+
+---
+*Источник (EN): [custom-co-guest-and-co-host-view.md](./custom-co-guest-and-co-host-view.md)*

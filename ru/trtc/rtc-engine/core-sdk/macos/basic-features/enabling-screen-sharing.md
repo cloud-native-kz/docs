@@ -1,0 +1,94 @@
+# Включение совместного использования экрана
+
+На macOS TRTC поддерживает совместное использование экрана через основной поток и дополнительный поток:
+
+- **Совместное использование через дополнительный поток**
+В TRTC вы можете делиться экраном через выделенный поток, который называется **дополнительным потоком**. При совместном использовании через дополнительный поток ведущий одновременно публикует видео с камеры и изображения совместного использования экрана. Эта схема используется в VooV Meeting. Вы можете включить совместное использование через дополнительный поток, установив параметр `TRTCVideoStreamType` на `TRTCVideoStreamTypeSub` при вызове API `startScreenCapture`. Для воспроизведения видео дополнительного потока вызовите `startRemoteSubStreamView`.
+- **Совместное использование через основной поток**
+В TRTC канал, через который публикуются изображения с камеры, является основным потоком (**большой поток**). При совместном использовании через основной поток ведущий публикует изображения совместного использования экрана через основной поток. Поскольку существует только один поток, ведущий не может публиковать одновременно видео с камеры и изображения совместного использования экрана. Вы можете включить этот режим, установив параметр `TRTCVideoStreamType` на `TRTCVideoStreamTypeBig` при вызове API `startScreenCapture`.
+
+## Поддерживаемые платформы
+
+| iOS | Android | macOS | Windows | Electron | Chrome |
+| --- | --- | --- | --- | --- | --- |
+| ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+## Получение источников совместного использования
+
+Вы можете вызвать [getScreenCaptureSourcesWithThumbnailSize](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a37df498cbc8d9b1135e3caafdcee906f), чтобы перечислить источники совместного использования. Каждый источник совместного использования — это объект `TRTCScreenCaptureSourceInfo`.
+
+Рабочий стол macOS также является источником совместного использования. Тип совместного использования для окон на macOS — `TRTCScreenCaptureSourceTypeWindow`, а для рабочего стола — `TRTCScreenCaptureSourceTypeScreen`.
+
+Для каждого объекта `TRTCScreenCaptureSourceInfo` можно найти следующую информацию, включая `type`:
+
+| Параметр | Тип | Описание |
+| --- | --- | --- |
+| type | TRTCScreenCaptureSourceType | Тип источника захвата, может быть окно или экран |
+| sourceId | NSString | ID источника захвата. При захвате окна значение этого параметра — дескриптор окна. При захвате экрана значение этого параметра — ID экрана. |
+| sourceName | NSString | Имя окна. При захвате экрана значение этого параметра — `Screen0`, `Screen1` и так далее. |
+| extInfo | NSDictionary | Дополнительная информация |
+| Thumbnail | NSImage | Миниатюра окна |
+| Icon | NSImage | Значок окна |
+
+Используя эту информацию, вы можете отобразить список источников совместного использования в пользовательском интерфейсе для выбора пользователем.
+
+## Выбор источника совместного использования
+
+SDK TRTC поддерживает три режима совместного использования, которые можно задать через [selectScreenCaptureTarget](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a01ead6fb3106ea266caa922f5901bf18).
+
+- **Совместное использование всего экрана**:
+Вы можете делиться целым экраном, выбрав источник с типом `TRTCScreenCaptureSourceTypeScreen` и установив `rect` на {0, 0, 0, 0}. Этот режим поддерживается при разделении экрана на несколько мониторов.
+- **Совместное использование части экрана**:
+Вы можете делиться определенной частью экрана, выбрав источник с типом `TRTCScreenCaptureSourceTypeScreen` и установив `rect` на ненулевое значение, например {100, 100, 300, 300}.
+- **Совместное использование окна**:
+Вы можете делиться окном, выбрав источник с типом `TRTCScreenCaptureSourceTypeWindow` и установив `rect` на {0, 0, 0, 0}.
+
+> **Примечание** Два дополнительных параметра: `capturesCursor`: указывает, захватывать ли курсор. `highlight`: указывает, выделять ли совместно используемое окно и напоминать пользователю переместить окно, если оно закрыто. Соответствующий дизайн пользовательского интерфейса реализован в SDK.
+
+## Запуск совместного использования экрана
+
+- После выбора источника совместного использования вы можете вызвать [startScreenCapture](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a59b16baa51d86cc0465dc6edd3cbfc97), чтобы начать совместное использование экрана.
+- API [pauseScreenCapture](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a6f536bcc3df21b38885809d840698280) отличается от [stopScreenCapture](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#aa8ea0235691fc9cde0a64833249230bb) тем, что прекращает захват экрана и отображает изображение, захваченное в момент паузы. В результате удаленные пользователи будут видеть неподвижное изображение до тех пор, пока не будет вызвана функция [resumeScreenCapture](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#af257a8fb6969fe908ca68a039e6dba15).
+
+```
+ /** * 7.6 **Screen Sharing** Start screen sharing * @param view Parent control of the rendering control */- (void)startScreenCapture:(NSView *)view;/** * 7.7 **Screen Sharing** Stop screen sharing * @return `0`: successful; negative number: failed */- (int)stopScreenCapture;/** * 7.8 **Screen Sharing** Pause screen sharing * @return `0`: successful; negative number: failed */- (int)pauseScreenCapture;/** * 7.9 **Screen Sharing** Resume screen sharing * * @return `0`: successful; negative number: failed */- (int)resumeScreenCapture;
+```
+
+## Установка качества видео
+
+Вы можете использовать [setSubStreamEncoderParam](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#abc0f3cd5c320d0e65163bd07c3c0a735), чтобы установить качество видео совместного использования экрана, включая разрешение, битрейт и частоту кадров. Мы рекомендуем следующие параметры:
+
+| Качество | Разрешение | Частота кадров | Битрейт |
+| --- | --- | --- | --- |
+| FHD | 1920 × 1080 | 10 | 800 Kbps |
+| HD | 1280 × 720 | 10 | 600 Kbps |
+| SD | 960 × 720 | 10 | 400 Kbps |
+
+## Просмотр совместно используемого экрана
+
+- **Просмотр экранов, совместно используемых пользователями macOS/Windows**
+Когда пользователь macOS/Windows в комнате начинает совместное использование экрана, экран будет поделен через дополнительный поток, и другие пользователи в комнате будут уведомлены через [onUserSubStreamAvailable](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloudDelegate__ios.html#ac45fb0751f7dbd2466a35c8828c9911b) в `TRTCCloudDelegate`.
+Пользователи, которые хотят просмотреть совместно используемый экран, могут начать рендеринг изображения дополнительного потока удаленного пользователя, вызвав API [startRemoteSubStreamView](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#a68d048ccd0d018995e33e9e714e14474).
+- **Просмотр экранов, совместно используемых пользователями Android/iOS**
+Когда пользователь Android/iOS начинает совместное использование экрана, экран будет поделен через основной поток, и другие пользователи в комнате будут уведомлены через [onUserVideoAvailable](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloudDelegate__ios.html#a533d6ea3982a922dd6c0f3d05af4ce80) в `TRTCCloudDelegate`.
+Пользователи, которые хотят просмотреть совместно используемый экран, могут начать рендеринг основного потока удаленного пользователя, вызвав API [startRemoteView](https://liteav.sdk.qcloud.com/doc/api/zh-cn/group__TRTCCloud__ios.html#af85283710ba6071e9fd77cc485baed49).
+
+```
+//Sample code: watch the shared screen- (void)onUserSubStreamAvailable:(NSString *)userId available:(BOOL)available {    if (available) {        [self.trtcCloud startRemoteSubStreamView:userId view:self.capturePreviewWindow.contentView];    } else {        [self.trtcCloud stopRemoteSubStreamView:userId];    }}
+```
+
+## Часто задаваемые вопросы
+
+**Могут ли несколько пользователей в комнате одновременно делиться своими экранами?**
+В настоящее время комната TRTC может иметь только один поток совместного использования экрана одновременно.
+
+**Когда поделен указанное окно (**`SourceTypeWindow`**), если размер окна изменяется, изменяется ли разрешение видеопотока соответственно?**
+По умолчанию SDK автоматически настраивает параметры кодирования в соответствии с размером совместно используемого окна.
+Если вы хотите фиксированное разрешение, вызовите API `setSubStreamEncoderParam`, чтобы установить параметры кодирования для совместного использования экрана, или укажите параметры при вызове API `startScreenCapture`.
+
+
+---
+*Источник: [https://trtc.io/document/37336](https://trtc.io/document/37336)*
+
+---
+*Источник (EN): [enabling-screen-sharing.md](./enabling-screen-sharing.md)*

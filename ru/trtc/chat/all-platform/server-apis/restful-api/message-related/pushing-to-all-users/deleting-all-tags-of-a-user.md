@@ -1,0 +1,94 @@
+# Удаление всех тегов пользователя
+
+## Обзор функции
+
+Этот API используется администратором для удаления всех тегов пользователей. Каждый запрос может удалить все теги для максимум 100 пользователей.
+
+## Описание вызова API
+
+Отправка всем пользователям доступна только для Pro edition, Pro Plus edition и Enterprise edition. Для её использования необходимо [приобрести Pro edition, Pro Plus edition или Enterprise edition](https://www.tencentcloud.com/document/product/1047/34577), перейти в [консоль](https://console.trtc.io/chat), выбрать **Feature Configuration** > **Login and Message** > **Push to all users** и включить функцию.
+
+### Образец URL запроса
+
+```
+https://xxxxxx/v4/all_member_push/im_remove_all_tags?usersig=xxx&identifier=admin&sdkappid=88888888&random=99999999&contenttype=json
+```
+
+### Параметры запроса
+
+| Параметр | Описание |
+| --- | --- |
+| https | Протокол запроса — HTTPS, метод запроса — POST. |
+| xxxxxx | Доменное имя, соответствующее стране/региону, где находится ваш SDKAppID. Китай: `console.tim.qq.com` Сингапур: `adminapisgp.im.qcloud.com` Сеул: `adminapikr.im.qcloud.com` Токио: `adminapijpn.im.qcloud.com` Франкфурт: `adminapiger.im.qcloud.com` Кремниевая долина: `adminapiusa.im.qcloud.com` Джакарта: `adminapiidn.im.qcloud.com` |
+| v4/all_member_push/im_remove_all_tags | API запроса |
+| usersig | Подпись, сгенерированная в учётной записи администратора приложения. Дополнительную информацию см. в разделе [Generating UserSig](https://intl.cloud.tencent.com/document/product/1047/34385). |
+| identifier | Учётная запись администратора приложения. |
+| sdkappid | `SDKAppID`, назначенный консолью Chat при создании приложения |
+| random | Случайное 32-битное беззнаковое целое число |
+| contenttype | Значение всегда `json`. |
+
+### Максимальная частота вызовов
+
+100 раз/сек
+
+### Образец запроса
+
+```
+{    "To_Account": [        "xiaojun012",        "xiaojun013"    ]}
+```
+
+### Поля запроса
+
+| Поле | Тип | Обязательное | Описание |
+| --- | --- | --- | --- |
+| To_Account | Array | Да | Целевая учётная запись пользователя |
+
+### Образец ответа
+
+```
+{    "ActionStatus": "OK",    "ErrorInfo": "",    "ErrorCode":0}
+```
+
+### Поля ответа
+
+| Поле | Тип | Описание |
+| --- | --- | --- |
+| ActionStatus | String | Результат запроса. `OK`: успешно; `FAIL`: ошибка |
+| ErrorCode | Integer | Код ошибки |
+| ErrorInfo | String | Информация об ошибке |
+
+## Коды ошибок
+
+За исключением ошибок сети (например, ошибка 502), код возврата HTTP для этого API всегда 200. `ErrorCode` **и** `ErrorInfo` **в ответе представляют фактический код ошибки и информацию об ошибке.** Для общих кодов ошибок (60000–79999) см. раздел [Error Codes](https://intl.cloud.tencent.com/document/product/1047/34348).
+В следующей таблице описаны коды ошибок, специфичные для этого API:
+
+| Код ошибки | Описание |
+| --- | --- |
+| 90001 | Ошибка при анализе формата JSON. Проверьте, соответствует ли JSON запрос спецификациям JSON. |
+| 90009 | Запрос требует разрешений администратора приложения. |
+| 90018 | Количество запрашиваемых учётных записей превышает лимит. |
+| 91000 | Ошибка внутреннего сервиса. Повторите попытку. |
+
+## Инструмент отладки API
+
+Используйте [инструмент онлайн-отладки RESTful API](https://tcc.tencentcs.com/im-api-tool/index.html#/v4/all_member_push/im_remove_all_tags) для отладки этого API.
+
+## Ссылки
+
+- [API для отправки всем пользователям](https://intl.cloud.tencent.com/document/product/1047/37165)
+- [Отправка всем пользователям](https://intl.cloud.tencent.com/document/product/1047/37166)
+- [Установка имён атрибутов приложения](https://intl.cloud.tencent.com/document/product/1047/37167)
+- [Получение имён атрибутов приложения](https://intl.cloud.tencent.com/document/product/1047/37168)
+- [Установка атрибутов пользователя](https://intl.cloud.tencent.com/document/product/1047/37170)
+- [Удаление атрибутов пользователя](https://intl.cloud.tencent.com/document/product/1047/37171)
+- [Получение атрибутов пользователя](https://intl.cloud.tencent.com/document/product/1047/37169)
+- [Добавление тегов пользователя](https://intl.cloud.tencent.com/document/product/1047/37173)
+- [Получение тегов пользователя](https://intl.cloud.tencent.com/document/product/1047/37172)
+- [Удаление тегов пользователя](https://intl.cloud.tencent.com/document/product/1047/37174)
+
+
+---
+*Источник: [https://trtc.io/document/37175](https://trtc.io/document/37175)*
+
+---
+*Источник (EN): [deleting-all-tags-of-a-user.md](./deleting-all-tags-of-a-user.md)*

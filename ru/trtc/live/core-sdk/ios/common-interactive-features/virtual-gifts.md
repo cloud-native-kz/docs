@@ -1,0 +1,269 @@
+# Виртуальные подарки
+
+`GiftStore` — это специализированный модуль в **AtomicXCore** для управления функциями дарения в прямых трансляциях. Он позволяет вам создать полноценную систему дарения для приложения прямой трансляции, поддерживая надежную монетизацию и интерактивный опыт.
+
+| **Панель подарков** | **Подарок-баррада** | **Подарок на весь экран** |
+| --- | --- | --- |
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/33aa8083c6e111f0b011525400bf7822.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/33925a80c6e111f087ad52540099c741.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/33c98fa2c6e111f09e745254007c27c5.gif) |
+
+## Основные функции
+
+- **Получение списка подарков**: Получайте данные панели подарков с сервера, включая категории подарков и их подробную информацию.
+- **Отправка подарка**: Зрители могут отправлять виртуальные подарки хозяину трансляции.
+- **Трансляция событий подарков**: Синхронизация событий подарков в реальном времени на всех клиентах в комнате для запуска анимаций и уведомлений-барад.
+
+## Основные концепции
+
+| **Основное понятие** | **Тип** | **Основные обязанности и описание** |
+| --- | --- | --- |
+| `Gift` | `struct` | Представляет модель данных подарка, включая ID, имя, URL значка, URL ресурса анимации (resourceURL), цену (монеты) и другое. |
+| `GiftCategory` | `struct` | Представляет группировку подарков (например, "Популярные", "Люкс"). Содержит имя категории и массив объектов Gift. |
+| `GiftState` | `struct` | Представляет текущее состояние модуля подарков. Основное свойство usableGifts — это StateFlow, содержащий полный список подарков с сервера. |
+| `GiftEvent` | `enum` | Определяет слушатель событий подарков в прямой трансляции. В настоящее время доступно только `onReceiveGift`. Это событие транслируется всем пользователям в комнате (включая отправителя) при успешной отправке подарка. |
+| `GiftStore` | `class` | Основной класс управления функциями подарков. Используется для получения списков подарков, выполнения запросов на отправку и прослушивания глобальных событий подарков. |
+
+## Реализация
+
+### Шаг 1: Интеграция компонента
+
+> **Примечание:** Чтобы использовать систему дарения, активируйте **Бесплатное тестирование** или издание **Pro**. Количество настраиваемых подарков зависит от выбранного пакета. Для получения подробной информации см. раздел **Система подарков** в [Описание функций и тарификация](https://www.tencentcloud.com/document/product/647/59407#658e2423-30d2-45e2-91b8-128b2730b072) и выберите подходящий вам пакет.
+
+- **Видеотрансляция**: Обратитесь к [Быстрому старту](https://www.tencentcloud.com/document/product/647/74594) для интеграции AtomicXCore.
+- **Голосовой чат-рум**: Обратитесь к [Быстрому старту](https://www.tencentcloud.com/document/product/647/74682) для интеграции AtomicXCore.
+
+### Шаг 2: Инициализация и прослушивание событий подарков
+
+Получите экземпляр `GiftStore` и установите подписчиков для получения событий подарков и обновлений списка подарков.
+
+#### Реализация
+
+1. **Получение экземпляра**: Вызовите `GiftStore.create(liveID:)` для получения экземпляра `GiftStore`, привязанного к текущей прямой трансляции.
+2. **Подписка на события**: Подпишитесь на `giftStore.giftEventPublisher` для получения событий `.onReceiveGift`.
+3. **Подписка на состояние**: Подпишитесь на `giftStore.state` для получения списка подарков `usableGifts`.
+
+#### Пример кода
+
+```
+import Foundationimport AtomicXCore import Combine     class GiftManager {    private let liveId: String    private let giftStore: GiftStore    private var cancellables = Set<AnyCancellable>()        // Откройте события подарков для подписки слоя UI и запуска анимаций    let giftEventPublisher = PassthroughSubject<GiftEvent, Never>()    // Откройте список подарков извне    let giftListPublisher = CurrentValueSubject<[GiftCategory], Never>([])    init(liveId: String) {        self.liveId = liveId        // 1. Получить экземпляр GiftStore с использованием liveId        self.giftStore = GiftStore.create(liveID: liveId)                subscribeToGiftState()        subscribeToGiftEvents()    }    /// 2. Подписаться на события подарков    private func subscribeToGiftEvents() {        giftStore.giftEventPublisher            .receive(on: DispatchQueue.main)            .sink { [weak self] event in                // Передать событие на слой UI для обработки                self?.giftEventPublisher.send(event)            }            .store(in: &cancellables)    }        /// 3. Подписаться на состояние списка подарков    private func subscribeToGiftState() {        giftStore.state            .subscribe(StatePublisherSelector(keyPath: \\GiftState.usableGifts))            .receive(on: DispatchQueue.main)            .assign(to: \\.value, on: giftListPublisher)            .store(in: &cancellables)    }}
+```
+
+#### Параметры структуры списка подарков
+
+- **Описание параметров GiftCategory**
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `categoryID` | `String` | Уникальный ID категории подарка. |
+| `name` | `String` | Отображаемое имя категории подарка. |
+| `desc` | `String` | Описание категории подарка. |
+| `extensionInfo` | `[String: String]` | Поле расширенной информации. |
+| `giftList` | `[`[Gift](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/gift)`]` | Массив объектов Gift, содержащихся в этой категории. |
+
+- **Описание параметров Gift**
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `giftID` | `String` | Уникальный ID подарка. |
+| `name` | `String` | Отображаемое имя подарка. |
+| `desc` | `String` | Описание подарка. |
+| `iconURL` | `String` | URL значка подарка. |
+| `resourceURL` | `String` | URL ресурса анимации подарка. |
+| `level` | `UInt` | Уровень подарка. |
+| `coins` | `UInt` | Цена подарка. |
+| `extensionInfo` | `[String: String]` | Поле расширенной информации. |
+
+### Шаг 3: Получение списка подарков
+
+Вызовите метод `refreshUsableGifts` для получения данных подарков с сервера.
+
+#### Реализация
+
+1. **Вызов API**: Вызовите `giftStore.refreshUsableGifts` (обычно после входа в комнату).
+2. **Обработка обратного вызова**: Обработайте блок завершения для проверки ошибок.
+3. **Получение данных**: При успехе данные автоматически передаются через giftListPublisher, установленный на [Шаге 2](#634828fc-7b2c-4a61-9140-60efc5246431).
+
+#### Пример кода
+
+```
+extension GiftManager {    /// Обновить список подарков с сервера    func fetchGiftList() {        giftStore.refreshUsableGifts { result in            switch result {            case .success:                print("Gift list fetched successfully")                // При успехе данные автоматически обновляются через подписку на состояние            case .failure(let error):                print("Failed to fetch gift list: \\(error.localizedDescription)")            }        }    }}
+```
+
+### Шаг 4: Отправка подарка
+
+Запустите логику отправки при взаимодействии пользователя с панелью подарков.
+
+#### Реализация
+
+1. **Подготовка данных**: Получите выбранный `giftID` и количество (`count`) из вашего UI.
+2. **Вызов API**: Вызовите `giftStore.sendGift(giftID:count:completion:)`.
+3. **Обработка результата**: Используйте блок завершения только для обработки ошибок (например, ошибки баланса). Успешные отправки обрабатываются через глобальный слушатель события `.onReceiveGift` для обеспечения согласованности.
+
+#### Пример кода
+
+```
+extension GiftManager {    /// Пользователь отправляет подарок    func sendGift(giftID: String, count: UInt) {        giftStore.sendGift(giftID: giftID, count: count) { result in            switch result {            case .success:                print("Gift \\(giftID) sent successfully")                // После успешной отправки все в комнате, включая отправителя, получат событие onReceiveGift            case .failure(let error):                print("Failed to send gift: \\(error.localizedDescription)")                // Уведомить пользователя, например, "Недостаточно средств" или "Ошибка сети"            }        }    }}
+```
+
+#### Параметры API sendGift
+
+| **Имя параметра** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `giftID` | `String` | Уникальный ID подарка для отправки. |
+| `count` | `UInt` | Количество подарков для отправки. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения отправки. |
+
+## Продвинутые функции
+
+Модуль `GiftStore` разработан для бесперебойной работы с вашей серверной инфраструктурой. Этот раздел описывает, как настроить ресурсы и интегрировать продвинутые функции воспроизведения.
+
+### Конфигурация ресурсов подарков
+
+Вы можете полностью настроить свой инвентарь подарков (имена, значки, цены, анимации) в соответствии с вашим брендом.
+
+#### Реализация
+
+1. **Конфигурация на стороне сервера**: Используйте REST API сервера LiveKit для управления информацией о подарках, категориями и поддержкой нескольких языков. См. [Руководство по конфигурации подарков](https://www.tencentcloud.com/document/product/647/72844).
+2. **Получение данных на клиенте**: На клиенте вызовите `refreshUsableGifts` для получения данных конфигурации.
+3. **Отображение UI**: Используйте полученный `List<GiftCategory>` для отрисовки панели подарков.
+
+#### Диаграмма последовательности конфигурации
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/3c2e9ac9c6e111f0a7775254005ef0f7.png)
+
+#### Обзор связанных интерфейсов REST API
+
+| **Категория интерфейса** | **Интерфейс** | **Пример запроса** |
+| --- | --- | --- |
+| **Управление подарками** | Добавить информацию о подарке | [Пример](https://www.tencentcloud.com/document/product/647/72845) |
+|  | Удалить информацию о подарке | [Пример](https://www.tencentcloud.com/document/product/647/72847) |
+|  | Запросить информацию о подарке | [Пример](https://www.tencentcloud.com/document/product/647/72846) |
+| **Управление категориями подарков** | Добавить информацию о категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72848) |
+|  | Удалить информацию о конкретной категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72850) |
+|  | Получить информацию о конкретной категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72849) |
+| **Управление связями подарков** | Добавить связь между конкретной категорией подарка и подарком | [Пример](https://www.tencentcloud.com/document/product/647/72851) |
+|  | Удалить связь между конкретной категорией подарка и подарком | [Пример](https://www.tencentcloud.com/document/product/647/72852) |
+|  | Получить связи подарков в конкретной категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72853) |
+| **Управление многоязычностью подарков** | Добавить информацию о многоязычности подарка | [Пример](https://www.tencentcloud.com/document/product/647/72854) |
+|  | Удалить информацию о конкретной многоязычности подарка | [Пример](https://www.tencentcloud.com/document/product/647/72856) |
+|  | Получить информацию о многоязычности подарка | [Пример](https://www.tencentcloud.com/document/product/647/72855) |
+|  | Добавить информацию о многоязычности категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72857) |
+|  | Удалить информацию о конкретной многоязычности категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72859) |
+|  | Получить информацию о многоязычности категории подарка | [Пример](https://www.tencentcloud.com/document/product/647/72858) |
+
+### Тарификация и процесс списания подарков
+
+AtomicXCore делегирует логику тарификации вашему бэкенду для обеспечения безопасности и гибкости.
+
+#### Рабочий процесс
+
+1. **Конфигурация обратного вызова бэкенда**: Настройте URL обратного вызова вашей системы тарификации в бэкенде LiveKit. См. [Документация конфигурации обратного вызова](https://www.tencentcloud.com/document/product/647/64412).
+2. **Запрос клиента**: Клиент вызывает `sendGift`.
+3. **Проверка бэкенда**: Бэкенд LiveKit вызывает URL обратного вызова; ваша система тарификации обрабатывает списание и возвращает результат.
+4. **Синхронизация результата**: Если успешно, **AtomicXCore** транслирует событие `onReceiveGift`; если нет, обратный вызов завершения `sendGift` получает ошибку.
+
+#### Поток вызовов
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/416552bdc6e111f09e745254007c27c5.png)
+
+#### Обзор связанных интерфейсов REST API
+
+| **Интерфейс** | **Описание** | **Пример запроса** |
+| --- | --- | --- |
+| **Конфигурация обратного вызова — обратный вызов перед отправкой подарка** | Перехватывающий крючок предварительной проверки перед дарением. Позволяет вашему бэкенду перехватывать запросы подарков для выполнения необходимых проверок (например, достаточного баланса, контроля рисков) перед обработкой подарка. | [Пример](https://www.tencentcloud.com/document/product/647/72210) |
+
+### Полноэкранная анимация (интеграция SVGA)
+
+Когда пользователь отправляет люкс-подарок (например, "Ракета", "Карнавал"), воспроизведите полноэкранную анимацию (такую как SVGA) для повышения привлекательности.
+
+#### Реализация
+
+**AtomicXCore** не включает встроенный проигрыватель анимации подарков. Интегрируйте библиотеку третьей стороны в зависимости от ваших требований. Ниже представлено сравнение двух вариантов:
+
+| **Элемент сравнения** | **Базовое решение (SVGAPlayer)** | **Gift AR (TCEffectPlayerKit)** |
+| --- | --- | --- |
+| Тарификация | Бесплатно (открытый исходный код) | Платный (требуется лицензия). См. [Руководство по тарификации](https://trtc.io/document/69949?product=beautyar&menulabel=core%20sdk&platform=android#X-Series-Capabilities) |
+| Метод интеграции | Ручная интеграция через Gradle | Требует дополнительной интеграции и аутентификации |
+| Форматы | Только SVGA | SVGA, PAG, WebP, Lottie, MP4 и другие |
+| Производительность | Хорошая для файлов < 10MB | Оптимизирована для больших ресурсов и сложных слоев |
+| Рекомендуемый сценарий | Единый формат SVGA, управляемый размер файла | Несколько форматов или требуется более высокая производительность/совместимость устройств |
+
+В этом разделе демонстрируется базовое решение. Для **Gift AR** см. [Руководство интеграции TCEffectPlayer](https://trtc.io/document/70537?product=beautyar&menulabel=core%20sdk&platform=ios).
+
+#### Реализация базового решения: использование SVGAPlayer
+
+1. **Интегрируйте SVGAPlayer**: В вашем `Podfile` добавьте зависимость для `SVGAPlayer` и запустите `pod install` в терминале.
+
+```
+target 'YourApp' do  # ... other pods  pod 'SVGAPlayer'end
+```
+
+2. **Прослушивание событий подарков**: Подпишитесь на `giftEventPublisher` GiftStore.
+3. **Разбор и воспроизведение**: При получении события `.onReceiveGift` проверьте, является ли `gift.resourceURL` действительным и указывает ли он на файл SVGA. Если да, используйте `SVGAParser` для разбора URL и передайте разобранный `SVGAVideoEntity` экземпляру `SVGAPlayer` для воспроизведения.
+
+#### Пример кода
+
+```
+import UIKitimport AtomicXCore import Combineimport SVGAPlayer // 1. Импортирование класса LiveRoomViewController: UIViewController, SVGAPlayerDelegate {    private var giftManager: GiftManager!    private var cancellables = Set<AnyCancellable>()    private let svgaPlayer = SVGAPlayer() // 2. Подготовка экземпляра    private let svgaParser = SVGAParser()    override func viewDidLoad() {        super.viewDidLoad()        setupSVGAPlayer()    }    private func setupSVGAPlayer() {        svgaPlayer.delegate = self        svgaPlayer.loops = 1 // По умолчанию воспроизвести один раз        svgaPlayer.clearsAfterStop = true // Автоматически очистить после воспроизведения        view.addSubview(svgaPlayer)        svgaPlayer.frame = view.bounds // По умолчанию полный экран        svgaPlayer.isHidden = true    }    func setupGiftSubscription(liveId: String) {        self.giftManager = GiftManager(liveId: liveId)        giftManager.giftEventPublisher            .sink { [weak self] event in // 3. Прослушивание событий                guard case .onReceiveGift(_, let gift, _, _) = event else { return }                if !gift.resourceURL.isEmpty, let url = URL(string: gift.resourceURL) { // 4. Разбор и воспроизведение                    self?.playAnimation(from: url)                }            }            .store(in: &cancellables)    }    private func playAnimation(from url: URL) {        svgaParser.parse(with: url, completionBlock: { [weak self] videoItem in            guard let self = self, let videoItem = videoItem else { return }            DispatchQueue.main.async {                self.svgaPlayer.videoItem = videoItem                self.svgaPlayer.isHidden = false                self.svgaPlayer.startAnimation()            }        }, failureBlock: { error in            print("Failed to parse SVGA animation: \\(error?.localizedDescription ?? "unknown error")")            // Добавьте логику повтора или отчета об ошибках при необходимости        })    }    func svgaPlayerDidFinishedAnimation(_ player: SVGAPlayer!) { /* ... Обработка завершения воспроизведения ... */ }}
+```
+
+### Отображение уведомлений о подарках в барраде
+
+Повысьте социальное взаимодействие, отображая системное уведомление в общей области барады (чата) всякий раз, когда отправляется подарок (например, "[Пользователь] отправил [Подарок] x [Количество]").
+
+#### Реализация
+
+1. **Прослушивание событий**: Подпишитесь на `giftStore.giftEventPublisher`.
+2. **Извлечение информации**: После получения события `.onReceiveGift` извлеките отправителя, подарок и количество.
+3. **Получение BarrageStore**: Используйте `BarrageStore.create(liveID:)` для получения экземпляра, привязанного к текущей комнате.
+4. **Составление сообщения**: Создайте структуру `Barrage`, установите `messageType = .text` и установите `textContent` в составленную строку (например, "[sender.userName] отправил [gift.name] x [count]").
+5. **Локальная вставка**: Вызовите `barrageStore.appendLocalTip(message: giftTip)` для вставки сообщения в локальный список.
+
+#### Пример кода
+
+```
+// В LiveRoomManager или подобном менеджере верхнего уровнаprivate func setupGiftToBarrageFlow() {    giftStore.giftEventPublisher        .receive(on: DispatchQueue.main)        .sink { [weak self] event in // 1. Прослушивание событий            guard case .onReceiveGift(_, let gift, let count, let sender) = event else { return } // 2. Извлечение информации            guard let self = self else { return }            // 3. Получить BarrageStore (предположим, что barrageStore уже инициализирован)            // 4. Составить сообщение            let tipText = "\\(sender.userName) sent \\(gift.name) x \\(count)"            var giftTip = Barrage()            giftTip.messageType = .text             giftTip.textContent = tipText            // Опционально: установить специального отправителя            // 5. Вставить локально            self.barrageStore.appendLocalTip(message: giftTip)        }        .store(in: &cancellables)}
+```
+
+## Документация API
+
+Для полной информации о всех открытых интерфейсах, свойствах и методах [GiftStore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/giftstore) и связанных классов см. официальную документацию API для [AtomicXCore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore). Ключевые хранилища, упоминаемые в этом руководстве, включают:
+
+| **Хранилище/компонент** | **Описание функции** | **Документация API** |
+| --- | --- | --- |
+| GiftStore | Получение списка подарков, отправка/получение подарков, прослушивание событий подарков (включая отправителя и детали подарка). | [Документация API](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/giftstore) |
+| BarrageStore | Отправка текстовой/пользовательской барады, ведение списка барады, прослушивание статуса барады в реальном времени. | [Документация API](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/barragestore) |
+
+## Часто задаваемые вопросы
+
+### Список подарков в GiftStore пуст. Что мне делать?
+
+Вы должны вызвать `refreshUsableGifts(completion)` для получения данных подарков с вашего бэкенда. Убедитесь, что ваш бэкенд настроен с данными подарков через REST API сервера.
+
+### Как мне реализовать многоязычный дисплей для подарков (например, китайский, английский)?
+
+Используйте API `GiftStore.setLanguage(language: String)` перед вызовом `refreshUsableGifts`, передав код целевого языка (например, "en" или "zh-CN"). Сервер вернет имена и описания подарков на указанном языке.
+
+### Я вызвал sendGift, но анимация подарка воспроизводится дважды. Почему?
+
+Событие `onReceiveGift` транслируется всем членам комнаты, включая отправителя. Если вы обновляете UI как в обратном вызове завершения sendGift, так и в обработчике события `onReceiveGift`, анимация будет воспроизведена дважды.
+
+- **Лучшая практика**: Обновляйте UI (например, воспроизведение анимаций, показ барады) только в обработчике события `onReceiveGift`. Используйте обратный вызов завершения `sendGift` только для обработки ошибок (например, "Отправка не удалась" или "Недостаточно средств").
+
+### Где реализована логика списания подарков?
+
+Списание подарков полностью обрабатывается вашей системой тарификации. AtomicXCore интегрируется с вашей системой тарификации через обратный вызов бэкенда. Когда клиент вызывает `sendGift`, ваш бэкенд выполняет списание. После возврата результата бэкенду AtomicXCore он определяет, будет ли трансляция события подарка.
+
+### Будут ли уведомления о подарках заблокированы отключением звука или контролем частоты сообщений?
+
+Нет. События уведомлений о подарках (`onReceiveGift`) не подвержены влиянию отключения звука или контроля частоты и всегда доставляются надежно.
+
+### Что мне делать, если воспроизведение анимации подарка зависает?
+
+Проверьте размер файла SVGA; базовый проигрыватель рекомендует файлы размером не более 10MB. Для больших или сложных анимаций рассмотрите возможность интеграции **Gift AR**, предоставляемой TUILiveKit, для повышения производительности.
+
+
+---
+*Источник: [https://trtc.io/document/74604](https://trtc.io/document/74604)*
+
+---
+*Источник (EN): [virtual-gifts.md](./virtual-gifts.md)*

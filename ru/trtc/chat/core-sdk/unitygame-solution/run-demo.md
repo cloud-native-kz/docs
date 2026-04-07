@@ -1,0 +1,257 @@
+# Запуск демонстрации
+
+Этот документ описывает, как интегрировать SDK для Unity.
+
+## Требования к окружению
+
+| Окружение | Версия |
+| --- | --- |
+| Unity | 2019.4.15f1 или позже |
+| Android | Android Studio 3.5 или позже; устройства с Android 4.1 или позже для приложений |
+| iOS | Xcode 11.0 или позже. Убедитесь, что ваш проект имеет действительную подпись разработчика. |
+
+## Поддерживаемые платформы
+
+Мы стремимся создать набор Chat SDK и TUIKit для всех платформ Unity, позволяя вам запускать один набор кода на всех платформах.
+
+| Платформа | Chat SDK |
+| --- | --- |
+| iOS | Поддерживается |
+| Android | Поддерживается |
+| macOS | Поддерживается |
+| Windows | Поддерживается |
+| [Web](#web) | Поддерживается с версии 1.8.1+ |
+
+> **Примечание.** Для веб-платформы необходимо выполнить несколько дополнительных шагов для интеграции SDK. Подробнее см. [Часть 5](#web).
+
+## Предварительные требования
+
+1. Вы [зарегистрировались](https://intl.cloud.tencent.com/document/product/378/17985) в учетной записи Tencent Cloud и прошли [проверку личности](https://intl.cloud.tencent.com/document/product/378/3629).
+2. Вы создали приложение в соответствии с инструкциями в разделе "Создание и обновление приложения" и записали SDKAppID.
+
+## Часть 1. Создание тестовых учетных записей
+
+В [консоли Chat](https://console.tencentcloud.com/im) выберите ваше приложение и нажмите **Вспомогательные инструменты** > **Генерация и проверка UserSig** на левой боковой панели. Создайте два значения `UserID` и их значения `UserSig`, а затем скопируйте `UserID`, `Key` и `UserSig` для последующих входов.
+
+> **Запрещено.** Тестовая учетная запись предназначена только для разработки и тестирования. Перед запуском приложения правильный способ генерации UserSig — это интегрировать код вычисления UserSig на ваш сервер и предоставить API, ориентированный на приложение. Когда требуется UserSig, ваше приложение может отправить запрос на сервер бизнеса для получения динамического UserSig. Дополнительные сведения см. в разделе [Генерация UserSig](https://intl.cloud.tencent.com/document/product/1047/34385).
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/935c742f55fa11eeabd75254005810a4.png)
+
+## Часть 2. Интеграция Chat SDK в ваш проект Unity
+
+1. Используйте Unity для создания проекта и записи каталога проекта или откройте существующий проект Unity.
+2. Откройте проект с помощью IDE (например, Visual Studio Code):
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/20a6ae2e788111ee8fb05254000e2caf.png)
+
+3. Найдите Packages/manifest.json на основе каталога и измените зависимости следующим образом:
+
+```
+{  "dependencies":{    "com.tencent.imsdk.unity":"https://github.com/TencentCloud/chat-sdk-unity.git#unity"  }}
+```
+
+Чтобы помочь вам лучше понять API Chat SDK, мы предоставляем [примеры API](https://github.com/TencentCloud/tc-chat-sdk-unity/tree/main/Assets/IM_Api_Example), демонстрирующие, как вызывать API и запускать прослушиватели.
+
+## Часть 3. Загрузка зависимостей
+
+Откройте проект в редакторе Unity, дождитесь загрузки зависимостей и подтвердите, что Tencent Cloud Chat успешно загружен.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/9377d9ec55fa11ee974d5254005f490f.jpeg)
+
+## Часть 4. Реализация вашего собственного пользовательского интерфейса
+
+### Предварительные требования
+
+Вы создали проект Unity или имеете проект, который может быть основан на Unity, и загрузили Tencent Cloud Chat SDK.
+
+### Инициализация SDK
+
+> **Примечание.** Чтобы соблюдать авторские права на дизайн эмодзи, проект Chat Demo/TUIKit не включает вырезки больших элементов эмодзи. Пожалуйста, замените их на свои собственные разработки или другие пакеты эмодзи, на которые у вас есть авторские права, перед официальным запуском для коммерческого использования. **Стандартный пакет эмодзи со смайликом, показанный ниже, защищен авторским правом Tencent RTC**, вы можете обновиться до [Chat Pro Plus Edition и Enterprise Edition](https://console.trtc.io/subscription/buy/chat?packType=pro), чтобы использовать его бесплатно. ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/bef6c1fc97f411ef992f52540075b605.png)
+
+[Подробная документация](https://intl.cloud.tencent.com/document/product/1047/48570)
+
+Вызовите `TencentIMSDK.Init` для инициализации SDK.
+
+Передайте свой `SDKAppID`.
+
+```
+using Com.Tencent.IM.Unity.UIKit;using com.tencent.imsdk.unity;using com.tencent.imsdk.unity.types;using com.tencent.imsdk.unity.enums;namespace Com.Tencent.IM.Unity.UIKit{    public static void Init() {      string SDKAppID = ""; // Get the `SDKAppID` from the Chat console      SdkConfig sdkConfig = new SdkConfig();          sdkConfig.sdk_config_config_file_path = Application.persistentDataPath + "/TIM-Config";          sdkConfig.sdk_config_log_file_path = Application.persistentDataPath + "/TIM-Log";          TIMResult res = TencentIMSDK.Init(long.Parse(SDKAppID), sdkConfig);    }}
+```
+
+После `Init` вы можете подключить некоторые прослушиватели к Chat SDK, включая в основном те, что предназначены для состояния сети и изменений информации о пользователе. Дополнительные сведения см. [здесь](https://intl.cloud.tencent.com/document/product/1047/48570).
+
+### Вход с тестовой учетной записью
+
+[Подробная документация](https://intl.cloud.tencent.com/document/product/1047/48571)
+
+Войдите, используя одну из созданных ранее тестовых учетных записей.
+
+Вызовите метод `TencentIMSDK.Login` для входа с тестовой учетной записью.
+
+Если возвращаемый `res.code` равен `0`, вход выполнен успешно.
+
+```
+public static void Login() {  if (userid == "" || user_sig == "")  {      return;  }  TIMResult res = TencentIMSDK.Login(userid, user_sig, (int code, string desc, string json_param, string user_data)=>{    // Process the login callback logic  });}
+```
+
+> **Запрещено.** Тестовая учетная запись предназначена только для разработки и тестирования. Перед запуском приложения правильный способ генерации UserSig — это интегрировать код вычисления UserSig на ваш сервер и предоставить API, ориентированный на приложение. Когда требуется UserSig, ваше приложение может отправить запрос на сервер бизнеса для получения динамического UserSig. Дополнительные сведения см. в разделе [Генерация UserSig](https://intl.cloud.tencent.com/document/product/1047/34385).
+
+### Отправка сообщения
+
+[Подробная документация](https://intl.cloud.tencent.com/document/product/1047/48572)
+
+Ниже показано, как отправить текстовое сообщение:
+
+Пример кода:
+
+```
+public static void MsgSendMessage() {        string conv_id = ""; // The conversation ID of a one-to-one message is the `userID`, and that of a group message is the `groupID`.        Message message = new Message        {          message_conv_id = conv_id,          message_conv_type = TIMConvType.kTIMConv_C2C, // For a group message, this value is `TIMConvType.kTIMConv_Group`          message_elem_array = new List<Elem>          {            new Elem            {              elem_type = TIMElemType.kTIMElem_Text,              text_elem_content =  "This is an ordinary text message"            }          }        };        StringBuilder messageId = new StringBuilder(128); // messageId for getting message ID when message is sent        TIMResult res = TencentIMSDK.MsgSendMessage(conv_id, TIMConvType.kTIMConv_C2C, message, messageId, (int code, string desc,                         string json_param, string user_data)=>{          // Async message sending result        });          // The message ID returned when the message is sent}
+```
+
+> **Примечание.** Если отправка не удалась, это может означать, что ваш `sdkAppID` не поддерживает отправку сообщений незнакомцам. В этом случае вы можете отключить проверку отношений в консоли. Отключите проверку отношений дружбы [здесь](https://console.tencentcloud.com/im/login-message).
+
+### Получение списка разговоров
+
+[Подробная документация](https://intl.cloud.tencent.com/document/product/1047/50020)
+
+Войдите со второй тестовой учетной записью для получения списка разговоров.
+
+Список разговоров можно получить двумя способами:
+
+1. Прослушивайте обратный вызов постоянного соединения, чтобы получать изменения сообщений и обновлять и отрисовывать список исторических сообщений в реальном времени.
+2. Вызовите API для получения истории сообщений в определенные моменты времени.
+
+Распространенные сценарии использования включают:
+
+Получение списка разговоров при запуске приложения и прослушивание обратного вызова постоянного соединения для обновления списка разговоров в реальном времени.
+
+#### Запрос списка разговоров в определенные моменты времени
+
+```
+TIMResult res = TencentIMSDK.ConvGetConvList((int code, string desc, List<ConvInfo> info_list, string user_data)=>{ // Process the async logic});
+```
+
+На этом этапе вы можете увидеть сообщение, отправленное первой тестовой учетной записью на предыдущем шаге.
+
+#### Прослушивание постоянного соединения для получения списка разговоров в реальном времени
+
+Подключите прослушиватель списка разговоров, обработайте событие обратного вызова и обновите пользовательский интерфейс.
+
+- Подключите прослушиватель.
+
+```
+TencentIMSDK.SetConvEventCallback((TIMConvEvent conv_event, List<ConvInfo> conv_list, string user_data)=>{ // Process the callback logic});
+```
+
+- Обработайте событие обратного вызова и отобразите последний список разговоров в пользовательском интерфейсе.
+
+### Получение сообщений
+
+[Подробная документация](https://intl.cloud.tencent.com/document/product/1047/48573)
+
+Сообщения можно получать с помощью Chat SDK двумя способами:
+
+- Прослушивайте обратный вызов постоянного соединения, чтобы получать изменения сообщений и обновлять и отрисовывать список исторических сообщений в реальном времени.
+- Вызовите API для получения истории сообщений в определенные моменты времени.
+
+Распространенные сценарии использования включают:
+
+- После открытия нового разговора в пользовательском интерфейсе запросите и отобразите определенное количество исторических сообщений.
+- Прослушивайте постоянное соединение для получения сообщений в реальном времени и добавления их в список исторических сообщений.
+
+#### Запрос списка исторических сообщений на определенный момент
+
+Чтобы не влиять на скорость загрузки, мы рекомендуем ограничить количество загружаемых сообщений до 20 на странице.
+
+Вам нужно динамически записывать текущий номер страницы для следующего запроса.
+
+Пример кода:
+
+```
+// Pull historical one-to-one messages// Do not set `msg_getmsglist_param_last_msg` for the first pull. It will pull the newest message if not set.// `msg_getmsglist_param_last_msg` can be the last message in the returned message list for the second pull.Message LastMessage = null;string LastMessageID = "";var get_message_list_param = new MsgGetMsgListParam();TIMResult res = TencentIMSDK.MsgGetMsgList(conv_id, TIMConvType.kTIMConv_C2C, get_message_list_param, (params object[] parameters) => {  // handle callback logic  List<Message> messages = Utils.FromJson<List<Message>>((string)parameters[1]);       if (messages.Count > 0){          LastMessage = messages[messages.Count - 1];          LastMessageID.text = messages[messages.Count - 1].message_msg_id;   }else {         LastMessage = null;          LastMessageID.text = "";       }  });// `msg_getmsglist_param_last_msg` can be the last message in the returned message list for the second pull.var get_message_list_param = new MsgGetMsgListParam    {      msg_getmsglist_param_last_msg = LastMessage    };TIMResult res = TencentIMSDK.MsgGetMsgList(conv_id, TIMConvType.kTIMConv_Group, get_message_list_param, (int code, string desc, string user_data) => {  // handle callback logic});
+```
+
+#### Прослушивание обратного вызова постоянного соединения для получения новых сообщений в реальном времени
+
+После инициализации списка исторических сообщений новые сообщения поступают из постоянного соединения `TencentIMSDK.AddRecvNewMsgCallback`.
+
+После срабатывания обратного вызова `AddRecvNewMsgCallback` вы можете добавить новые сообщения в список исторических сообщений по мере необходимости.
+
+Пример кода для привязки прослушивателя:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> message, string user_data) => {  // Process new messages});
+```
+
+На этом этапе вы завершили разработку модуля Chat, и теперь пользователи могут отправлять и получать сообщения, а также переходить в разные разговоры.
+
+Вы можете разработать дополнительные функции, такие как [группы](https://intl.cloud.tencent.com/document/product/1047/48169), [профиль пользователя](https://intl.cloud.tencent.com/document/product/1047/48859), [цепь отношений](https://intl.cloud.tencent.com/document/product/1047/49563) и [локальный поиск](https://intl.cloud.tencent.com/document/product/1047/50066).
+
+Дополнительные сведения см. в разделе [Решение интеграции (без пользовательского интерфейса)](https://www.tencentcloud.com/document/product/1047/46263).
+
+## Часть 5. Включение поддержки Unity для WebGL
+
+Tencent Cloud Chat SDK для Unity версии 1.8.1 или позже поддерживает сборку WebGL.
+
+Чтобы включить поддержку веб-платформы, вам необходимо выполнить следующие дополнительные шаги в дополнение к шагам для включения поддержки Android и iOS:
+
+### Импорт JS
+
+1. Выполните следующие команды в папке, содержащей выходные данные сборки проекта WebGL.
+
+```
+// Initialize npmnpm init -y// Download the @tencentcloud/chat SDK via npm.npm install @tencentcloud/chat --save// Download the ââtim-upload-pluginââ plugin via npm.npm install tim-upload-plugin --save
+```
+
+2. Откройте `index.html` и импортируйте файлы JS следующим образом:
+
+```
+<script src="./node_modules/@tencentcloud/chat/index.js"></script><script src="./node_modules/@tencentcloud/chat/modules/group-module.js"></script><script src="./node_modules/@tencentcloud/chat/modules/relationship-module.js"></script><script src="./node_modules/@tencentcloud/chat/modules/signaling-module.js"></script><script src="./node_modules/tim-upload-plugin/index.js"></script>
+```
+
+## Часто задаваемые вопросы
+
+#### Какие платформы поддерживаются?
+
+Поддерживаются iOS, Android, Windows, macOS и WebGL.
+
+#### Что делать, если при нажатии на **Build And Run** для устройства Android возникает ошибка, указывающая на то, что доступное устройство не найдено?
+
+Проверьте, что устройство не занято другими ресурсами. Вы также можете нажать **Build** для создания пакета APK, перетащить его в эмулятор и запустить.
+
+#### Что делать, если при первом запуске для устройства iOS возникает ошибка?
+
+Если ошибка возникает для устройства iOS после запуска демонстрации, настроенной как описано выше, выберите **Product** > **Clean** для очистки продукта и создайте демонстрацию заново. Вы также можете закрыть Xcode и открыть его заново, а затем создать демонстрацию заново.
+
+#### Что делать, если Unity v2019.04 выдает следующую ошибку для iOS?
+
+Library/PackageCache/com.unity.collab-proxy@1.3.9/Editor/UserInterface/Bootstrap.cs(23,20): error CS0117: 'Collab' does not contain a definition for 'ShowChangesWindow'
+Выберите **Window** > **Package Manager** на панели инструментов редактора и понизьте версию Unity Collaborate до 1.2.16.
+
+#### Что делать, если Unity v2019.04 выдает следующую ошибку для iOS?
+
+Library/PackageCache/com.unity.textmeshpro@3.0.1/Scripts/Editor/TMP_PackageUtilities.cs(453,84): error CS0103: The name 'VersionControlSettings' does not exist in the current context
+Откройте исходный код и удалите фрагмент кода `|| VersionControlSettings.mode != "Visible Meta Files"`.
+
+#### Это интерфейс C#? Как его использовать без Unity?
+
+Unity SDK — это SDK, использующий C#, но поскольку Unity SDK содержит функции Unity, он не может использоваться непосредственно в окружении C#.
+
+Если вам нужно использовать его в окружении C#, мы предоставляем отдельный пакет [C# SDK](https://www.nuget.org/packages/TencentCloudChat/1.0.1) nuget. Метод использования аналогичен Unity SDK, вы можете обратиться к документации Unity SDK для использования.
+
+Среди них C# SDK поддерживает только ПК, а unity SDK поддерживает мобильные устройства.
+
+#### Есть ли пользовательский интерфейс, который можно использовать напрямую?
+
+Соответствующий UIKit SDK Unity и C# SDK в настоящее время не предоставляется.
+
+#### Как мне запросить коды ошибок?
+
+Для кодов ошибок API Chat SDK см. [Коды ошибок](https://intl.cloud.tencent.com/document/product/1047/34348).
+
+
+---
+*Источник: [https://trtc.io/document/41656](https://trtc.io/document/41656)*
+
+---
+*Источник (EN): [run-demo.md](./run-demo.md)*

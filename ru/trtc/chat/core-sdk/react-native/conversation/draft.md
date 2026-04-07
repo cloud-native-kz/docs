@@ -1,0 +1,49 @@
+# Черновик
+
+## Обзор функции
+
+При отправке сообщения пользователь может захотеть переключиться на другое окно чата до завершения сообщения. Незаконченное сообщение можно сохранить с помощью API `setConversationDraft`, чтобы пользователь мог вернуться к нему через поле `draftText` объекта `Conversation` и завершить его.
+
+> **Примечание:** Черновик разговора может содержать только текст. Черновик разговора будет сохраняться только в локальной базе данных и не на сервере. Поэтому его нельзя синхронизировать между устройствами, и он будет недоступен после удаления и переустановки приложения.
+
+## Отображение в интерфейсе
+
+Вы можете добиться эффекта черновика разговора, показанного на рисунке ниже, используя эту функцию. Нажмите на этот разговор, чтобы войти в интерфейс чата, и содержимое черновика автоматически заполнится в поле ввода:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/eef0465c9ced11efa04c52540055f650.png)
+
+## Установка черновика разговора
+
+##### **API**
+
+```
+chat.setConversationDraft(options);
+```
+
+##### **Параметры**
+
+| Название | Тип | Описание |
+| --- | --- | --- |
+| conversationID | String | ID разговора, который состоит из: `C2C${userID}` (для личных чатов) `GROUP{groupID}` (для групповых чатов) |
+| draftText | String | содержимое черновика, передача пустой строки `''` указывает на отмену черновика. |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+let promise = chat.setConversationDraft({   conversationID: 'GROUPpublic1',   draftText: '123'});promise.then(function(imResponse) {}).catch(function(imError) {  console.warn('setConversationDraft error:', imError);});
+```
+
+```
+// Отмена черновика разговораlet promise = chat.setConversationDraft({   conversationID: 'GROUPpublic1',   draftText: ''});promise.then(function(imResponse) {}).catch(function(imError) {  console.warn('setConversationDraft error:', imError);});
+```
+
+
+---
+*Источник: [https://trtc.io/document/48848](https://trtc.io/document/48848)*
+
+---
+*Источник (EN): [draft.md](./draft.md)*

@@ -1,0 +1,82 @@
+# Подтверждение прочтения сообщения
+
+## Описание функции
+
+Если отправитель сообщения хочет узнать, кто прочитал или не прочитал сообщение, отправитель должен включить функцию подтверждения прочтения сообщения.
+После включения этой функции отправитель может указать, требует ли сообщение подтверждение прочтения при отправке сообщения; если да, то после прочтения сообщения получателем отправитель получит подтверждение.
+
+Подтверждения прочтения поддерживаются как для личных, так и для групповых сообщений одинаковым образом.
+
+> **Примечание:** Для использования этой функции необходимо приобрести [Pro edition, Pro Plus edition или Enterprise edition](https://console.trtc.io/subscription/buy/chat?packType=pro). Подтверждение прочтения для групповых сообщений поддерживается только на Flutter v3.8.0.
+
+## Подтверждение прочтения сообщения
+
+### Указание типа группы для поддержки подтверждения прочтения сообщений
+
+Войдите в [консоль Chat](https://console.trtc.io/chat), выберите **Feature Configuration** > **Login and Message** > **Group Message Read Receipts**.
+
+### Указание того, что сообщение требует подтверждения прочтения (отправителем)
+
+После создания сообщения отправитель указывает, что сообщение требует подтверждение прочтения через поле `needReadReceipt` в `V2TimMessage` ([Подробнее](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/models_v2_tim_message/V2TimMessage/needReadReceipt.html)), а затем отправляет сообщение в беседу.
+
+Пример кода:
+
+```
+V2TimValueCallback<V2TimMsgCreateInfoResult> createCustomMessageRes =      await TencentImSDKPlugin.v2TIMManager          .getMessageManager()          .createCustomMessage(            data: 'Typing...',          );// Set `needReadReceipt` to `true` when sending the message  TencentImSDKPlugin.v2TIMManager.getMessageManager().sendMessage(id: createCustomMessageRes.data.id, receiver: "", groupID: "groupID",onlineUserOnly: true,needReadReceipt: true);
+```
+
+### Отправка подтверждения прочтения сообщения (получателем)
+
+После получения сообщения получатель определяет, требует ли сообщение подтверждение прочтения, на основе поля `needReadReceipt` в `V2TIMMessage` ([Подробнее](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/models_v2_tim_message/V2TimMessage/needReadReceipt.html)). Если да, то после прочтения сообщения пользователем получатель вызывает API `sendMessageReadReceipts` ([Подробнее](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_message_manager/V2TIMMessageManager/sendMessageReadReceipts.html)) для отправки подтверждения прочтения.
+
+Пример кода:
+
+```
+V2TimCallback sendMessageReadReceipts = await TencentImSDKPlugin.v2TIMManager.getMessageManager().sendMessageReadReceipts(messageIDList: ['msgids']);  if(sendMessageReadReceipts.code == 0){    // Succeeded  }else{    // Failed  }
+```
+
+### Прослушивание уведомления о подтверждении прочтения сообщения (отправителем)
+
+После отправки получателем подтверждения прочтения сообщения отправитель может прослушивать уведомление о подтверждении через `onRecvMessageReadReceipts` в `V2TimAdvancedMsgListener` ([Подробнее](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/enum_callbacks/OnRecvMessageReadReceipts.html)) и обновить пользовательский интерфейс на основе уведомления для отображения сообщения, например, как "Прочитано двумя участниками".
+
+Пример кода:
+
+```
+onRecvMessageReadReceipts: (List<V2TimMessageReceipt> receiptList) {      receiptList.forEach((element) {         element.groupID;  // Group ID        element.msgID; // Message ID        element.readCount;// Latest read count of the group message        element.unreadCount;// Latest unread count of the group message        element.userID; //  ID of the other party of the one-to-one message      });},
+```
+
+### Получение информации о подтверждении прочтения сообщения (отправителем)
+
+После входа в список сообщений отправитель сначала получает исторические сообщения, а затем вызывает API `getMessageReadReceipts` ([Подробнее](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_message_manager/V2TIMMessageManager/getMessageReadReceipts.html)) для получения информации о подтверждении прочтения сообщений.
+
+Поле `V2TimessageReceipt` подтверждения прочтения сообщения описано ниже:
+
+| Атрибут | Определение | Описание |
+| --- | --- | --- |
+| msgID | ID сообщения | Уникальный ID сообщения |
+| userID | ID получателя | Если сообщение является личным сообщением, это поле указывает ID получателя. |
+| timestamp | Время, когда получатель отмечает сообщение как прочитанное | Это поле недействительно, когда сообщение прочитано. Если сообщение является личным сообщением, когда получатель вызывает API `markC2CMessageAsRead` для отметки сообщения как прочитанного, отправитель получит обратный вызов `onRecvC2CReadReceipt`, который содержит информацию `timestamp`. |
+| groupID | ID группы | Если сообщение является групповым сообщением, это поле указывает ID группы. |
+| readCount | Количество участников, которые прочитали групповое сообщение | Если сообщение является групповым сообщением, это поле указывает количество участников, которые прочитали сообщение. |
+| unreadCount | Количество участников, которые не прочитали групповое сообщение | Если сообщение является групповым сообщением, это поле указывает количество участников, которые не прочитали сообщение. |
+
+Пример кода:
+
+```
+V2TimValueCallback<List<V2TimMessageReceipt>> getMessageReadReceipts = await  TencentImSDKPlugin.v2TIMManager.getMessageManager().getMessageReadReceipts(messageIDList: []);  if(getMessageReadReceipts.code == 0){    getMessageReadReceipts.data.forEach((element) {      // Parse the group message read receipt      element.groupID;      element.msgID;      element.readCount;      element.timestamp;      element.unreadCount;      element.userID;    });  }
+```
+
+### Получение списка участников, которые прочитали или не прочитали групповое сообщение (отправителем)
+
+Для просмотра списка участников, которые прочитали или не прочитали групповое сообщение, отправитель может вызвать API `getGroupMessageReadMemberList` ([Подробнее](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_message_manager/V2TIMMessageManager/getGroupMessageReadMemberList.html)) для получения списка участников по страницам.
+
+```
+V2TimValueCallback<V2TimGroupMessageReadMemberList> getGroupMessageReadMemberList = await  TencentImSDKPlugin.v2TIMManager.getMessageManager().getGroupMessageReadMemberList(messageID: "", filter: GetGroupMessageReadMemberListFilter.V2TIM_GROUP_MESSAGE_READ_MEMBERS_FILTER_READ,); if(getGroupMessageReadMemberList.code == 0){   // Get the list of members who have or have not read the group message   getGroupMessageReadMemberList.data.isFinished;   getGroupMessageReadMemberList.data.memberInfoList;   getGroupMessageReadMemberList.data.nextSeq; }
+```
+
+
+---
+*Источник: [https://trtc.io/document/48020](https://trtc.io/document/48020)*
+
+---
+*Источник (EN): [read-receipt.md](./read-receipt.md)*

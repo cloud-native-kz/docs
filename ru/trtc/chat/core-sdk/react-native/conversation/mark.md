@@ -1,0 +1,107 @@
+# Отметка
+
+## Обзор функции
+
+В некоторых случаях может потребоваться отметить беседу, например, как "избранное", "свернуто", "скрыто" или "непрочитанное", что можно реализовать через следующий API.
+
+> **Примечание:** Для использования этой функции необходимо [приобрести выпуск Pro, Pro Plus или Enterprise](https://trtc.io/pricing/chat).
+
+## Отображение в пользовательском интерфейсе
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/05c3c0b9c8b211ef82565254005ef0f7.png)
+
+## Установка пользовательских данных беседы
+
+После успешного вызова API SDK отправляет событие `TencentCloudChat.EVENT.CONVERSATION_LIST_UPDATED`.
+
+##### **API**
+
+```
+chat.setConversationCustomData(options);
+```
+
+##### **Параметры**
+
+Параметр `options` имеет тип `Object`. Он содержит следующие значения атрибутов:
+
+| Имя | Тип | Описание |
+| --- | --- | --- |
+| conversationIDList | String | Список идентификаторов бесед |
+| customData | String | Пользовательские данные, максимальная длина поддерживается 256 байт. Установка значения `''` очистит пользовательские данные беседы. |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+let promise = chat.setConversationCustomData({  conversationIDList: ['GROUPtest', 'C2Cexample'],  customData: 'your custom data'});promise.then(function(imResponse) {  const { successConversationIDList, failureConversationIDList } = imResponse.data;  const conversationList = chat.getConversationList(successConversationIDList);    failureConversationIDList.forEach((item) => {    const { conversationID, code, message } = item;  });}).catch(function(imError) {  console.warn('setConversationCustomData error:', imError);});
+```
+
+```
+// clear the conversation custom data.let promise = chat.setConversationCustomData({  conversationIDList: ['GROUPtest', 'C2Cexample'],  customData: ''});promise.then(function(imResponse) {  const { successConversationIDList, failureConversationIDList } = imResponse.data;  const conversationList = chat.getConversationList(successConversationIDList);   failureConversationIDList.forEach((item) => {    const { conversationID, code, message } = item;  });}).catch(function(imError) {  console.warn('setConversationCustomData error:', imError);});
+```
+
+## Отметка беседы
+
+Вызовите API `markConversation` для отметки или удаления отметки беседы.
+
+> **Примечание:** Когда пользователь отмечает беседу, SDK просто записывает значение отметки и не изменяет базовую логику беседы. Например, отметка беседы как `TencentCloud.TYPES.CONV_MARK_TYPE_UNREAD` не изменяет количество непрочитанных сообщений на базовом уровне. SDK предоставляет четыре стандартные отметки ("избранное", "свернуто", "скрыто" и "непрочитанное"). Если они не соответствуют вашим требованиям, вы можете создавать расширенные отметки, которые должны соответствовать следующим условиям: значение расширенной отметки не может совпадать со значением существующей. Пользовательские значения отметок должны быть Math.power(2, n) (32 <= n < 64, то есть n должно быть больше или равно 32 и меньше 64), например, пользовательское значение отметки Math.power(2, 32) представляет "iPhone Online".
+
+##### **API**
+
+```
+chat.markConversation(options);
+```
+
+##### **Параметры**
+
+Параметр `options` имеет тип `Object`. Он содержит следующие значения атрибутов:
+
+| Имя | Тип | Описание |
+| --- | --- | --- |
+| conversationIDList | String | Список идентификаторов бесед |
+| markType | Number | Тип отметки беседы |
+| enableMark | Boolean | `true`: Отметить. `false`: Удалить отметку |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+// Mark a conversation as "favorite"let promise = chat.markConversation({  conversationIDList: ['GROUPtest', 'C2Cexample'],  markType: TencentCloudChat.TYPES.CONV_MARK_TYPE_STAR,  enableMark: true});promise.then(function(imResponse) {  // Marked the conversation as "favorite" successfully  const { successConversationIDList, failureConversationIDList } = imResponse.data;  // successConversationIDList - List of conversations that were marked successfully  // Get the conversation list  const conversationList = chat.getConversationList(successConversationIDList);  // failureConversationIDList - List of conversations that failed to be marked as "favorite"  failureConversationIDList.forEach((item) => {    const { conversationID, code, message } = item;  });}).catch(function(imError){  console.warn('markConversation error:', imError);});
+```
+
+### Прослушивание уведомления об изменении отметки беседы
+
+После отметки или удаления отметки беседы поле `markList` в `Conversation` изменится. Вы можете прослушивать уведомление об этом изменении через событие `TencentCloudChat.EVENT.CONVERSATION_LIST_UPDATED`.
+
+##### **Примеры**
+
+```
+let onConversationListUpdated = function(event) {  console.log(event.data); // Array that stores Conversation instances};chat.on(TencentCloudChat.EVENT.CONVERSATION_LIST_UPDATED, onConversationListUpdated);
+```
+
+### Получение указанной отмеченной беседы
+
+Вызовите API `getConversationList` для получения указанной отмеченной беседы.
+
+##### **Примеры**
+
+```
+// Obtain all conversations that are marked as "favorite"let promise = chat.getConversationList({ markType: TencentCloudChat.TYPES.CONV_MARK_TYPE_STAR });promise.then(function(imResponse) {  const conversationList = imResponse.data.conversationList; // Conversation list});
+```
+
+```
+// Obtain all one-to-one conversations that are marked as "collapsed"let promise = chat.getConversationList({  markType: TencentCloudChat.TYPES.CONV_MARK_TYPE_FOLD,  type: TencentCloudChat.TYPES.CONV_C2C});promise.then(function(imResponse) {  const conversationList = imResponse.data.conversationList; // Conversation list});
+```
+
+
+---
+*Источник: [https://trtc.io/document/66158](https://trtc.io/document/66158)*
+
+---
+*Источник (EN): [mark.md](./mark.md)*

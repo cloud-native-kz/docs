@@ -1,0 +1,78 @@
+# Профиль члена группы
+
+## Описание функции
+
+Класс для профиля члена группы — это `V2TIMGroupMemberFullInfo`, который содержит `userID`, пользовательскую информацию, роль и информацию о запрете на отправку сообщений члена группы.
+
+## Получение профиля членов группы
+
+Вы можете вызвать `getGroupMembersInfo` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMGroupManager.html#adb08e1c4fa9aff407c7b2678757f66d5) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Group.html#v2timmanager.getgroupmembersinfo(groupid:memberlist:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Group_08.html#a1ab284b80811bcc697d689d7b97edf04) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMGroupManager.html#a6db2fcfd78bbd71003ae31584c88c672)) для получения профиля члена группы. Этот API поддерживает передачу нескольких значений `userID` одновременно для массового получения профилей членов группы и повышения эффективности передачи по сети.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+List<String> userIDList = new ArrayList<>();userIDList.add("userA");userIDList.add("userB");V2TIMManager.getGroupManager().getGroupMembersInfo("groupA", userIDList, new V2TIMValueCallback<List<V2TIMGroupMemberFullInfo>>() {  @Override  public void onSuccess(List<V2TIMGroupMemberFullInfo> v2TIMGroupMemberFullInfos) {        // Успешно получено  }  @Override  public void onError(int code, String desc) {        // Ошибка получения  }});
+```
+
+```
+V2TIMManager.shared.getGroupMembersInfo(groupID: "groupID", memberList: ["user1", "user2"]) { memberList in    memberList.forEach { item in        print( item.description)    }} fail: { code, desc in    print( "getGroupMemberList fail, \\(code), \\(desc)")}
+```
+
+```
+[[V2TIMManager sharedInstance] getGroupMembersInfo:@"groupA" memberList:@[@"user1"] succ:^(NSArray<V2TIMGroupMemberFullInfo *> *memberList) {    // Успешно получено} fail:^(int code, NSString *desc) {    // Ошибка получения}];
+```
+
+```
+template <class T>class ValueCallback final : public V2TIMValueCallback<T> {public:    using SuccessCallback = std::function<void(const T&)>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    ValueCallback() = default;    ~ValueCallback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess(const T& value) override {        if (success_callback_) {            success_callback_(value);        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};V2TIMString groupID = "groupA";V2TIMStringVector memberList;memberList.PushBack("userA");memberList.PushBack("userB");auto callback = new ValueCallback<V2TIMGroupInfoVector>{};callback->SetCallback(    [=](const V2TIMGroupMemberFullInfoVector& groupMemberFullInfoList) {        // Успешно получено        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка получения        delete callback;    });V2TIMManager::GetInstance()->GetGroupManager()->GetGroupMembersInfo(groupID, memberList, callback);
+```
+
+## Изменение профилей членов группы
+
+Владелец группы или администратор могут вызвать API `setGroupMemberInfo` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMGroupManager.html#a6f1cf8ede41348b4cd7b63b8e4caa77b) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Group.html#v2timmanager.setgroupmemberinfo(groupid:info:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Group_08.html#a40b97ee4b138f93e1b2073d1bdff3756) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMGroupManager.html#acd0e222e4c3d5997666aaf4126bd974e)) для изменения карточки имени группы (`nameCard`), пользовательского поля (`customInfo`) и другой информации члена группы.
+
+Обычные члены группы могут вызвать `setGroupMemberInfo` для установки карточки имени группы (`nameCard`) и пользовательского поля (`customInfo`).
+
+Для изменения пользовательского поля члена группы необходимо предварительно настроить его в [Консоли](https://console.trtc.io/). Путь конфигурации: Applications > Your App > Chat > Configuration > Group Configuration > Custom Group Member Field.
+
+> **Примечание** Аудиовидео-группа (AVChatRoom) не хранит информацию о членах группы, невозможно установить карточку имени члена группы. Вы можете установить до пяти пользовательских полей члена группы, которые не могут быть удалены, а их имя и тип не могут быть изменены.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+V2TIMGroupMemberFullInfo memberFullInfo = new V2TIMGroupMemberFullInfo();// Укажите члена группыmemberFullInfo.setUserID("userA");// Установите значение `nameCard` для изменения memberFullInfo.setNameCard("userA_namecard");// Установите пользовательское поле члена группыMap<String, byte[]> customMap = new HashMap<>();customMap.put("member_key1", "value1".getBytes());memberFullInfo.setCustomInfo(customMap);V2TIMManager.getGroupManager().setGroupMemberInfo("groupA", memberFullInfo, new V2TIMCallback() {  @Override  public void onSuccess() {        // Успешно изменено  }  @Override  public void onError(int code, String desc) {        // Ошибка изменения  }});
+```
+
+```
+let info = V2TIMGroupMemberFullInfo()info.userID = "userA"info.nameCard = "userA_namecard"info.customInfo = ["Str": "value1".data(using: .utf8) ?? Data()]V2TIMManager.shared.setGroupMemberInfo(groupID: "groupID", info: info) {    print( info.description)} fail: { code, desc in    print( "setGroupMemberInfo fail, \\(code), \\(desc)")}
+```
+
+```
+V2TIMGroupMemberFullInfo *memberFullInfo = [[V2TIMGroupMemberFullInfo alloc] init];// Укажите члена группыmemberFullInfo.userID = @"user1";// Установите значение `nameCard` для изменения memberFullInfo.nameCard = @"user1_namecard";// Установите пользовательское поле члена группыmemberFullInfo.customInfo = @{@"member_key1" : [@"value1" dataUsingEncoding:NSUTF8StringEncoding]};[[V2TIMManager sharedInstance] setGroupMemberInfo:@"groupA" info:memberFullInfo succ:^{    // Успешно изменено} fail:^(int code, NSString *desc) {    // Ошибка изменения}];
+```
+
+```
+class Callback final : public V2TIMCallback {public:    using SuccessCallback = std::function<void()>;    using ErrorCallback = std::function<void(int, const V2TIMString&)>;    Callback() = default;    ~Callback() override = default;    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {        success_callback_ = std::move(success_callback);        error_callback_ = std::move(error_callback);    }    void OnSuccess() override {        if (success_callback_) {            success_callback_();        }    }    void OnError(int error_code, const V2TIMString& error_message) override {        if (error_callback_) {            error_callback_(error_code, error_message);        }    }private:    SuccessCallback success_callback_;    ErrorCallback error_callback_;};// Укажите члена группыV2TIMGroupMemberFullInfo info;info.userID = "userA";// Установите значение `nameCard` для изменения info.nameCard = "userA_namecard";info.modifyFlag = V2TIMGroupMemberInfoModifyFlag::V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_NAME_CARD;// Установите пользовательское поле члена группыV2TIMCustomInfo customInfo;std::string str{u8"value1"};customInfo.Insert("member_key1", {reinterpret_cast<const uint8_t*>(str.data()), str.size()});info.customInfo = customInfo;info.modifyFlag |= V2TIMGroupMemberInfoModifyFlag::V2TIM_GROUP_MEMBER_INFO_MODIFY_FLAG_CUSTOM_INFO;auto callback = new Callback;callback->SetCallback(    [=]() {        // Успешно изменено        delete callback;    },    [=](int error_code, const V2TIMString& error_message) {        // Ошибка изменения        delete callback;    });V2TIMManager::GetInstance()->GetGroupManager()->SetGroupMemberInfo("userA", info, callback);
+```
+
+
+---
+*Источник: [https://trtc.io/document/48178](https://trtc.io/document/48178)*
+
+---
+*Источник (EN): [member-profile.md](./member-profile.md)*

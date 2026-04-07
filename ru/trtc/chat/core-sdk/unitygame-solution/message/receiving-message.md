@@ -1,0 +1,167 @@
+# Получение сообщения
+
+## Описание функции
+
+- `RecvNewMsgCallback` используется для прослушивания и получения всех типов сообщений (текстовые, пользовательские и мультимедийные).
+
+## Установка слушателя сообщений
+
+### Добавление слушателя
+
+Получатель вызывает `AddRecvNewMsgCallback` ([Подробности](https://comm.qq.com/im/doc/unity/en/api/SDKRegisteringCallback/AddRecvNewMsgCallback.html)) для добавления слушателя сообщений. Рекомендуется вызывать его рано, например после инициализации страницы чата, чтобы обеспечить своевременное получение сообщений в приложении.
+
+### Удаление слушателя
+
+Чтобы перестать получать сообщения, получатель может вызвать `RemoveRecvNewMsgCallback` ([Подробности](https://comm.qq.com/im/doc/unity/en/api/SDKRegisteringCallback/AddRecvNewMsgCallback.html)) для удаления слушателя сообщений.
+
+## Получение текстового сообщения
+
+Получатель может получить текстовое сообщение один-к-одному или групповое, используя слушатель сообщений следующим образом:
+
+1. Вызовите `AddRecvNewMsgCallback` для установки слушателя события.
+2. Слушайте обратный вызов `RecvNewMsgCallback` для получения текстовых сообщений.
+3. Чтобы перестать получать сообщения, вызовите `RemoveRecvNewMsgCallback` для удаления слушателя. Этот шаг является необязательным и может выполняться по мере необходимости.
+
+Пример кода:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Text)      {         string text = elem.text_elem_content;      }    }  }})
+```
+
+## Получение пользовательского сообщения
+
+Получатель может получить пользовательское сообщение один-к-одному или групповое, используя слушатель сообщений следующим образом:
+
+1. Вызовите `AddRecvNewMsgCallback` для установки слушателя события.
+2. Слушайте обратный вызов `RecvNewMsgCallback` для получения пользовательских сообщений.
+3. Чтобы перестать получать сообщения, вызовите `RemoveRecvNewMsgCallback` для удаления слушателя. Этот шаг является необязательным и может выполняться по мере необходимости.
+
+Пример кода:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Custom)      {         string data = elem.custom_elem_data;         string desc = elem.custom_elem_desc;         string ext = elem.custom_elem_ext;      }    }  }})
+```
+
+## Получение мультимедийного сообщения
+
+Получатель может получить мультимедийное сообщение, используя слушатель сообщений следующим образом:
+
+1. Вызовите `AddRecvNewMsgCallback` для установки слушателя события.
+2. Слушайте обратный вызов `RecvNewMsgCallback` для получения мультимедийных сообщений.
+3. Проанализируйте атрибут `elem_type` в сообщении `Message` и затем еще раз проанализируйте сообщение в соответствии с типом, чтобы получить конкретное содержимое элементов в сообщении.
+4. Чтобы перестать получать сообщения, вызовите `RemoveRecvNewMsgCallback` для удаления слушателя. Этот шаг является необязательным и может выполняться по мере необходимости.
+
+### Сообщение с изображением
+
+Изображение в сообщении может быть в трех форматах: оригинал, большое и миниатюра. Последние два автоматически генерируются SDK при отправке сообщения и могут игнорироваться.
+Большое изображение: это изображение, полученное после пропорционального сжатия оригинального изображения. После сжатия высота или ширина (в зависимости от того, что меньше) составляет 720 пикселей.
+Миниатюра: это изображение, полученное после пропорционального сжатия оригинального изображения. После сжатия высота или ширина (в зависимости от того, что меньше) составляет 198 пикселей.
+
+Пример кода:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Image)      {         string path = elem.image_elem_orig_path; // Image upload path. This field applies only to the message sender who can use it to display the image on the screen in advance to optimize the experience.         switch(elem.image_elem_level)         {          case TIMImageLevel.kTIMImageLevel_Orig: // Send the original image          {            string id = elem.image_elem_orig_id;            int h = elem.image_elem_orig_pic_height;            int w = elem.image_elem_orig_pic_width;            int size = elem.image_elem_orig_pic_size;            string url = elem.image_elem_orig_url;            break;          }          case TIMImageLevel.kTIMImageLevel_HD: // Send the large image (large in size)          {            string id = elem.image_elem_large_id;            int h = elem.image_elem_large_pic_height;            int w = elem.image_elem_large_pic_width;            int size = elem.image_elem_large_pic_size;            string url = elem.image_elem_large_url;            break;          }          case TIMImageLevel.kTIMImageLevel_Compression: // Send the thumbnail (small in size; default)          {            string id = elem.image_elem_thumb_id;            int h = elem.image_elem_orig_thumb_height;            int w = elem.image_elem_orig_thumb_width;            int size = elem.image_elem_orig_thumb_size;            string url = elem.image_elem_thumb_url;            break;          }         }      }    }  }})
+```
+
+### Видеосообщение
+
+После получения видеосообщения на странице чата отображается предпросмотр видео, а видео воспроизводится после того, как пользователь нажмет на сообщение.
+Требуются два шага:
+
+ChatSDK будет загружать видеосообщения в свободное время, которые могут быть использованы вами напрямую и будут очищены при удалении приложения.
+
+Следующий пример кода показывает, как разобрать содержимое видео из `Message`:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Video)      {       // Parse the video message attributes such as thumbnail, playback address, width and height, and size       string type = elem.video_elem_video_type;       int size = elem.video_elem_video_size;       int duration = elem.video_elem_video_duration;       string path = elem.video_elem_video_path;       string url = elem.video_elem_video_url;       int imageType = elem.video_elem_image_type;       int imageSize = elem.video_elem_image_size;       int w = elem.video_elem_image_width;       int h = elem.video_elem_image_height;       string imagePath = elem.video_elem_image_path;       string url = elem.video_elem_image_url;      }    }  }})
+```
+
+### Аудиосообщение
+
+Chat SDK будет загружать аудиосообщения в свободное время, которые могут быть использованы вами напрямую и будут очищены при удалении приложения.
+
+Следующий пример кода показывает, как разобрать содержимое аудио из `Message`:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Sound)      {       // Parse the audio playback address, local address, size, and duration       int size = elem.sound_elem_file_size;       int duration = elem.sound_elem_file_time;       string path = elem.sound_elem_file_path;       string url = elem.sound_elem_url;      }    }  }})
+```
+
+### Файловое сообщение
+
+Chat SDK будет загружать файловые сообщения в свободное время, которые могут быть использованы вами напрямую и будут очищены при удалении приложения.
+
+Следующий пример кода показывает, как разобрать содержимое файла из `Message`:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_File)      {       // Parse the filename, size, URL, etc. of the file message       int size = elem.file_elem_file_size;       string path = elem.file_elem_file_path;       string name = elem.file_elem_file_name;       string url = elem.file_elem_url;      }    }  }})
+```
+
+### Сообщение о географическом местоположении
+
+Следующий пример кода показывает, как разобрать информацию о географическом местоположении из `Message`:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Location)      {       // Parse the geographical location information such as latitude, longitude, and description       double longitude = elem.location_elem_longitude;       double latitude = elem.location_elem_latitude;       string desc = elem.location_elem_desc;      }    }  }})
+```
+
+### Сообщение с эмодзи
+
+SDK предоставляет сквозной канал только для сообщений с эмодзи. Здесь `index` и `data` могут быть настроены.
+
+Например, отправитель может установить `index` на `1` и `data` на `x12345`, чтобы указать эмодзи улыбки.
+Получатель анализирует полученное сообщение с эмодзи как `1` и `x12345` и отображает сообщение как эмодзи улыбки в соответствии с предустановленными правилами.
+
+Следующий пример кода показывает, как разобрать содержимое эмодзи из `Message`:
+
+```
+TencentIMSDK.AddRecvNewMsgCallback((List<Message> messages, string user_data)=>{  foreach(Message message in messages)  {    foreach (Elem elem in message.message_elem_array)    {      // There is a next element      if (elem.elem_type == TIMElemType.kTIMElem_Face)      {       string data = elem.face_elem_buf;       int index = elem.face_elem_index;      }    }  }})
+```
+
+### Групповое подсказываемое сообщение
+
+Групповые подсказываемые сообщения — это подсказки, получаемые пользователями в дополнение к обычным сообщениям в групповом чате, например, «Администратор удалил alice из группового чата» и «bob переименовал группу "xxxx"».
+
+> **Примечание:** Групповые подсказываемые сообщения получают только члены группы, но не стороны в одноадресном чате.
+
+Групповых подсказываемых сообщений много типов. Для получения дополнительной информации см. определение `GroupTipsElem` ([Подробности](https://comm.qq.com/im/doc/unity/en/types/GroupsAttributes/GroupTipsElem.html)).
+
+После получения группового подсказываемого сообщения получатель обычно должен:
+
+1. Проанализировать каждое поле в `GroupTipsElem`.
+2. Определить тип сообщения согласно `group_tips_elem_tip_type`.
+3. Объединить другие поля в содержимое для отображения в соответствии с типом.
+
+Например:
+Получатель анализирует `type` как `kTIMGroupTip_GroupInfoChange`, что указывает на уведомление об изменении профиля группы.
+Получатель может получить информацию об операторе из `group_tips_elem_op_user_info` и измененное имя группы из `group_tips_elem_group_change_info_array`.
+На данный момент получатель может объединить «оператора» и «измененное имя группы» для создания групповой подсказки, такой как «Alice переименовала группу "group123"».
+
+Следующий пример кода показывает, как разобрать содержимое подсказки из `V2TIMMessage`:
+
+```
+if(tip.group_tips_elem_tip_type == TIMGroupTipType.kTIMGroupTip_GroupInfoChange){        tip.group_tips_elem_group_id; // Group        message.group_tips_elem_tip_type; // Group tip type        message.group_tips_elem_op_user_info; // Operator profile        message.group_tips_elem_changed_user_info_array; // User profile operated on        message.group_tips_elem_group_change_info_array; // Group information change details        message.group_tips_elem_member_change_info_array; // Group member change information}
+```
+
+## Получение прогресса отправки сообщения
+
+```
+TencentIMSDK.SetMsgElemUploadProgressCallback((Message message, int index, int cur_size, int total_size, string user_data)=>{    // `message` indicates the message instance being sent.  // `index` indicates the number of the file being uploaded.  // `cur_size` indicates the current size (in MB) of the file being uploaded.  // `total_size` indicates the total size of the file being uploaded.})
+```
+
+## Получение сообщения, содержащего несколько объектов элементов
+
+1. Используйте объект `Message` для разбора `message_elem_array`.
+2. Пройдите по `message_elem_array`, чтобы получить все объекты элементов.
+
+Пример кода:
+
+```
+foreach (Elem elem in message.message_elem_array) {   // There is a next element}
+```
+
+
+---
+*Источник: [https://trtc.io/document/48573](https://trtc.io/document/48573)*
+
+---
+*Источник (EN): [receiving-message.md](./receiving-message.md)*

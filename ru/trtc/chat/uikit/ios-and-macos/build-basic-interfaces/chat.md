@@ -1,0 +1,85 @@
+# Чат
+
+Эта статья подробно объясняет создание интерфейса чата.
+
+## Эффект отображения
+
+Эффект отправки сообщений в интерфейсе чата выглядит следующим образом:
+
+| Интерфейс личного чата | Интерфейс группового чата |
+| --- | --- |
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/d0194a9d2c7811efa01d5254005235d8.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/d01c1c0f2c7811efa4f552540077de32.png) |
+
+## Требования к окружению
+
+- Xcode 10 или более поздняя версия
+- iOS 9.0 или более поздняя версия
+
+## Предварительные условия
+
+Перед созданием интерфейса убедитесь, что вы выполнили следующие 4 действия:
+
+1. Создали приложение в консоли.
+2. Создали учетные записи пользователей в консоли.
+3. Интегрировали `TUIKit` или `TUIChat`.
+4. Вызвали API `login` в `TUILogin` для входа в компонент.
+
+> **Примечание:** Все компоненты используют этот API для входа. Вы можете входить один раз при каждом запуске приложения. Убедитесь, что вход выполнен успешно, и рекомендуется выполнить следующие действия в обратном вызове успешного входа.
+
+Если вы не завершили вышеупомянутые 4 шага, сначала обратитесь к соответствующим шагам в [Начало работы](https://www.tencentcloud.com/document/product/1047/60521), иначе вы можете столкнуться с трудностями при реализации следующих функций.
+
+Если вы уже выполнили их, продолжайте чтение ниже.
+
+## Инструкции по этапам
+
+Если вы хотите перейти к интерфейсу личного сообщения чата, вы можете напрямую обратиться к [Начало работы](https://www.tencentcloud.com/document/product/1047/60521), что мы не будем повторять в этой статье.
+
+Для перехода к интерфейсу группового чата необходимо ввести действительный groupID. Это предполагает, что у вас есть существующий groupID допустимой группы. Есть два удобных способа получить его:
+
+1. Перейдите в [Консоль](https://console.trtc.io/chat/qun-manage) для создания группы, путь операции следующий: Приложения > Ваше приложение > Чат > Группы > Управление группами > Добавить группу. После успешного создания вы сможете сразу увидеть groupID на текущей странице.
+2. Следуйте приведенному ниже руководству в разделе [Создание группового чата](https://www.tencentcloud.com/document/product/1047/61223#), вручную создайте группу в TUIKit, где groupID будет отображаться на странице сведений о группе.
+
+Пример кода:
+
+Минимальная версия
+
+Классическая версия
+
+Swift
+
+Objective-C
+
+```
+import UIKit// ChatViewController is your own ViewControllerclass ChatViewController: UIViewController {    override func viewDidLoad() {        super.viewDidLoad()                // Create conversation data.        let conversationData = TUIChatConversationModel()        // Pass userID for 1v1 chat, while groupID for group chat.        conversationData.userID = "userID"        conversationData.groupID = "groupID"                // Create chatVC by groupID or userID.        var chatVC: TUIBaseChatViewController_Minimalist?                if let groupID = conversationData.groupID, !groupID.isEmpty {            chatVC = TUIGroupChatViewController_Minimalist()        } else if let userID = conversationData.userID, !userID.isEmpty {            chatVC = TUIC2CChatViewController_Minimalist()        }                chatVC?.conversationData = conversationData                // Option 1: push chatVC.        navigationController?.pushViewController(chatVC!, animated: true)        // Option 2: add chatVC to your own ViewController.        // addChild(chatVC!)        // view.addSubview(chatVC!.view)    }}
+```
+
+```
+#import "TUIBaseChatViewController_Minimalist.h"#import "TUIC2CChatViewController_Minimalist.h"#import "TUIGroupChatViewController_Minimalist.h"// ChatViewController is your own ViewController@implementation ChatViewController- (void)viewDidLoad {   // Create conversation data.  TUIChatConversationModel *conversationData = [[TUIChatConversationModel alloc] init];  // Pass userID for 1v1 chat, while groupID for group chat.  conversationData.userID = @"userID";      conversationData.groupID = @"groupID";    // Create chatVC by groupID or userID.  TUIBaseChatViewController_Minimalist *chatVC = nil;  if (conversationData.groupID.length > 0) {      chatVC = [[TUIGroupChatViewController_Minimalist alloc] init];  } else if (conversationData.userID.length > 0) {      chatVC = [[TUIC2CChatViewController_Minimalist alloc] init];  }  [chatVC setConversationData:conversationData];    // Option 1: push chatVC.  [self.navigationController pushViewController:chatVC animated:YES];  // Option 2: add chatVC to your own ViewController.  // [self addChildViewController:vc];  // [self.view addSubview:vc.view];}@end
+```
+
+Swift
+
+Objective-C
+
+```
+import UIKit// ChatViewController is your own ViewControllerclass ChatViewController: UIViewController {    override func viewDidLoad() {        super.viewDidLoad()                // Create conversation data.        let conversationData = TUIChatConversationModel()        // Pass userID for 1v1 chat, while groupID for group chat.        conversationData.userID = "userID"        conversationData.groupID = "groupID"                // Create chatVC by groupID or userID.        var chatVC: TUIBaseChatViewController?                if let groupID = conversationData.groupID, !groupID.isEmpty {            chatVC = TUIGroupChatViewController()        } else if let userID = conversationData.userID, !userID.isEmpty {            chatVC = TUIC2CChatViewController()        }                chatVC?.setConversationData(conversationData)                // Option 1: push chatVC.        navigationController?.pushViewController(chatVC!, animated: true)        // Option 2: add chatVC to your own ViewController.        // addChild(chatVC!)        // view.addSubview(chatVC!.view)    }}
+```
+
+```
+#import "TUIBaseChatViewController.h"#import "TUIC2CChatViewController.h"#import "TUIGroupChatViewController.h"// ChatViewController is your own ViewController@implementation ChatViewController- (void)viewDidLoad {  // Create conversation data.  TUIChatConversationModel *conversationData = [[TUIChatConversationModel alloc] init];  // Pass userID for 1v1 chat, while groupID for group chat.  conversationData.userID = @"userID";      conversationData.groupID = @"groupID";    // Create chatVC by groupID or userID.  TUIBaseChatViewController *chatVC = nil;  if (conversationData.groupID.length > 0) {      chatVC = [[TUIGroupChatViewController alloc] init];  } else if (conversationData.userID.length > 0) {      chatVC = [[TUIC2CChatViewController alloc] init];  }  [chatVC setConversationData:conversationData];    // Option 1: push chatVC.  [self.navigationController pushViewController:chatVC animated:YES];  // Option 2: add chatVC to your own ViewController.  // [self addChildViewController:chatVC];  // [self.view addSubview:chatVC.view];}@endМинимальная
+```
+
+## Дополнительные рекомендации
+
+Вы можете локально [запустить исходный код TUIKitDemo](https://www.tencentcloud.com/document/product/1047/45913), чтобы изучить больше реализаций интерфейсов.
+
+## Свяжитесь с нами
+
+Если у вас возникли вопросы по этой статье, присоединяйтесь к [Telegram технической группе](https://t.me/+EPk6TMZEZMM5OGY1), где вы получите надежную техническую поддержку.
+
+
+---
+*Источник: [https://trtc.io/document/61215](https://trtc.io/document/61215)*
+
+---
+*Источник (EN): [chat.md](./chat.md)*

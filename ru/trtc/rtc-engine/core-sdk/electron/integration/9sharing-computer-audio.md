@@ -1,0 +1,36 @@
+# 9. Совместное использование звука компьютера
+
+## Проблемы и решения
+
+Часто необходимо совместно использовать звук системы в сценариях, таких как общий доступ к экрану. Однако звуковые карты компьютеров Mac не позволяют захватывать системный звук, когда приложение упакована Electron, что делает невозможным совместное использование системного звука на компьютерах Mac. Для решения этой проблемы TRTC представила функцию записи системного звука на компьютерах Mac. Подробную информацию о том, как включить эту функцию, см. ниже.
+
+### Шаг 1. Начать захват системного звука
+
+```
+import TRTCCloud, { TRTCAudioQuality } from 'trtc-electron-sdk';const rtcCloud = new TRTCCloud();function onSystemAudioLoopbackError(errCode) {  if (errCode === 0) {    console.log('Started successfully');  }  if (errCode === -1330) {    console.log('Failed to enable system sound recording; for example, the audio driver plugin was unavailable');  }  if (errCode === -1331) {    console.log('No permission to install the audio driver plugin');  }  if (errCode === -1332) {    console.log('Failed to install the audio driver plugin');  }}trtcCloud.on('onSystemAudioLoopbackError', onSystemAudioLoopbackError);trtcCloud.startLocalAudio(TRTCAudioQuality.TRTCAudioQualityDefault);trtcCloud.startSystemAudioLoopback();
+```
+
+> **примечание** При первом вызове `startSystemAudioLoopback` SDK запросит доступ с правами root. После предоставления доступа с правами root SDK автоматически начнёт установку плагина виртуальной звуковой карты на компьютер.
+
+### Шаг 2. Остановить захват системного звука
+
+```
+trtcCloud.stopSystemAudioLoopback();
+```
+
+### Шаг 3. Установить громкость захвата системного звука
+
+```
+trtcCloud.setSystemAudioLoopbackVolume(60);
+```
+
+## Итоги
+
+TRTC записывает системный звук на компьютерах Mac с использованием плагина виртуальной звуковой карты `TRTCAudioPlugin.driver`. Чтобы плагин работал, необходимо скопировать его в системный каталог `/Library/Audio/Plug-Ins/HAL` и перезагрузить аудиослужбу. Вы можете проверить успешную установку плагина с помощью приложения Audio MIDI Setup, которое находится в папке `Other` Launchpad. Наличие устройства с именем "TRTC Audio Device" в списке устройств приложения указывает на успешную установку плагина.
+
+
+---
+*Источник: [https://trtc.io/document/47641](https://trtc.io/document/47641)*
+
+---
+*Источник (EN): [9sharing-computer-audio.md](./9sharing-computer-audio.md)*

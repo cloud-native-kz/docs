@@ -1,0 +1,104 @@
+# 4. Подписка на потоки аудио/видео
+
+В этом документе описано, как подписаться на потоки аудио/видео другого пользователя (удаленного пользователя) в комнате, то есть как воспроизводить аудио/видео удаленного пользователя.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/49ebe8fa3a7b11ed90fd525400c56988.png)
+
+## Руководство по вызовам
+
+### Шаг 1. Выполните предварительные шаги
+
+Импортируйте SDK согласно инструкциям в [Electron](https://intl.cloud.tencent.com/document/product/647/35097).
+
+### Шаг 2. Установите режим подписки (опционально)
+
+- Автоматическая подписка: SDK автоматически воспроизводит аудио удаленных пользователей. Это режим подписки по умолчанию.
+- Ручная подписка: SDK не автоматически загружает и не воспроизводит аудио удаленных пользователей. Вам необходимо вручную вызвать **muteRemoteAudio(userId, false)** для воспроизведения аудио удаленного пользователя.
+
+> **Примечание:** Если вы не вызовете `setDefaultStreamRecvMode`, будет применен режим автоматической подписки. Если вы хотите использовать режим ручной подписки, **убедитесь, что вы вызовите** `setDefaultStreamRecvMode` **перед** `enterRoom`.
+
+### Шаг 3. Входите в комнату TRTC
+
+Добавьте текущего пользователя в комнату TRTC согласно инструкциям в [Вход в комнату](https://intl.cloud.tencent.com/document/product/647/48049). Пользователь может подписаться на потоки аудио/видео удаленного пользователя только после успешного входа в комнату.
+
+### Шаг 4. Воспроизведение аудио удаленного пользователя
+
+```
+import TRTCCloud from 'trtc-electron-sdk';const rtcCloud = new TRTCCloud();// Для получения дополнительной информации см. https://web.sdk.qcloud.com/trtc/electron/doc/zh-cn/trtc_electron_sdk/TRTCCloud.html#muteRemoteAudio// Отключить звук пользователя «denny»rtcCloud.muteRemoteAudio('denny', true);// Включить звук пользователя с ID dennyrtcCloud.muteRemoteAudio('denny', false);
+```
+
+### Шаг 5. Воспроизведение видео удаленного пользователя
+
+#### 1. Запуск и остановка воспроизведения (startRemoteView + stopRemoteView)
+
+Первый параметр `startRemoteView` — это `userId` удаленного пользователя, второй — тип потока пользователя, третий — объект представления для передачи. Второй параметр `streamType` имеет три допустимых значения:
+
+- **TRTCVideoStreamTypeBig**: основной поток, обычно видео с камеры пользователя.
+- **TRTCVideoStreamTypeSub**: подпоток, обычно изображение совместного использования экрана пользователя.
+- **TRTCVideoStreamTypeSmall**: видео более низкого качества основного потока пользователя. Вы можете воспроизводить видео более низкого качества удаленного пользователя только после того, как пользователь включит режим двойного потока (`enableEncSmallVideoStream`). Исходный и потоки более низкого качества не могут воспроизводиться одновременно.
+
+Вы можете вызвать API `stopRemoteView` для остановки воспроизведения видео одного удаленного пользователя или вызвать API `stopAllRemoteView` для остановки воспроизведения видео всех удаленных пользователей.
+
+```
+// Для получения дополнительной информации см. https://web.sdk.qcloud.com/trtc/electron/doc/zh-cn/trtc_electron_sdk/TRTCCloud.html#startRemoteViewimport TRTCCloud, { TRTCVideoStreamType } from 'trtc-electron-sdk';const cameraView = document.querySelector('.user-dom');const screenView = document.querySelector('.screen-dom');const rtcCloud = new TRTCCloud();// Воспроизвести видео с камеры (основной поток) пользователя `denny`rtcCloud.startRemoteView('denny', cameraView, TRTCVideoStreamType.TRTCVideoStreamTypeBig);// Воспроизвести видео совместного использования экрана (подпоток) пользователя `denny`rtcCloud.startRemoteView('denny', screenView, TRTCVideoStreamType.TRTCVideoStreamTypeSub);// Воспроизвести видео более низкого качества пользователя `denny` (исходный и потоки более низкого качества не могут воспроизводиться одновременно)rtcCloud.startRemoteView('denny', cameraView, TRTCVideoStreamType.TRTCVideoStreamTypeSmall);// Остановить воспроизведение видео с камеры пользователя `denny`rtcCloud.stopRemoteView('denny', TRTCVideoStreamType.TRTCVideoStreamTypeBig);// Остановить воспроизведение видео всех удаленных пользователейrtcCloud.stopAllRemoteView();
+```
+
+#### 2. Установка параметров воспроизведения (`setRemoteRenderParams`)
+
+Вы можете использовать `setRemoteRenderParams` для установки режима заполнения видеоизображения, угла поворота и режима зеркального отражения.
+
+- Режим заполнения: Вы можете использовать режим заполнения или режим подгонки. В обоих режимах исходное соотношение сторон изображения не изменяется. Разница в том, отображаются ли черные полосы.
+- Угол поворота: Вы можете установить угол поворота на 0, 90, 180 или 270 градусов.
+- Режим зеркального отражения: Указывает, следует ли переворачивать изображение по горизонтали.
+
+```
+// Для получения дополнительной информации см. https://web.sdk.qcloud.com/trtc/electron/doc/zh-cn/trtc_electron_sdk/TRTCCloud.html#setRemoteRenderParams// Установите режим заполнения для основного потока удаленного пользователя `denny` на заполнение и переверните изображение по горизонталиimport TRTCCloud, {   TRTCRenderParams, TRTCVideoStreamType, TRTCVideoRotation,  TRTCVideoFillMode, TRTCVideoMirrorType} from 'trtc-electron-sdk';const param = new TTRTCRenderParams(  TRTCVideoRotation.TRTCVideoRotation0,  TRTCVideoFillMode.TRTCVideoFillMode_Fill,  TRTCVideoMirrorType.TRTCVideoMirrorType_Enable);const rtcCloud = new TRTCCloud();rtcCloud.setRemoteRenderParams('denny', TRTCVideoStreamType.TRTCVideoStreamTypeBig, param);
+```
+
+### Шаг 6. Получение статуса аудио/видео удаленного пользователя в комнате
+
+- Какие пользователи находятся в текущей комнате
+- Статус камеры и микрофона пользователей в комнате
+
+Для решения этой проблемы необходимо прослушивать следующие обратные вызовы событий от SDK:
+
+- **Уведомление об изменении статуса аудио (onUserAudioAvailable)**
+Вы можете прослушивать `onUserAudioAvailable(userId,boolean)`, чтобы получить уведомление о включении/отключении микрофона удаленного пользователя.
+- **Уведомление об изменении статуса видео (onUserVideoAvailable)**
+Вы можете прослушивать `onUserVideoAvailable(userId,boolean)`, чтобы получить уведомление о включении/отключении камеры удаленного пользователя.
+Вы можете прослушивать `onUserSubStreamAvailable(userId,boolean)`, чтобы получить уведомление о включении/отключении совместного использования экрана удаленного пользователя.
+- **Уведомление о входе/выходе пользователя из комнаты (onRemoteUserEnter/LeaveRoom)**
+Когда удаленный пользователь входит в текущую комнату, вы можете получить ID пользователя из `onRemoteUserEnterRoom(userId)`. Когда удаленный пользователь выходит из текущей комнаты, вы можете получить ID пользователя и причину его выхода из `onRemoteUserLeaveRoom(userId, reason)`.
+
+> **Примечание:** Более точно, `onRemoteUserEnter/LeaveRoom` уведомляет вас только о входе/выходе якорей в комнату. Это предотвращает частые уведомления при большой аудитории в комнате.
+
+С помощью вышеперечисленных обратных вызовов событий вы можете узнать, какие пользователи находятся в комнате и включили ли они свои камеры и микрофоны. В примере кода ниже `mCameraUserList`, `mMicrophoneUserList` и `mUserList` используются для поддержания следующей информации:
+
+- Какие пользователи (якори) находятся в комнате
+- Какие пользователи включили свои камеры
+- Какие пользователи включили свои микрофоны
+
+```
+import TRTCCloud from 'trtc-electron-sdk';let openCameraUserList = [];let openMicUserList = [];let roomUserList = [];function onUserVideoAvailable(userId, available) {  if (available === 1) {    openCameraUserList.push(userId);  } else {    openCameraUserList = openCameraUserList.filter((item) => item !== userId);  }}function onUserAudioAvailable(userId, available) {  if (available === 1) {    openMicUserList.push(userId);  } else {    openMicUserList = openMicUserList.filter((item) => item !== userId);  }}function onRemoteUserEnterRoom(userId) {  roomUserList.push(userId);}function onRemoteUserLeaveRoom(userId, reason) {  roomUserList = roomUserList.filter((item) => item !== userId);}const rtcCloud = new TRTCCloud();rtcCloud.on('onUserVideoAvailable', onUserVideoAvailable);rtcCloud.on('onUserAudioAvailable', onUserAudioAvailable);rtcCloud.on('onRemoteUserEnterRoom', onRemoteUserEnterRoom);rtcCloud.on('onRemoteUserLeaveRoom', onRemoteUserLeaveRoom);
+```
+
+## Расширенное руководство
+
+### В чем разница между различными методами отключения звука?
+
+Существует три метода отключения звука, которые работают совершенно по-разному:
+
+- **Метод 1. Плеер прекращает подписку на поток аудио**
+Чтобы остановить воспроизведение аудио удаленного пользователя `denny`, вы можете вызвать `muteRemoteAudio("denny", true)`, и SDK прекратит загрузку аудиоданных `denny`. В этом режиме используется меньше трафика. Однако восстановление воспроизведения аудио будет происходить медленнее, потому что SDK должен перезапустить процесс загрузки аудиоданных.
+- **Метод 2. Отрегулируйте уровень громкости воспроизведения на ноль**
+Если вы хотите отключить пользователя быстрее, вы можете вызвать `setRemoteAudioVolume("denny", 0)`, которая устанавливает громкость воспроизведения удаленного пользователя `denny` на ноль. Поскольку этот API не связан с сетевыми операциями, он вступает в силу очень быстро.
+- **Метод 3. Удаленный пользователь отключает микрофон**
+Все операции, описанные в этом документе, выполняются на плеере и вступают в силу только для локального пользователя. Например, если вы вызовете `muteRemoteAudio("denny", true)` для отключения звука удаленного пользователя `denny`, другие пользователи в комнате по-прежнему смогут слышать `denny`.
+Чтобы полностью отключить аудио `denny`, вам необходимо изменить способ публикации его аудио. Для получения дополнительной информации см. [Публикация потоков аудио/видео](https://intl.cloud.tencent.com/document/product/647/48050).
+
+
+---
+*Источник: [https://trtc.io/document/48811](https://trtc.io/document/48811)*
+
+---
+*Источник (EN): [4subscribing-to-audio-video-streams.md](./4subscribing-to-audio-video-streams.md)*

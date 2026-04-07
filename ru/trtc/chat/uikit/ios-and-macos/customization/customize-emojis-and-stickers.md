@@ -1,0 +1,165 @@
+# Настройка эмодзи и стикеров
+
+## Обзор
+
+| Встроенная панель эмодзи | Пользовательская панель эмодзи |
+| --- | --- |
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/af6381be141b11efbf645254007bbd8c.PNG) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/b4e550db141b11efaa1c525400f65c2a.PNG) |
+
+Панель эмодзи состоит из двух частей, как показано ниже:
+
+- Управление изображениями ресурсов эмодзи, включая отображение изображений эмодзи.
+- Управление группами эмодзи, включая миниатюры групп эмодзи и кнопку отправки.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/bfe3e55c141b11efa2935254005ac0ca.png)
+
+## Добавление пользовательского стикера
+
+1. Подготовьте ресурсы эмодзи.
+2. Загрузите стикер при запуске приложения.
+
+Обратите внимание, что TUIChat создан с логикой отправки и анализа стикеров, чтобы вы могли легко использовать пользовательские стикеры на нескольких терминалах.
+
+Ниже описано, как добавить пользовательский стикер `programer`, как показано ниже:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/c92d0134141b11efa2935254005ac0ca.png)
+
+### Подготовка ресурсов эмодзи
+
+Перед добавлением стикера подготовьте набор защищенных авторским правом ресурсов эмодзи. Затем упакуйте изображения эмодзи в файл пакета, как показано ниже:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/757cb01b5b7011eeabd75254005810a4.png)
+
+### Загрузка стикера
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/7c4a0eb85b7011ee9ff8525400d917da.png)
+
+Swift
+
+Objective-C
+
+```
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {    // ...    self.setupCustomSticker()    return YES}func setupCustomSticker() {    guard let service = TIMCommonMediator.shared.getObject(for: TUIEmojiMeditorProtocol.self) else {        assertionFailure("There's not any object implement TUIEmojiMeditorProtocol")        return    }    let bundlePath = TUISwift.tuiBundlePath("CustomFaceResource", key: "TIMAppKit.TUIKit")    // 4350 group    var faces4350 = [TUIFaceCellData]()    for i in 0...17 {        let data = TUIFaceCellData()        let name = String(format: "yz%02d", i)        let path = "4350/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4350.append(data)    }    if faces4350.count > 0 {        let group4350 = TUIFaceGroup()        group4350.groupIndex = 1        group4350.groupPath = bundlePath + "/4350/"        group4350.faces = faces4350        group4350.rowCount = 2        group4350.itemCountPerRow = 5        group4350.menuPath = bundlePath + "/4350/menu"        service.appendFaceGroup(group4350)    }    // 4351 group    var faces4351 = [TUIFaceCellData]()    for i in 0...15 {        let data = TUIFaceCellData()        let name = String(format: "ys%02d", i)        let path = "4351/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4351.append(data)    }    if faces4351.count > 0 {        let group4351 = TUIFaceGroup()        group4351.groupIndex = 2        group4351.groupPath = bundlePath + "/4351/"        group4351.faces = faces4351        group4351.rowCount = 2        group4351.itemCountPerRow = 5        group4351.menuPath = bundlePath + "/4351/menu"        service.appendFaceGroup(group4351)    }    // 4352 group    var faces4352 = [TUIFaceCellData]()    for i in 0...16 {        let data = TUIFaceCellData()        let name = String(format: "gcs%02d", i)        let path = "4352/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4352.append(data)    }    if faces4352.count > 0 {        let group4352 = TUIFaceGroup()        group4352.groupIndex = 3        group4352.groupPath = bundlePath + "/4352/"        group4352.faces = faces4352        group4352.rowCount = 2        group4352.itemCountPerRow = 5        group4352.menuPath = bundlePath + "/4352/menu"        service.appendFaceGroup(group4352)    }}
+```
+
+```
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    app = self;    // Load the emoji resources when starting the app    [self setupCustomSticker];        return YES;}- (void)setupCustomSticker {    // 1. Get the path of the bundle file of the custom sticker.    NSString *customFaceBundlePath = [[NSBundle mainBundle] pathForResource:@"CustomFaceResource" ofType:@"bundle"];    // 2. Load the custom emoji group    // 2.1 Load the `programer` emoji resource images and parse them into `TUIFaceCellData`    NSMutableArray<TUIFaceCellData *> *faceItems = [NSMutableArray array];    for (int i = 0; i <= 17; i++) {        TUIFaceCellData *data = [[TUIFaceCellData alloc] init];        // The filename of the emoji resource images (the extension can be saved) for multi-terminal connection (which requires that filenames are consistent)        data.name = [NSString stringWithFormat:@"yz%02d", i];        // The path of the emoji resource images for local display        data.path = [customFaceBundlePath stringByAppendingPathComponent:[NSString stringWithFormat:@"programer/%@", data.name]];        [faceItems addObject:data];    }    // 2.2 Create the `programer` emoji group and parse it into `TUIFaceGroup`    TUIFaceGroup *programGroup = [[TUIFaceGroup alloc] init];    // Indicate the serial number of the current emoji group on the emoji panel for multi-terminal connection (which can be used together with the emoji name to find an image on the receiver's device)    // Note that `groupIndex` starts from `0` and indicates the actual position of the current sticker on the emoji panel (`0` is the default value for the built-in `emoji` emoji group)    programGroup.groupIndex = 1;    // The root path of the current sticker in the bundle file of the custom emojis    programGroup.groupPath = [customFaceBundlePath stringByAppendingPathComponent:@"programer/"];    // The emoji resources in the current sticker    programGroup.faces = faceItems;    // The layout of the current sticker    programGroup.rowCount = 2;    programGroup.itemCountPerRow = 5;    // The path of the thumbnail of the current sticker (without the extension)    programGroup.menuPath = [customFaceBundlePath stringByAppendingPathComponent:@"programer/menu"];    // 3. Add the `programer` emoji group to the emoji panel       id<TUIEmojiMeditorProtocol> service = [[TIMCommonMediator share] getObject:@protocol(TUIEmojiMeditorProtocol)];    [service appendFaceGroup:programGroup];}
+```
+
+### Синхронизация между терминалами
+
+- Имена файлов изображений в стикере согласованы; то есть значения поля `name` в `TUIFaceCellData` согласованы на нескольких терминалах при загрузке стикеров во время запуска приложения.
+- Порядок стикеров на панели эмодзи согласован; то есть значения поля `groupIndex` в `TUIFaceGroup` согласованы на нескольких терминалах при загрузке стикеров во время запуска приложения.
+
+Если указанные выше два значения согласованы, встроенная логика TUIChat для отправки стикеров отправит имя файла эмодзи и информацию об индексе стикера на другие терминалы для синхронизации между терминалами.
+
+Обратите внимание, что `groupIndex` начинается с `0` и указывает фактическую позицию текущего стикера на панели эмодзи (`0` — это значение по умолчанию для встроенной группы эмодзи `emoji`).
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/731bd51a141c11ef89cc5254002fd0a8.png)
+
+## Расширенная настройка панели эмодзи
+
+### Переупорядочение групп эмодзи на панели эмодзи
+
+Чтобы поместить встроенную группу эмодзи `emoji` после пользовательских эмодзи, выполните следующие шаги:
+
+- Получите встроенные группы эмодзи `TUIConfig.defaultConfig.faceGroups` на текущей панели эмодзи.
+- Переупорядочьте группы эмодзи.
+- Назначьте значение списка переупорядоченных групп эмодзи панели эмодзи.
+
+Swift
+
+Objective-C
+
+```
+func setupCustomSticker() {    guard let service = TIMCommonMediator.shared.getObject(for: TUIEmojiMeditorProtocol.self) else {        assertionFailure("There's not any object implement TUIEmojiMeditorProtocol")        return    }    let bundlePath = TUISwift.tuiBundlePath("CustomFaceResource", key: "TIMAppKit.TUIKit")    // 4350 group    var faces4350 = [TUIFaceCellData]()    for i in 0...17 {        let data = TUIFaceCellData()        let name = String(format: "yz%02d", i)        let path = "4350/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4350.append(data)    }    if faces4350.count > 0 {        let group4350 = TUIFaceGroup()        group4350.groupIndex = 1        group4350.groupPath = bundlePath + "/4350/"        group4350.faces = faces4350        group4350.rowCount = 2        group4350.itemCountPerRow = 5        group4350.menuPath = bundlePath + "/4350/menu"        service.appendFaceGroup(group4350)    }    // 4351 group    var faces4351 = [TUIFaceCellData]()    for i in 0...15 {        let data = TUIFaceCellData()        let name = String(format: "ys%02d", i)        let path = "4351/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4351.append(data)    }    if faces4351.count > 0 {        let group4351 = TUIFaceGroup()        group4351.groupIndex = 2        group4351.groupPath = bundlePath + "/4351/"        group4351.faces = faces4351        group4351.rowCount = 2        group4351.itemCountPerRow = 5        group4351.menuPath = bundlePath + "/4351/menu"        service.appendFaceGroup(group4351)    }    // 4352 group    var faces4352 = [TUIFaceCellData]()    for i in 0...16 {        let data = TUIFaceCellData()        let name = String(format: "gcs%02d", i)        let path = "4352/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4352.append(data)    }    if faces4352.count > 0 {        let group4352 = TUIFaceGroup()        group4352.groupIndex = 3        group4352.groupPath = bundlePath + "/4352/"        group4352.faces = faces4352        group4352.rowCount = 2        group4352.itemCountPerRow = 5        group4352.menuPath = bundlePath + "/4352/menu"        service.appendFaceGroup(group4352)    }}
+```
+
+```
+- (void)setupCustomSticker {    // 1. Get the path of the bundle file of the custom sticker.    NSString *customFaceBundlePath = [[NSBundle mainBundle] pathForResource:@"CustomFaceResource" ofType:@"bundle"];    // 2. Load the custom emoji group    // 2.1 Load the `programer` emoji resource images and parse them into `TUIFaceCellData`    NSMutableArray<TUIFaceCellData *> *faceItems = [NSMutableArray array];    for (int i = 0; i <= 17; i++) {        TUIFaceCellData *data = [[TUIFaceCellData alloc] init];        // The filename of the emoji resource images (the extension can be saved) for multi-terminal connection (which requires that filenames are consistent)        data.name = [NSString stringWithFormat:@"yz%02d", i];        // The path of the emoji resource images for local display        data.path = [customFaceBundlePath stringByAppendingPathComponent:[NSString stringWithFormat:@"programer/%@", data.name]];        [faceItems addObject:data];    }    // 2.2 Create the `programer` emoji group and parse it into `TUIFaceGroup`    TUIFaceGroup *programGroup = [[TUIFaceGroup alloc] init];    // Indicate the serial number of the current emoji group on the emoji panel for multi-terminal connection (which can be used together with the emoji name to find an image on the receiver's device)    // Note that `groupIndex` starts from `0` and indicates the actual position of the current sticker on the emoji panel (`0` is the default value for the built-in `emoji` emoji group)    programGroup.groupIndex = 0;    // The root path of the current sticker in the bundle file of the custom emojis    programGroup.groupPath = [customFaceBundlePath stringByAppendingPathComponent:@"programer/"];    // The emoji resources in the current sticker    programGroup.faces = faceItems;    // The layout of the current sticker    programGroup.rowCount = 2;    programGroup.itemCountPerRow = 5;    // The path of the thumbnail of the current sticker (without the extension)    programGroup.menuPath = [customFaceBundlePath stringByAppendingPathComponent:@"programer/menu"];    // 3. Add the `programer` emoji group to the front of the emoji panel    id<TUIEmojiMeditorProtocol> service = [[TIMCommonMediator share] getObject:@protocol(TUIEmojiMeditorProtocol)];    [service appendFaceGroup:programGroup];}
+```
+
+> **Примечание.** Синхронизация стикеров между терминалами зависит от имен эмодзи и порядка групп эмодзи на панели. Поэтому после настройки локального порядка необходимо убедиться, что `groupIndex` согласован с фактическим порядком.
+
+### Изменение миниатюры группы эмодзи
+
+Например, установите изображение `menu@2x.png` в группе эмодзи `programer` в качестве миниатюры.
+
+Swift
+
+Objective-C
+
+```
+func setupCustomSticker() {    // ...        // 4350 group    var faces4350 = [TUIFaceCellData]()    for i in 0...17 {        let data = TUIFaceCellData()        let name = String(format: "yz%02d", i)        let path = "4350/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4350.append(data)    }    if faces4350.count > 0 {        let group4350 = TUIFaceGroup()        group4350.groupIndex = 1        group4350.groupPath = bundlePath + "/4350/"        group4350.faces = faces4350        group4350.rowCount = 2        group4350.itemCountPerRow = 5        group4350.menuPath = bundlePath + "/4350/menu"        service.appendFaceGroup(group4350)    }    // ...}
+```
+
+```
+- (void)setupCustomSticker {    ....    // 2.2 Create the `programer` emoji group and parse it into `TUIFaceGroup`    TUIFaceGroup *programGroup = [[TUIFaceGroup alloc] init];    ....    // The path of the thumbnail of the current sticker (without the extension)    programGroup.menuPath = [customFaceBundlePath stringByAppendingPathComponent:@"programer/menu"];    ....    ....}
+```
+
+### Настройка макета изображений эмодзи
+
+- `rowCount` — указывает количество строк изображений, отображаемых в текущей группе эмодзи.
+- `itemCountPerRow` — указывает количество изображений эмодзи, отображаемых в строке.
+
+Например, вы можете установить отображение изображений эмодзи в группе эмодзи `programer` в две строки на странице, до пяти изображений в строке.
+
+Swift
+
+Objective-C
+
+```
+func setupCustomSticker() {    // ...        // 4350 group    var faces4350 = [TUIFaceCellData]()    for i in 0...17 {        let data = TUIFaceCellData()        let name = String(format: "yz%02d", i)        let path = "4350/\\(name)"        data.name = name        data.path = bundlePath + "/" + path        faces4350.append(data)    }    if faces4350.count > 0 {        let group4350 = TUIFaceGroup()        group4350.groupIndex = 1        group4350.groupPath = bundlePath + "/4350/"        group4350.faces = faces4350        group4350.rowCount = 2        group4350.itemCountPerRow = 5        group4350.menuPath = bundlePath + "/4350/menu"        service.appendFaceGroup(group4350)    }    // ...}
+```
+
+```
+- (void)setupCustomSticker {    ...    // 2.2 Create the `programer` emoji group and parse it into `TUIFaceGroup`    TUIFaceGroup *programGroup = [[TUIFaceGroup alloc] init];    // The layout of the current sticker    programGroup.rowCount = 2;    programGroup.itemCountPerRow = 5;    ...}
+```
+
+## Принцип отрисовки стикеров
+
+В этом разделе описано, как изменить исходный код или кодировать и передавать содержимое пользовательского эмодзи.
+
+### Отправка эмодзи
+
+Вы можете отправить эмодзи в обратном вызове в два этапа:
+
+- Создайте сообщение эмодзи с именем эмодзи и индексом группы эмодзи.
+- Вызовите метод `TUIChat` для отправки сообщения эмодзи.
+
+Swift
+
+Objective-C
+
+```
+public func faceVerticalView(_ faceView: TUIFaceVerticalView, didSelectItemAtIndexPath indexPath: IndexPath) {    let group = faceView.faceGroups[indexPath.section]    if let face = group.faces?[indexPath.row] as? TUIFaceCellData {        if group.isNeedAddInInputBar {            inputBar?.addEmoji(face)            updateRecentMenuQueue(face.name ?? "")        } else {            let message = V2TIMManager.sharedInstance().createFaceMessage(index: Int32(group.groupIndex), data: face.name?.data(using: .utf8) ?? Data())!            delegate?.inputController(self, didSendMessage: message)        }    }}
+```
+
+```
+- (void)faceView:(TUIFaceView *)faceView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{    TUIFaceGroup *group = [TUIConfig defaultConfig].faceGroups[indexPath.section];    TUIFaceCellData *face = group.faces[indexPath.row];    if(indexPath.section == 0){        // Built-in emojis need to be displayed in the input box.        [_inputBar addEmoji:face];    }    else{        // Custom emojis are directly sent to the receiver.        if (face.name) {            // Create an emoji message            V2TIMMessage *message = [[V2TIMManager sharedInstance] createFaceMessage:group.groupIndex data:[face.name dataUsingEncoding:NSUTF8StringEncoding]];            // Send the message to receiver            if(_delegate && [_delegate respondsToSelector:@selector(inputController:didSendMessage:)]){                [_delegate inputController:self didSendMessage:message];            }        }    }}
+```
+
+### Анализ и отрисовка сообщения эмодзи
+
+TUIChat присвоит значение `TUIMessageCellData` для `TUIFaceMessageCell` для отрисовки.
+
+Дополнительные сведения о процессе анализа сообщений в TUIChat см. в разделе [iOS](https://www.tencentcloud.com/document/product/1047/50043).
+
+Swift
+
+Objective-C
+
+```
+override class func getCellData(message: V2TIMMessage) -> TUIMessageCellData {    guard let elem = message.faceElem else { return TUIFaceMessageCellData(direction: .incoming) }    let faceData = TUIFaceMessageCellData(direction: message.isSelf ? .outgoing : .incoming)    faceData.groupIndex = elem.index    if let data = elem.data {        faceData.faceName = String(data: data, encoding: .utf8)    }    if let groups = TIMConfig.shared.faceGroups {        for group in groups {            if group.groupIndex == faceData.groupIndex {                if let url = URL(string: group.groupPath ?? "") {                    let path = url.appendingPathComponent(faceData.faceName ?? "").path                    faceData.path = path                }                break            }        }    }    faceData.reuseId = "TFaceMessageCell"    return faceData}
+```
+
+```
++ (TUIMessageCellData *)getCellData:(V2TIMMessage *)message{    // Parse the emoji information after receiving the message    V2TIMFaceElem *elem = message.faceElem;    // Create the `TUIFaceMessageCellData` for emoji display    TUIFaceMessageCellData *faceData = [[TUIFaceMessageCellData alloc] initWithDirection:(message.isSelf ? MsgDirectionOutgoing : MsgDirectionIncoming)];    // Get the order information of the current emoji group on the emoji panel    faceData.groupIndex = elem.index;    // Get the filename of the emoji image    faceData.faceName = [[NSString alloc] initWithData:elem.data encoding:NSUTF8StringEncoding];    // Get the specific path of the local sticker of the emoji image based on the name of the emoji image and the emoji group    for (TUIFaceGroup *group in [TUIConfig defaultConfig].faceGroups) {        if(group.groupIndex == faceData.groupIndex){            NSString *path = [group.groupPath stringByAppendingPathComponent:faceData.faceName];            faceData.path = path;            break;        }    }    faceData.reuseId = TFaceMessageCell_ReuseId;    return faceData;}
+```
+
+
+---
+*Источник: [https://trtc.io/document/52396](https://trtc.io/document/52396)*
+
+---
+*Источник (EN): [customize-emojis-and-stickers.md](./customize-emojis-and-stickers.md)*

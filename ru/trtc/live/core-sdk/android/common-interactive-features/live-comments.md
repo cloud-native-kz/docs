@@ -1,0 +1,231 @@
+# Живые комментарии
+
+Этот документ содержит полное руководство для разработчиков iOS по быстрой интеграции полнофункциональной высокопроизводительной системы живого чата с наложением (barrage/danmaku) в приложение прямой трансляции с использованием модуля `BarrageStore` из фреймворка **AtomicXCore**.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/fcf29098c6bb11f0a4a55254001c06ec.png)
+
+## Основные функции
+
+`BarrageStore` предоставляет полное решение для системы комментариев в приложении прямой трансляции. Основные функции включают:
+
+- Получение и отображение сообщений комментариев в прямой трансляции.
+- Отправка текстовых сообщений комментариев для взаимодействия со зрителями.
+- Отправка пользовательских сообщений комментариев для поддержки сложных сценариев, таких как подарки и лайки.
+- Вставка системных подсказок в локальный список сообщений (например, "Добро пожаловать XX в прямую трансляцию").
+
+## Основные концепции
+
+| **Основное понятие** | **Тип** | **Основная ответственность и описание** |
+| --- | --- | --- |
+| [Barrage](https://tencent-rtc.github.io/TUIKit_Android/-atomic-x%20-core%20-a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage/index.html) | data class | Представляет одно сообщение комментария. Содержит информацию об отправителе (sender), содержимое сообщения (textContent или data) и тип сообщения (messageType). |
+| [BarrageState](https://tencent-rtc.github.io/TUIKit_Android/-atomic-x%20-core%20-a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-state/index.html) | data class | Представляет текущее состояние модуля комментариев. Основное свойство, messageList, — это StateFlow, содержащий все сообщения комментариев для текущей прямой трансляции, упорядоченные в хронологическом порядке. Служит источником данных для пользовательского интерфейса. |
+| [BarrageStore](https://tencent-rtc.github.io/TUIKit_Android/-atomic-x%20-core%20-a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/index.html) | abstract class | Основной менеджер для функций комментариев. Используйте его для отправки сообщений (sendTextMessage, sendCustomMessage) и подписки на обновления сообщений комментариев через его свойство state. |
+
+## Реализация
+
+### Шаг 1: Интеграция компонента
+
+- **Видео прямая трансляция**: см. [Краткое руководство](https://www.tencentcloud.com/document/product/647/74593) для интеграции AtomicXCore.
+- **Голосовой чат-комната**: см. [Краткое руководство](https://www.tencentcloud.com/document/product/647/74681) для интеграции AtomicXCore.
+
+### Шаг 2: Инициализация и прослушивание комментариев
+
+Создайте экземпляр `BarrageStore`, привязанный к `liveId` текущей прямой трансляции, и подпишитесь на получение последнего списка сообщений комментариев в режиме реального времени.
+
+```
+import kotlinx.coroutines.*import kotlinx.coroutines.flow.*import io.trtc.tuikit.atomicxcore.api.barrage.Barrageimport io.trtc.tuikit.atomicxcore.api.barrage.BarrageStoreclass BarrageManager(    private val liveId: String) {    private val barrageStore: BarrageStore = BarrageStore.create(liveId)    private val scope = CoroutineScope(Dispatchers.Main)        // Expose the [full] message list as a Flow for the UI layer to subscribe to    private val _messagesFlow = MutableStateFlow<List<Barrage>>(emptyList())    val messagesFlow: StateFlow<List<Barrage>> = _messagesFlow.asStateFlow()        init {        // Start listening for barrage messages immediately after initialization        subscribeToBarrageUpdates()    }    private fun subscribeToBarrageUpdates() {        scope.launch {            barrageStore.barrageState.messageList                .collect { messageList ->                    // When messageList updates, pass the new list to the UI layer via Flow                    // Note: This is the [complete list], including all historical messages                    _messagesFlow.value = messageList                }        }    }}
+```
+
+### Шаг 3: Отправка текстовых комментариев
+
+Используйте `sendTextMessage` для трансляции простого текстового сообщения всем пользователям в прямой трансляции.
+
+```
+import io.trtc.tuikit.atomicxcore.api.CompletionHandlerimport io.trtc.tuikit.atomicxcore.api.barrage.BarrageStoreclass BarrageManager(    private val liveId: String) {    private val barrageStore: BarrageStore = BarrageStore.create(liveId)    // Send a text barrage    fun sendTextMessage(text: String) {        // We recommend adding a non-empty check to avoid sending invalid messages        if (text.isEmpty()) {            return        }                // Call the core API to send the message        barrageStore.sendTextMessage(            text,            mapOf(                "custom key" to "custom value",            ),            object : CompletionHandler {                override fun onSuccess() {                    println("Text barrage '$text' sent successfully")                }                override fun onFailure(code: Int, desc: String) {                    println("Failed to send text barrage: $desc")                }            }        )    }}
+```
+
+#### Параметры API
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `text` | `String?` | Текстовое содержимое для отправки. |
+| `extensionInfo` | `Map<String, String>?` | Дополнительные данные для бизнес-кастомизации. |
+| `completion` | `CompletionHandler?` | Callback, вызываемый после отправки, указывающий на успех или неудачу. |
+
+### Шаг 4: Отправка пользовательского комментария
+
+Отправляйте сообщения с пользовательской бизнес-логикой, такие как подарки, лайки или команды геймификации. Формат содержимого этого сообщения определяется бизнес-слоем. Получатель должен разобрать и обработать его на основе `businessId` и `data`.
+
+```
+class BarrageManager(    private val liveId: String) {    // Send a custom barrage, for example, to send a gift    fun sendGiftMessage(giftId: String, giftCount: Int) {        // 1. Define a business-recognizable ID        val businessId = "live_gift"        // 2. Encode business data as a JSON string        val giftData = mapOf(            "gift_id" to giftId,            "gift_count" to giftCount        )        val jsonString = try {            // Use Gson or another JSON library for serialization            // Here we assume Gson is used            Gson().toJson(giftData)        } catch (e: Exception) {            return        }        // 3. Call the core API to send the custom message        barrageStore.sendCustomMessage(            businessId,            jsonString,            object : CompletionHandler {                override fun onSuccess() {                    println("Gift message (custom barrage) sent successfully")                }                                override fun onFailure(code: Int, desc: String) {                    println("Failed to send gift message: $desc")                }            }        )    }}
+```
+
+#### Параметры API
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| businessId | String | Уникальный бизнес-идентификатор (например, "live_gift"). Используется получателями для различения пользовательских сообщений. |
+| data | String | Бизнес-данные, обычно строка JSON. |
+| completion | CompletionHandler? | Callback после отправки. |
+
+### Шаг 5: Вставка локальных сообщений-подсказок
+
+Вставьте локальное сообщение в список сообщений текущего пользователя. Это сообщение не отправляется другим пользователям и идеально подходит для отображения системных подсказок, предупреждений или советов по операциям.
+
+```
+class BarrageManager(    private val liveId: String) {    // Insert a welcome tip into the local message list    fun showWelcomeMessage(user: LiveUserInfo) {        // 1. Create a Barrage message        val welcomeTip = Barrage(            liveID = liveId,            messageType = BarrageType.TEXT, // You can reuse the text type for display            textContent = "Welcome ${user.userName} to the live room!",            sender = LiveUserInfo() // sender can be left empty or set to a system user identifier        )        // 2. Call the API to append it to the local list        barrageStore.appendLocalTip(welcomeTip)    }}
+```
+
+#### Параметры API
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| message | Barrage | Объект сообщения для локальной вставки. SDK добавляет его в messageList в BarrageState. |
+
+### Шаг 6: Управление правами пользователя на отправку сообщений (Блокировка и разблокировка)
+
+Как хост или администратор вы можете контролировать права пользователей на отправку сообщений для поддержания здорового сообщества.
+
+#### Блокировка/разблокировка одного пользователя
+
+Используйте метод `disableSendMessage` в `LiveAudienceStore` для блокировки или разблокировки пользователя. Это состояние сохраняется даже если пользователь повторно присоединяется к прямой трансляции.
+
+```
+import io.trtc.tuikit.atomicxcore.api.*import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore// 1. Get the LiveAudienceStore instance bound to the current live roomval audienceStore = LiveAudienceStore.create(liveId)// 2. Define the user ID to operate on and the mute statusval userIdToMute = "user_id_to_be_muted"val shouldDisable = true // true to mute, false to unmute// 3. Call the interface to perform the operationaudienceStore.disableSendMessage(    userIdToMute,    shouldDisable,    object : CompletionHandler {        override fun onSuccess() {            println("${if (shouldDisable) "Muted" else "Unmuted"} user $userIdToMute successfully")        }        override fun onFailure(code: Int, desc: String) {            println("Operation failed: $desc")        }    })
+```
+
+#### Включение/отключение глобальной блокировки
+
+Для блокировки всех пользователей в прямой трансляции (обычно исключая хоста) обновите информацию прямой трансляции через `LiveListStore`.
+
+```
+import io.trtc.tuikit.atomicxcore.api.CompletionHandlerimport io.trtc.tuikit.atomicxcore.api.live.LiveInfoimport io.trtc.tuikit.atomicxcore.api.live.LiveListStore// 1. Get the LiveListStore singletonval liveListStore = LiveListStore.shared()// 2. Get the current live room info and modify the global mute statusval currentLiveInfo = liveListStore.liveState.currentLive.value.copy(    isMessageDisable = true // true to enable global mute, false to disable)// 3. Call the update interface and specify the modification flagliveListStore.updateLiveInfo(    currentLiveInfo,    listOf(LiveInfo.ModifyFlag.IS_MESSAGE_DISABLE),    object : CompletionHandler {        override fun onSuccess() {            println("Global mute status updated successfully")        }        override fun onFailure(code: Int, desc: String) {            println("Operation failed: $desc")        }    })
+```
+
+## Расширенные функции: Оптимизация производительности в сценариях высокой нагрузки
+
+После реализации функций комментариев с помощью `BarrageStore` используйте следующие стратегии для обеспечения плавного и стабильного взаимодействия пользователей в сценариях высоконагруженных прямых трансляций. Этот раздел предоставляет стратегии оптимизации и примеры кода для трех основных бизнес-сценариев.
+
+### Сценарий 1: Обработка "волн комментариев" в популярных прямых трансляциях
+
+#### Описание сценария
+
+Во время популярных событий большое количество зрителей могут хлынуть в прямую трансляцию, при этом комментарии обновляются с десятками сообщений в секунду.
+
+#### Техническая проблема
+
+SDK возвращает полный список комментариев с высокой частотой. Если вы вызываете `adapter.notifyDataSetChanged()` при каждом обновлении, основной поток может быть заблокирован интенсивным макетом пользовательского интерфейса и рендерингом, вызывая задержку пользовательского интерфейса.
+
+#### Оптимизация: Пакетная обработка и дебаунсинг
+
+Не реагируйте на каждое обновление данных. Вместо этого установите временной порог (например, 300 мс). Обновляйте пользовательский интерфейс только если время с момента последнего обновления превышает этот порог. Это сокращает десятки вызовов `notifyDataSetChanged()` в секунду до 3–4, значительно улучшая плавность.
+
+#### Пример кода
+
+Создайте класс `BarrageUIManager` с буфером и таймером для пакетного обновления данных в `RecyclerView`.
+
+```
+import android.os.Handlerimport androidx.recyclerview.widget.RecyclerViewimport io.trtc.tuikit.atomicxcore.api.barrage.Barrageprivate const val UPDATE_DURATION_MS = 300Lclass BarrageUIManager() {    private var timestampOnLastUpdate = 0L    private var dataSource: ArrayList<Barrage> = ArrayList()    private val updateViewTask = Runnable { notifyDataSetChanged() }    private val handler = Handler()    private val adapter = BarrageAdapter(dataSource)    // This method is called frequently from outside, passing in the latest full list    fun update(newList: List<Barrage>) {        handler.removeCallbacks(updateViewTask)        dataSource.clear()        dataSource.addAll(newList)        // If the refresh interval is less than 0.3 seconds, do not refresh        if (System.currentTimeMillis() - timestampOnLastUpdate < UPDATE_DURATION_MS) {            handler.postDelayed(updateViewTask, UPDATE_DURATION_MS)            return        }    }    private fun notifyDataSetChanged() {        adapter.notifyDataSetChanged()        timestampOnLastUpdate = System.currentTimeMillis()    }}class BarrageAdapter(dataSource: ArrayList<Barrage>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {    // Implement adapter capabilities here}
+```
+
+### Сценарий 2: Обеспечение стабильности памяти для долгоиграющих прямых трансляций
+
+#### Описание сценария
+
+Приложению может потребоваться поддержка часовых или даже круглосуточных непрерывных прямых трансляций, таких как трансляции игр или медленные трансляции. Приложение должно оставаться стабильным и избегать сбоев из-за длительной работы.
+
+#### Техническая проблема
+
+SDK возвращает полный `messageList`, который растет бесконечно во время длительных прямых трансляций. Даже если слой пользовательского интерфейса ограничивает обновления, большой массив в слое данных будет продолжать потреблять память и в конечном итоге может привести к сбою приложения.
+
+#### Оптимизация: Кольцевой буфер с фиксированной емкостью
+
+Убедитесь, что источник данных содержит только ограниченное количество сообщений. Независимо от размера полного списка, возвращаемого SDK, сохраняйте только последнюю часть для отображения.
+
+#### Пример кода
+
+После получения полного списка от SDK возьмите только последние 500 сообщений (или другое определенное вами число) для обновления пользовательского интерфейса.
+
+```
+class BarrageUIManager(    private val recyclerView: RecyclerView) {    private val capacity: Int = 500 // Only retain the latest 500 messages    // ... (other code as above) ...    private fun refreshUIIfNeeded() {        val fullList = this.latestMessageList ?: return        val adapter = recyclerView.adapter ?: return        this.latestMessageList = null         // Only take the latest N messages        val cappedList = fullList.takeLast(capacity)                dataSource.clear()        dataSource.addAll(cappedList)        adapter.notifyDataSetChanged()    }}
+```
+
+### Сценарий 3: Рендеринг сложных стилей комментариев с уровнями пользователей и значками
+
+#### Описание сценария
+
+Для улучшения атмосферы прямой трансляции и выделения платящих пользователей сообщения комментариев могут включать богатые визуальные элементы, такие как имена пользователей, значки уровня пользователя, значки поклонников и содержимое сообщения.
+
+#### Техническая проблема
+
+Рендеринг представлений с несколькими изображениями и текстами, пользовательскими шрифтами или сложными макетами требует больше времени, чем рендеринг простого текста. Высокочастотный рендеринг этих сложных представлений в списке увеличивает нагрузку на основной поток, вызывая задержку при прокрутке списка.
+
+#### Оптимизация: Асинхронный рендеринг
+
+Переместите процесс рендеринга представлений с основного потока на фоновый поток. Основной поток должен только обрабатывать окончательное отображение уже отрендеренного растрового изображения, значительно снижая его вычислительную нагрузку.
+
+#### Пример кода
+
+В вашем пользовательском `RecyclerView.ViewHolder` используйте `AsyncLayoutInflater` или механизм предзагрузки для выполнения задач рендеринга на фоновом потоке, когда это возможно.
+
+```
+import android.view.LayoutInflaterimport androidx.asynclayoutinflater.view.AsyncLayoutInflaterimport androidx.recyclerview.widget.RecyclerView// In your custom Barrage ViewHolderclass BarrageViewHolder(    itemView: View) : RecyclerView.ViewHolder(itemView) {    // ... (Declarations for TextView, ImageView, etc.)    companion object {        fun create(parent: ViewGroup): BarrageViewHolder {            // Use async layout inflater to reduce main thread blocking            val inflater = AsyncLayoutInflater(parent.context)            val view = LayoutInflater.from(parent.context)                .inflate(R.layout.item_barrage, parent, false)            return BarrageViewHolder(view)        }    }    fun bind(viewModel: BarrageViewModel) {        // Set your TextView text, ImageView images, etc. here        // With async layout inflation, final rendering is done on a background thread whenever possible    }    // Advanced performance optimization: fully manual drawing    // For finer control, use Canvas to manually draw text and images    // Generate the Bitmap on a background thread, then draw it in the main thread's onDraw method for fully asynchronous rendering}
+```
+
+## Документация API
+
+Для получения подробной информации о всех публичных интерфейсах, свойствах, методах [BarrageStore](https://tencent-rtc.github.io/TUIKit_Android/-atomic-x%20-core%20-a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/index.html) и связанных с ними классах см. официальную документацию API, включенную в фреймворк [AtomicXCore](https://tencent-rtc.github.io/TUIKit_Android/index.html).
+
+## Часто задаваемые вопросы
+
+### Помимо базовых текстовых комментариев, мы также хотим реализовать более богатые стили, такие как "цветные комментарии" и "комментарии с подарками". Как это сделать?
+
+Вы можете реализовать эти функции, используя пользовательские сообщения с `sendCustomMessage`.
+
+**Шаги реализации**
+
+1. **Определение структуры данных**: Сотрудничайте с клиентской и серверной командами, чтобы определить структуру JSON для пользовательских сообщений. Например, цветной комментарий можно определить как:
+
+```
+{  "type": "colored_text",  "text": "This is a colored bullet comment!",  "color": "#FF5733" }
+```
+
+2. **Отправитель**: При отправке сериализуйте эту структуру JSON в строку и отправляйте через параметр `data` `sendCustomMessage`. Параметр businessID можно установить на уникальный идентификатор вашего варианта использования, такой как `barrage_style_v1`.
+3. **Получатель**: При получении сообщения комментария проверьте, является ли его messageType `BarrageType.CUSTOM` и соответствует ли `businessID`. Если да, разберите строку данных (обычно как JSON) и отрендеризируйте ваш пользовательский стиль пользовательского интерфейса на основе разобранных данных (таких как `color`, `text`).
+
+### Если я вызову BarrageStore.create(liveID = "some_id") в разных классах или файлах, это создаст несколько экземпляров и вызовет путаницу?
+
+Нет. Внутренний механизм **AtomicXCore** гарантирует, что если вы передадите один и тот же `liveID`, вы всегда получите один и тот же экземпляр `BarrageStore` для этой прямой трансляции. Вам не нужно вручную управлять синглтонами.
+
+### Почему я не вижу отправленное сообщение в списке сообщений после вызова sendTextMessage?
+
+**Шаги устранения неполадок:**
+
+1. **Проверьте callback завершения**: Метод `sendTextMessage` предоставляет callback завершения. Проверьте, указывает ли callback на успех или неудачу. Если это ошибка, сообщение об ошибке укажет на проблему (такую как "Вы заблокированы", "Ошибка сети" и т. д.).
+2. **Подтвердите время подписки**: Убедитесь, что вы подписались на `barrageStore.barrageState.messageList` после того, как сеанс прямой трансляции для соответствующего `liveID` начался. Если вы начнете прослушивание до присоединения к прямой трансляции, вы можете пропустить некоторые сообщения.
+3. **Проверьте liveID**: Убедитесь, что liveID, используемый при создании экземпляра BarrageStore, присоединении к прямой трансляции и отправке сообщений, полностью совпадает, включая чувствительность к регистру.
+4. **Проблемы с сетью**: Убедитесь, что сетевое соединение устройства работает нормально. Отправка сообщений зависит от сетевого подключения.
+
+### Как новые зрители могут увидеть исторические сообщения комментариев, отправленные до их присоединения к прямой трансляции?
+
+`AtomicXCore` поддерживает получение исторических сообщений чата, но вам нужно включить эту функцию в **консоли сервера**. После настройки SDK обрабатывает все автоматически — дополнительный код клиента не требуется.
+
+#### **Шаг 1: Настройка в консоли прямой трансляции**
+
+1. Войдите в [**Console > Live > Configuration**](https://console.trtc.io/live/configuration) и выберите целевое приложение в верхней части страницы.
+2. На странице Live Configuration выберите **View Past Messages** и установите Previous Messages Viewable, чтобы указать количество сообщений (максимум 50), которые могут видеть новые зрители.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/1215e910e09b11f095ab5254001c06ec.png)
+
+#### **Шаг 2: Автоматическое получение на стороне клиента**
+
+После завершения вышеуказанной настройки **не требуется вносить изменения** в код вашего клиента.
+
+Когда новый пользователь присоединяется к прямой трансляции, `AtomicXCore` автоматически получает настроенное количество исторических сообщений чата в фоновом режиме. Эти сообщения доставляются слою пользовательского интерфейса через канал подписки `BarrageState`, как и сообщения в реальном времени. Приложение будет получать и отображать эти исторические сообщения чата так же, как и живые сообщения.
+
+
+---
+*Источник: [https://trtc.io/document/74601](https://trtc.io/document/74601)*
+
+---
+*Источник (EN): [live-comments.md](./live-comments.md)*

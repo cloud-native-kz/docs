@@ -1,0 +1,162 @@
+# Настройка сообщений
+
+TUIKit по умолчанию реализует отправку и отображение основных типов сообщений, таких как текстовые, графические, аудио-, видео- и файловые сообщения. Если эти типы сообщений не соответствуют вашим требованиям, вы можете добавить пользовательские типы сообщений.
+
+## Основные типы сообщений
+
+| Тип сообщения | Отображение |
+| --- | --- |
+| Текстовое сообщение | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/53439d80132b11ef89cc5254002fd0a8.png) |
+| Графическое сообщение | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/1df1b25d132e11ef9af4525400720cb5.png) |
+| Аудиосообщение | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/bd6c3ef5132c11ef83b95254002977b6.png) |
+| Видеосообщение | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/fa9f9fae133011ef83b95254002977b6.png) |
+| Файловое сообщение | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/74f216f5133011ef89cc5254002fd0a8.png) |
+
+## Пользовательское сообщение
+
+Если основные типы сообщений не соответствуют вашим требованиям, вы можете настроить сообщения по своим потребностям. Ниже приводится пример отправки пользовательского гипертекстового сообщения, которое может перенаправить на браузер, чтобы помочь вам быстро понять процесс реализации.
+Встроенный стиль пользовательского сообщения TUIKit показан на рисунке ниже:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/320a0897133411efa2935254005ac0ca.png)
+
+> **Примечание**: В TUIKit 5.8.1668 была разработана новая схема пользовательских сообщений, которая вносит множество изменений по сравнению с исходной схемой и реализуется проще. API исходной схемы сохранены, но больше не поддерживаются.
+> Мы **настоятельно рекомендуем** вам обновиться до версии 5.8.1668 или более поздней версии, чтобы использовать новую схему для реализации пользовательских сообщений.
+
+## Отображение пользовательского сообщения
+
+Элемент View встроенного пользовательского сообщения TUIKit показан на рисунке ниже:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/3ccfd5e2133411efbf645254007bbd8c.png)
+
+Вы можете получить пользовательское сообщение через метод `onRecvNewMessage` в [ChatPresenter.java](https://github.com/TencentCloud/chat-uikit-android/blob/main/TUIKit/TUIChat/tuichat/src/main/java/com/tencent/qcloud/tuikit/tuichat/presenter/ChatPresenter.java), и полученное пользовательское сообщение будет отображено в режиме `MessageViewHolder` в списке сообщений. Данные, необходимые для отрисовки `MessageViewHolder`, называются `MessageBean`.
+
+Ниже приведены инструкции по отображению пользовательского сообщения.
+
+### Реализация класса MessageBean для пользовательского сообщения
+
+1. Создайте файл `CustomLinkMessageBean.java` в `TUIChat/tuichat/src/main/java/com/tencent/qcloud/tuikit/tuichat/bean/message/`. Унаследуйте данные из `TUIMessageBean` в класс `CustomLinkMessageBean` для хранения отображаемого текста и ссылки для перенаправления.
+Пример кода:
+
+```
+public class CustomLinkMessageBean extends TUIMessageBean {    private String text;    private String link;    public String getText() {        return text;    }    public String getLink() {        return link;    }}
+```
+
+2. Переопределите метод `onProcessMessage(message)` класса `CustomLinkMessageBean` для реализации анализа пользовательского сообщения.
+Пример кода:
+
+```
+@Overridepublic void onProcessMessage(V2TIMMessage v2TIMMessage) {    // Custom message view implementation. Here we configure to display only the text information and implement link redirection.    text = "";    link = "";    String data = new String(v2TIMMessage.getCustomElem().getData());    try {        HashMap map = new Gson().fromJson(data, HashMap.class);        if (map != null) {            text = (String) map.get("text");            link = (String) map.get("link");        }    } catch (JsonSyntaxException e) {    }    setExtra(text);}
+```
+
+3. Переопределите метод `onGetDisplayString()` класса `CustomLinkMessageBean` для создания сводки текста в списке бесед.
+Эффект реализации выглядит следующим образом:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/5986b6ec133411ef89cc5254002fd0a8.png)
+
+Пример кода:
+
+```
+@Overridepublic String onGetDisplayString() {    return text;}
+```
+
+### Реализация класса MessageViewHolder
+
+1. Создайте файл `CustomLinkMessageHolder.java` в `Android/TUIChat/tuichat/src/main/java/com/tencent/qcloud/tuikit/tuichat/minimalistui/widget/message/viewholder/`. Унаследуйте данные из `MessageContentHolder` в `CustomLinkMessageHolder` для реализации макета стиля пузырька и события клика пользовательского сообщения.
+
+> **Примечание:** Если вы используете классический UI, CustomLinkMessageHolder должен наследоваться из com.tencent.qcloud.tuikit.timcommon.**classicui**.widget.message.MessageContentHolder, если используется минималистичный UI, необходимо наследоваться из com.tencent.qcloud.tuikit.timcommon.**minimalistui**.widget.message.MessageContentHolder
+
+Пример кода:
+
+```
+public class CustomLinkMessageHolder extends MessageContentHolder {    public CustomLinkMessageHolder(View itemView) {        super(itemView);    }}
+```
+
+2. Переопределите метод `getVariableLayout` класса `CustomLinkMessageHolder` и верните макет пользовательского сообщения.
+Пример кода:
+
+```
+@Overridepublic int getVariableLayout() {    return R.layout.test_custom_message_layout;}
+```
+
+Файл макета `test_custom_message_layout`:
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/test_custom_message_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/chat_self_custom_msg_text_color" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/link_tv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="viewEnd"
+            android:text="@string/test_custom_message"
+            android:textColor="?attr/chat_self_custom_msg_link_color" />
+    </LinearLayout>
+</LinearLayout>
+```
+
+3. Переопределите метод `layoutVariableViews` класса `CustomLinkMessageHolder` для отрисовки пользовательского сообщения в макет и добавления события клика пользовательского сообщения.
+Пример кода:
+
+```
+@Overridepublic void layoutVariableViews(TUIMessageBean msg, int position) {    // Custom message view implementation. Here we configure to display only the text information and implement link redirection.    TextView textView = itemView.findViewById(R.id.test_custom_message_tv);    String text = "";    String link = "";    if (msg instanceof CustomLinkMessageBean) {        text = ((CustomLinkMessageBean) msg).getText();        link = ((CustomLinkMessageBean) msg).getLink();    }    textView.setText(text);    msgContentFrame.setClickable(true);    String finalLink = link;    msgContentFrame.setOnClickListener(new View.OnClickListener() {        @Override        public void onClick(View v) {            Intent intent = new Intent();            intent.setAction("android.intent.action.VIEW");            Uri content_url = Uri.parse(finalLink);            intent.setData(content_url);            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);            TUIChatService.getAppContext().startActivity(intent);        }    });}
+```
+
+### Регистрация определения пользовательского сообщения
+
+> **Примечание:** Каждое определение пользовательского сообщения должно иметь уникальный **businessID**, который учитывает регистр символов и не может дублироваться с **businessID** других определений пользовательских сообщений. TUIChat должен найти соответствующее определение пользовательского сообщения на основе этого **businessID**. Вновь добавленный **businessID** для определения пользовательского сообщения не может дублироваться с **businessID** встроенных определений пользовательских сообщений в TUIKit.
+
+Во время инициализации приложения вызовите API TUIChatConfigs.registerCustomMessage для регистрации определения пользовательского сообщения в TUIChat.
+Пример кода выглядит следующим образом:
+
+```
+// Self Definition message businessID (Note: Duplicates not allowed)public static final String CUSTOM_LINK_MESSAGE_BUSINESS_ID = "text_link";  /** Register the self Definition message with TUIChat. The three parameters are * @param businessID Self Definition message businessID
+* @param messageBeanClass Self Definition message MessageBean type
+* @param messageViewHolderClass Self Definition message MessageViewHolder type*/
+TUIChatConfigs.registerCustomMessage(CUSTOM_LINK_MESSAGE_BUSINESS_ID,                                     CustomLinkMessageBean.class,                                     CustomLinkMessageHolder.class);
+```
+
+Кроме того, TUIChatConfigs предоставляет еще одну перегрузку метода registerCustomMessage, которая поддерживает регистрацию пользовательских сообщений в версии упрощенного UI и поддерживает нулевые макеты сообщений. Для получения подробной информации обратитесь к [файлу TUIChatConfigs.java](https://github.com/TencentCloud/chat-uikit-android/blob/main/TUIKit/TUIChat/tuichat/src/main/java/com/tencent/qcloud/tuikit/tuichat/config/TUIChatConfigs.java).
+
+## Отправка пользовательских сообщений
+
+> **Примечание:** Содержимое пользовательского сообщения должно быть в формате JSON. Поле **businessID** является обязательным. Другие поля можно добавлять по мере необходимости, а максимальный размер одного сообщения составляет 12 КБ. Например:{    "businessID":"text_link",    "link":"https://trtc.io/products/chat",    "text":"Welcome to Tencent Cloud Chat!"}
+
+Как показано на рисунке ниже, кнопка отправки пользовательского сообщения состоит из текстового заголовка и значка изображения.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/7cfe11b0133411efa2935254005ac0ca.png)
+
+1. Добавьте код в метод `customizeChatLayout` в [ChatLayoutSetting.java](https://github.com/TencentCloud/chat-uikit-android/blob/main/TUIKit/TUIChat/tuichat/src/main/java/com/tencent/qcloud/tuikit/tuichat/classicui/setting/ChatLayoutSetting.java) для добавления кнопки отправки пользовательского сообщения.
+Пример кода:
+
+```
+InputMoreActionUnit unit = new InputMoreActionUnit() {};unit.setIconResId(R.drawable.custom);unit.setName("Custom");unit.setActionId(CustomHelloMessage.CUSTOM_HELLO_ACTION_ID);unit.setPriority(10);inputView.addAction(unit);
+```
+
+2. Настройте прослушивание клика для кнопки отправки пользовательского сообщения. Затем, когда кнопка отправки сообщения нажата, создается и отправляется пользовательское сообщение.
+Пользовательское сообщение — это данные в формате JSON. Вам нужно определить поле `businessID` в JSON, чтобы уникально идентифицировать тип сообщения.
+Пример кода:
+
+```
+unit.setOnClickListener(unit.new OnActionClickListener() {    @Override    public void onClick() {        Gson gson = new Gson();        CustomHelloMessage customHelloMessage = new CustomHelloMessage();        customHelloMessage.businessID = "text_link";        customHelloMessage.text = "Welcome to Tencent Cloud Chat!";        customHelloMessage.link = "https://trtc.io/products/chat";        String data = gson.toJson(customHelloMessage);        TUIMessageBean info = ChatMessageBuilder.buildCustomMessage(data, customHelloMessage.text, customHelloMessage.text.getBytes());        layout.sendMessage(info, false);    }});
+```
+
+
+---
+*Источник: [https://trtc.io/document/50044](https://trtc.io/document/50044)*
+
+---
+*Источник (EN): [customize-messages.md](./customize-messages.md)*

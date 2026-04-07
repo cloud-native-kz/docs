@@ -1,0 +1,76 @@
+# Языковые параметры
+
+## Поддерживаемые языки
+
+В настоящее время поддерживаются **упрощённый китайский, английский, японский и арабский**.
+
+## Переключение языка
+
+TUICallKit по умолчанию использует язык мобильной системы. Если вам нужно переключить язык, вы можете использовать `TUIThemeManager.getInstance().changeLanguage` для изменения языка. Например, чтобы переключиться на английский:
+
+```
+import com.tencent.qcloud.tuicore.TUIThemeManager;public class MainActivity extends BaseActivity {    @Override
+  public void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+      TUIThemeManager.getInstance().changeLanguage(getApplicationContext(), "en");      …    }    …}
+```
+
+## Добавление нового языка
+
+### Шаг 1: Интеграция исходного кода
+
+1. Клонируйте или загрузите код с [GitHub](https://github.com/Tencent-RTC/TUICallKit), затем скопируйте подпапку tuicallkit-kt из папки Android в папку app вашего текущего проекта на том же уровне, как показано ниже.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/ee158e964fdd11efb66652540055f650.png)
+
+2. Найдите файл `settings.gradle.kts (или settings.gradle)` в корневом каталоге вашего проекта, добавьте следующий код для импорта компонента `tuicallkit-kt` в ваш проект.
+
+setting.gradle.kts
+
+settings.gradle
+
+```
+include(":tuicallkit-kt")
+```
+
+```
+include ':tuicallkit-kt'
+```
+
+3. В папке app найдите файл `build.gradle.kts (или build.gradle)`, добавьте следующий код в раздел `dependencies` для объявления зависимости текущего приложения от вновь добавленного компонента.
+
+build.gradle.kts
+
+build.gradle
+
+```
+dependencies {    api(project(":tuicallkit-kt"))}
+```
+
+```
+dependencies {    api project(':tuicallkit-kt')}
+```
+
+### Шаг 2: Добавление нового языкового пакета
+
+#### На примере **испанского** языка:
+
+1. Добавьте новый файл испанского языка.
+
+Перейдите в директорию исходного кода `TUICallKit` в папке `src/main/res` и добавьте новый файл `value-es/strings.xml`.
+
+2. Скопируйте содержимое файла `src/main/res/values-en/strings.xml` в новый файл `src/main/res/values-es/strings.xml`.
+3. Переведите английский текст в файле `src/main/res/values-es/strings.xml` на испанский.
+4. Добавьте новый язык.
+
+```
+import com.tencent.qcloud.tuicore.TUIThemeManager;public class MainActivity extends BaseActivity {    @Override  public void onCreate(Bundle savedInstanceState) {      super.onCreate(savedInstanceState);      Locale locale = new Locale("es");
+      TUIThemeManager.addLanguage("es", locale);      …    }    …}
+```
+
+
+---
+*Источник: [https://trtc.io/document/63264](https://trtc.io/document/63264)*
+
+---
+*Источник (EN): [language-settings.md](./language-settings.md)*

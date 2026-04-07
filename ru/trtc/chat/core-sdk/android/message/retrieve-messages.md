@@ -1,0 +1,413 @@
+# Получение сообщений
+
+## Описание функции
+
+- API для извлечения исторических сообщений находится в классах `V2TIMManager` и `V2TIMManager+Message (для Objective-C)` и `V2TIMMessageManager (Java и C++)`.
+- Помимо поддержки извлечения исторических личных и групповых сообщений, предоставляется расширенный API для извлечения сообщений по последовательности, точке начала или диапазону времени.
+- Могут быть извлечены как локальные, так и облачные исторические сообщения.
+
+> **Примечание:** Когда исторические сообщения извлекаются из облака и обнаруживается исключение сети, SDK вернет локально хранимые исторические сообщения.
+
+Локально хранимые исторические сообщения не подлежат ограничениям по времени, однако сообщения, хранящиеся в облаке, подлежат следующим ограничениям:
+
+- Бесплатная пробная версия: период свободного хранения составляет 7 дней и не может быть продлен.
+- Стандартное издание: период свободного хранения составляет 7 дней и может быть продлен.
+- Профессиональное издание: период свободного хранения составляет 30 дней и может быть продлен.
+- Профессиональное издание Plus: период свободного хранения составляет 90 дней и может быть продлен.
+- Корпоративное издание: период свободного хранения составляет 90 дней и может быть продлен.
+
+> **Примечание:** Продление периода хранения исторических сообщений является услугой с добавленной стоимостью. Если вам нужна эта функция, обратитесь к нам в [техническую группу Telegram](https://t.me/+EPk6TMZEZMM5OGY1). Мультимедийные сообщения (такие как изображения, файлы и аудио) имеют те же периоды хранения, что и исторические сообщения.
+
+## Извлечение личных сообщений
+
+Вызовите API `getC2CHistoryMessageList` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#afedccbe0e5229ae15e0e07b722ea39df) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.getc2chistorymessagelist(userid:count:lastmsg:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#abca63ad64f69aa4f424cf11849a9b89e)) для получения исторических личных сообщений.
+Когда сеть в норме, будут извлечены последние облачные данные; когда она неисправна, SDK вернет локально хранимые исторические сообщения.
+
+Если вы хотите извлечь только локальные исторические сообщения, см. [Расширенный API](https://www.tencentcloud.com/document/product/1047/47998#advanced-api).
+Этот API поддерживает извлечение по страницам. Для получения дополнительной информации см. [Извлечение по страницам](https://www.tencentcloud.com/document/product/1047/47998#pulling-by-page).
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+// Извлечение исторических личных сообщений
+// Установите `lastMsg` на `null` для первого извлечения
+// `lastMsg` может быть последним сообщением в возвращенном списке сообщений для второго извлечения.
+V2TIMManager.getMessageManager().getC2CHistoryMessageList(#your user id#, 20, null, new V2TIMValueCallback<List<V2TIMMessage>>() {
+    @Override
+    public void onError(int code, String desc) {
+        Log.i("imsdk", "fail, " + code + ", " + desc);
+    }
+    @Override
+    public void onSuccess(List<V2TIMMessage> v2TIMMessages) {
+        // Запишите `lastMsg` для следующего извлечения
+        V2TIMMessage lastMsg = v2TIMMessages.get(v2TIMMessages.size() - 1);
+        Log.i("imsdk", "success");
+    }
+});
+```
+
+```
+// Извлечение исторических личных сообщений
+// Установите `lastMsg` на `null` для первого извлечения
+// `lastMsg` может быть последним сообщением в возвращенном списке сообщений для второго извлечения.
+V2TIMManager.shared.getC2CHistoryMessageList(userID: "userID", count: 100, lastMsg: lastMessage) { msgs in
+    msgs.forEach { item in
+        print("\\(item.description)")
+    }
+        // Запишите `lastMsg` для следующего извлечения
+    lastMessage = msgs.last
+} fail: { code, desc in
+    print("fail \\(code), \\(desc)")
+}
+```
+
+```
+// Извлечение исторических личных сообщений
+// Установите `lastMsg` на `nil` для первого извлечения
+// `lastMsg` может быть последним сообщением в возвращенном списке сообщений для второго извлечения.
+[V2TIMManager.sharedInstance getC2CHistoryMessageList:#your user id# count:20 lastMsg:nil succ:^(NSArray<V2TIMMessage *> *msgs) {
+    // Запишите `lastMsg` для следующего извлечения
+    V2TIMMessage *lastMsg = msgs.lastObject;
+    NSLog(@"success, %@", msgs);
+} fail:^(int code, NSString *desc) {
+    NSLog(@"fail, %d, %@", code, desc);
+}];
+```
+
+```
+
+```
+
+## Извлечение групповых сообщений
+
+Вызовите API `getGroupHistoryMessageList` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a671e8737fcea0c05dc661c753e5b3597) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.getgrouphistorymessagelist(groupid:count:lastmsg:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a9e242ba327377fe74b83e8d5572d39a0)) для получения исторических групповых сообщений.
+Когда сеть в норме, будут извлечены последние облачные данные; когда она неисправна, SDK вернет локально хранимые исторические сообщения.
+
+Если вы хотите извлечь только локальные исторические сообщения, см. [Расширенный API](https://www.tencentcloud.com/document/product/1047/47998#advanced-api).
+Этот API поддерживает извлечение по страницам. Для получения дополнительной информации см. [Извлечение по страницам](https://www.tencentcloud.com/document/product/1047/47998#pulling-by-page).
+
+> **Примечание:** Могут быть извлечены только исторические сообщения групп встреч (Meeting). Дополнительную информацию об ограничениях на групповые сообщения см. в разделе [Различия в возможностях сообщений](https://www.tencentcloud.com/document/product/1047/33529?lang=en&pg=#differences-in-message-capabilities). Этот API не применяется к аудиовидео-группам (AVChatRoom), так как их сообщения не хранятся на облачном сервере роумига или в локальной базе данных. Если вы используете издание Pro, Pro Plus или Enterprise, вы можете настроить **историю сообщений для новых участников** (Путь: Приложения > Ваше приложение > Чат > Конфигурация > Конфигурация групп > Конфигурация функций групп > История сообщений для новых участников > Просмотр предыдущих сообщений) в [консоли](https://console.trtc.io/) для получения исторических сообщений в обратном вызове `onRecvNewMessage` после успешного присоединения к аудиовидео-группе. Новые члены аудиовидео-группы могут просматривать до 20 сообщений за последние 24 часа до присоединения к группе.
+
+Пример кода:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+// Извлечение исторических групповых сообщений
+// Установите `lastMsg` на `null` для первого извлечения
+// `lastMsg` может быть последним сообщением в возвращенном списке сообщений для второго извлечения.
+V2TIMManager.getMessageManager().getGroupHistoryMessageList(#your group id#, 20, null, new V2TIMValueCallback<List<V2TIMMessage>>() {
+    @Override
+    public void onError(int code, String desc) {
+        Log.i("imsdk", "fail, " + code + ", " + desc);
+    }
+    @Override
+    public void onSuccess(List<V2TIMMessage> v2TIMMessages) {
+        // Запишите `lastMsg` для следующего извлечения
+        V2TIMMessage lastMsg = v2TIMMessages.get(v2TIMMessages.size() - 1);
+        Log.i("imsdk", "success");
+    }
+});
+```
+
+```
+// Извлечение исторических групповых сообщений
+// Установите `lastMsg` на `null` для первого извлечения
+// `lastMsg` может быть последним сообщением в возвращенном списке сообщений для второго извлечения.
+V2TIMManager.shared.getGroupHistoryMessageList(groupID: "groupID", count: 100, lastMsg: lastMessage) { msgs in
+    msgs.forEach { item in
+        print("\\(item.description)")
+    }
+     // Запишите `lastMsg` для следующего извлечения
+    lastMessage = msgs.last
+} fail: { code, desc in
+    print("fail \\(code), \\(desc)")
+}
+```
+
+```
+// Извлечение исторических групповых сообщений
+// Установите `lastMsg` на `null` для первого извлечения
+// `lastMsg` может быть последним сообщением в возвращенном списке сообщений для второго извлечения.
+[V2TIMManager.sharedInstance getGroupHistoryMessageList:#your group id# count:20 lastMsg:nil succ:^(NSArray<V2TIMMessage *> *msgs) {
+    // Запишите `lastMsg` для следующего извлечения
+    V2TIMMessage *lastMsg = msgs.lastObject;
+    NSLog(@"success, %@", msgs);
+} fail:^(int code, NSString *desc) {
+    NSLog(@"fail, %d, %@", code, desc);
+}];
+```
+
+```
+
+```
+
+## Расширенные функции
+
+### Расширенный API
+
+Если обычный API выше не может удовлетворить ваши потребности в извлечении исторических сообщений, вы можете использовать расширенный API `getHistoryMessageList` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessageManager.html#a671e8737fcea0c05dc661c753e5b3597) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Message.html#v2timmanager.gethistorymessagelist(option:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a99e8f00ee60df12e346548b743523218) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMMessageManager.html#a4bbdbdd063d5dad2d164059e1f5d7851)).
+
+Помимо извлечения исторических личных и групповых сообщений, этот API поддерживает следующие расширенные функции:
+
+- Установка точки начала для извлечения сообщений
+- Установка диапазона времени для извлечения сообщений
+- Установка источника для извлечения сообщений: извлечение из локальной базы данных или облака
+- Указание последовательности для извлечения сообщений: извлечение в обратном хронологическом порядке или в хронологическом порядке
+- Указание типа сообщения для локального извлечения: текст, изображение, аудио, видео, файл, эмодзи, подсказка группы, объединенное сообщение или пользовательское сообщение.
+
+Прототип API:
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+public abstract void getHistoryMessageList(V2TIMMessageListGetOption option, V2TIMValueCallback<List<V2TIMMessage>> callback);
+```
+
+```
+public func getHistoryMessageList(option: V2TIMMessageListGetOption, succ: V2TIMMessageListSucc?, fail: V2TIMFail?)
+```
+
+```
+- (void)getHistoryMessageList:(V2TIMMessageListGetOption *)option
+                         succ:(V2TIMMessageListSucc)succ
+                         fail:(V2TIMFail)fail;
+```
+
+```
+virtual void GetHistoryMessageList(const V2TIMMessageListGetOption& option,
+                                   V2TIMValueCallback<V2TIMMessageVector>* callback) = 0;
+```
+
+Параметры класса `V2TIMMessageListGetOption` описаны в таблице ниже:
+
+| Параметр | Описание | Допустимо для личного чата | Допустимо для группового чата | Обязательно | Примечания |
+| --- | --- | --- | --- | --- | --- |
+| getType | Источник и последовательность извлечения сообщений, которые могут быть установлены как **локальное/облако** и **обратный хронологический порядок/хронологический порядок** соответственно. | ДА | ДА | ДА | Когда источник извлечения установлен в облако, локальный список сообщений и облачный список сообщений будут объединены и возвращены. Если нет сетевого соединения, будет возвращен локальный список сообщений. |
+| userID | Указанный ID пользователя для извлечения исторических личных сообщений | ДА | НЕТ | НЕТ | Для извлечения личных сообщений с определенным пользователем необходимо указать только `userID`. |
+| groupID | Указанный ID группы для извлечения исторических групповых сообщений | НЕТ | ДА | НЕТ | Для извлечения групповых сообщений из определенной группы необходимо указать только `groupID`. |
+| count | Количество сообщений при каждом извлечении | ДА | ДА | ДА | Рекомендуется установить значение `20`; в противном случае скорость извлечения может быть затронута. |
+| messageTypeList | Набор типов извлекаемых сообщений | ДА | ДА | НЕТ | Поддерживается только для локального извлечения, то есть допустимо только если getType имеет значение `V2TIM_GET_LOCAL_OLDER_MSG` или `V2TIM_GET_LOCAL_NEWER_MSG`. Если это поле оставить пустым, будут извлечены сообщения всех типов. Дополнительную информацию о поддерживаемых типах сообщений см. в V2TIMElemType ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMMessage.html#a00455865d1a14191b8c612252bf20a1c) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMElemType.html) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Message_08.html#a849af0e4698e8db9f227f9c8e54215b8) / [C++](https://im.sdk.qcloud.com/doc/en/V2TIMMessage_8h.html#a6854ecfbc6f3b65ed381d8a2e14e2377)). |
+| lastMsg | Последнее сообщение | ДА | ДА | НЕТ | Этот параметр применяется к извлечению исторических сообщений. Может использоваться как для личных, так и для групповых чатов. Если он установлен как точка начала для извлечения сообщений, сообщение **не будет включено** в возвращенный список сообщений. Если оставить пустым, в качестве точки начала для извлечения будет использовано последнее сообщение в разговоре. |
+| lastMsgSeq | `seq` последнего сообщения | НЕТ | ДА | НЕТ | Этот параметр применяется к извлечению исторических сообщений или локализации. Может использоваться только для групповых чатов. Если он установлен как точка начала для извлечения сообщений, сообщение **будет включено** в возвращенный список сообщений. Если указаны оба `lastMsg` и `lastMsgSeq`, SDK будет использовать `lastMsg`. Если ни `lastMsg`, ни `lastMsgSeq` не указаны, точка начала для извлечения будет определена в зависимости от того, установлен ли `getTimeBegin`. Если да, установленный диапазон будет использован как точка начала; если нет, будет использовано последнее сообщение как точка начала. |
+| getTimeBegin | Время начала для извлечения сообщений. Это временная метка UTC в секундах. | ДА | ДА | НЕТ | По умолчанию `0`, что означает извлечение сообщений с текущего времени. |
+| getTimePeriod | Диапазон времени для извлечения сообщений в секундах. | ДА | ДА | НЕТ | По умолчанию `0`, что означает отсутствие ограничений по времени. Это закрытый диапазон, включающий время начала и окончания: Если `getType` указывает обратный хронологический порядок, диапазон времени составляет [`getTimeBegin` - `getTimePeriod`, `getTimeBegin`]. Если `getType` указывает хронологический порядок, диапазон времени составляет [`getTimeBegin`, `getTimeBegin` + `getTimePeriod`]. |
+
+### Извлечение по страницам
+
+1. Для первого извлечения оставьте `lastMsg` пустым. В этом случае SDK будет извлекать последнее сообщение.
+2. Если это не первое извлечение, используйте последнее сообщение в списке сообщений из последнего извлечения в качестве `lastMsg`. В этом случае `lastMsg` не будет включен в возвращенный список сообщений.
+3. Если список сообщений, возвращаемый в обратном вызове успеха, пуст, это означает, что извлечение завершено и больше данных нет.
+
+> **Примечание:** В извлеченном списке сообщений более новые сообщения находятся впереди. Рекомендуется установить `count` на `20`, чтобы улучшить эффективность загрузки и сэкономить трафик сети.
+
+Если вы используете `lastMsgSeq` для извлечения исторических сообщений, сообщение, соответствующее `lastMsgSeq`, **будет включено** в возвращенный список сообщений.
+Поэтому рекомендуется не использовать `lastMsgSeq`, если вы не извлекаете исторические групповые сообщения впервые (последующее извлечение); в противном случае одно и то же сообщение может быть извлечено повторно.
+Например, есть восемь исторических сообщений: `msg1`, `msg2`, `msg3`, `msg4`, `msg5`, `msg6`, `msg7` и `msg8`.
+Если извлекать четыре сообщения за раз, для первого извлечения вы получите `msg1`, `msg2`, `msg3` и `msg4`. Если вы используете `lastMsgSeq` из `msg4` для начала другого извлечения, будут извлечены `msg4`, `msg5`, `msg6` и `msg7`. В этом случае `msg4` извлекается дважды.
+Если вам нужно использовать `lastMsgSeq` для последующих извлечений, рекомендуется установить логику дедупликации сообщений.
+
+### Извлечение по диапазону времени
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/c673b39b1f9211ee818e525400088f3a.jpeg)
+
+Следующий пример кода демонстрирует процесс извлечения облачных групповых сообщений за весь день с 2022-01-01 00:00:00 (временная метка `1640966400`) в обратном хронологическом порядке.
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+V2TIMMessageListGetOption option = new V2TIMMessageListGetOption();
+option.setGetType(V2TIMMessageListGetOption.V2TIM_GET_CLOUD_OLDER_MSG); // Извлечение более старых облачных сообщений
+option.setGetTimeBegin(1640966400);         // Начните с 2022-01-01 00:00:00
+option.setGetTimePeriod(1 * 24 * 60 * 60);  // Извлечение сообщений за весь день
+option.setCount(Integer.MAX_VALUE);         // Возврат всех сообщений в диапазоне времени
+option.setGroupID(#you group id#);          // Извлечение групповых сообщений
+V2TIMManager.getMessageManager().getHistoryMessageList(option, new V2TIMValueCallback<List<V2TIMMessage>>() {
+    @Override
+    public void onSuccess(List<V2TIMMessage> v2TIMMessages) {
+        Log.i("imsdk", "success");
+    }
+    @Override
+    public void onError(int code, String desc) {
+        Log.i("imsdk", "failure, code:" + code + ", desc:" + desc);
+    }
+});
+```
+
+```
+let option = V2TIMMessageListGetOption()
+option.getType = .V2TIM_GET_CLOUD_OLDER_MSG
+// Извлечение более старых облачных сообщений
+option.getTimeBegin = 1640966400 // Начните с 2022-01-01 00:00:00
+option.getTimePeriod = 1 * 24 * 60 * 60  // Извлечение сообщений за весь день
+option.groupID = "#your group id#"
+option.count = UInt(INT_MAX)   // Возврат всех сообщений в диапазоне времени
+V2TIMManager.shared.getHistoryMessageList(option: option) { msgs in
+    msgs.forEach { item in
+            }
+    print("success")
+} fail: { code, desc in
+    print("fail \\(code), \\(desc)")
+}
+```
+
+```
+V2TIMMessageListGetOption *option = [[V2TIMMessageListGetOption alloc] init];
+option.getType = V2TIM_GET_CLOUD_OLDER_MSG; // Извлечение облачных сообщений в обратном хронологическом порядке
+option.getTimeBegin = 1640966400;        // Начните с 2022-01-01 00:00:00
+option.getTimePeriod = 1 * 24 * 60 * 60; // Извлечение сообщений за весь день
+option.count = INT_MAX;                  // Возврат всех сообщений в диапазоне времени
+option.groupID = #your group id#;        // Извлечение групповых сообщений
+[V2TIMManager.sharedInstance getHistoryMessageList:option succ:^(NSArray<V2TIMMessage *> *msgs) {
+    NSLog(@"success");
+} fail:^(int code, NSString *desc) {
+    NSLog(@"failure, code:%d, desc:%@", code, desc);
+}];
+```
+
+```
+template <class T>
+class ValueCallback final : public V2TIMValueCallback<T> {
+public:
+    using SuccessCallback = std::function<void(const T&)>;
+    using ErrorCallback = std::function<void(int, const V2TIMString&)>;
+    ValueCallback() = default;
+    ~ValueCallback() override = default;
+    void SetCallback(SuccessCallback success_callback, ErrorCallback error_callback) {
+        success_callback_ = std::move(success_callback);
+        error_callback_ = std::move(error_callback);
+    }
+    void OnSuccess(const T& value) override {
+        if (success_callback_) {
+            success_callback_(value);
+        }
+    }
+    void OnError(int error_code, const V2TIMString& error_message) override {
+        if (error_callback_) {
+            error_callback_(error_code, error_message);
+        }
+    }
+private:
+    SuccessCallback success_callback_;
+    ErrorCallback error_callback_;
+};
+V2TIMMessageListGetOption option;
+option.getType = V2TIMMessageGetType::V2TIM_GET_CLOUD_OLDER_MSG;  // Извлечение более старых облачных сообщений
+option.getTimeBegin = 1640966400;        // Начните с 2022-01-01 00:00:00
+option.getTimePeriod = 1 * 24 * 60 * 60;                          // Извлечение сообщений за весь день
+option.count = std::numeric_limits<uint64_t>::max();              // Возврат всех сообщений в диапазоне времени
+option.groupID = "your group id";                                 // Извлечение групповых сообщений
+auto callback = new ValueCallback<V2TIMMessageVector>{};
+callback->SetCallback(
+    [=](const V2TIMMessageVector& messageList) {
+        std::cout << "success" << std::endl;
+        delete callback;
+    },
+    [=](int error_code, const V2TIMString& error_message) {
+        std::cout << "error" << std::endl;
+        delete callback;
+    });
+V2TIMManager::GetInstance()->GetMessageManager()->GetHistoryMessageList(option, callback);
+```
+
+### Извлечение по страницам в диапазоне времени
+
+1. Если установлены оба `getTimeBegin`/`getTimePeriod` и `lastMsg`/`lastMsgSeq`, будет возвращена пересекающаяся часть сообщений, извлеченных на основе начального сообщения и сообщений, извлеченных на основе диапазона времени.
+2. Если ни `getTimeBegin`/`getTimePeriod`, ни `lastMsg`/`lastMsgSeq` не установлены, сообщения будут извлечены с последнего сообщения на основе последовательности и метода, указанного в `getType`.
+
+Следующий пример кода демонстрирует процесс извлечения облачных групповых сообщений по страницам (20 сообщений на странице) с 2022-01-01 00:00:00 (временная метка `1640966400`) в обратном хронологическом порядке.
+
+Java
+
+Swift
+
+Objective-C
+
+C++
+
+```
+// Определите переменную для записи позиции каждого извлечения
+private V2TIMMessage m_lastMsg = null;  // Для первого извлечения это `null`.
+// Логика извлечения по страницам
+V2TIMMessageListGetOption option = new V2TIMMessageListGetOption();
+option.setGetType(V2TIMMessageListGetOption.V2TIM_GET_CLOUD_OLDER_MSG); // Извлечение более старых облачных сообщений
+option.setGetTimeBegin(1640966400);         // Начните с 2022-01-01 00:00:00
+option.setGetTimePeriod(1 * 24 * 60 * 60);  // Извлечение сообщений за весь день
+option.setCount(20);                        // 20 сообщений на странице
+option.setLastMsg(m_lastMsg);               // Позиция последнего извлечения (последнее сообщение в возвращенном списке сообщений каждый раз)
+option.setGroupID(#you group id#);          // Извлечение групповых сообщений
+V2TIMManager.getMessageManager().getHistoryMessageList(option
+
+```
+/// Пользовательский текст сигнального сообщенияclass func getCallSignalingContent(with message: V2TIMMessage) -> String? {    guard let info = V2TIMManager.shared.getSignallingInfo(msg: message) else {        return nil    }        // Разберите поле `data`, переданное через    var param: [String: Any]?    if let data = info.data {        if let jsonData = data.data(using: .utf8) {            do {                param = try JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers) as? [String: Any]            } catch {                print("JSON parsing error: \\(error)")            }        }    }        guard let parameters = param else {        return nil    }        // Определите тип бизнеса    guard let businessId = parameters["businessID"] as? String else {        return nil    }        // Определите, является ли это сигналом аудио/видео вызова    var content: String?    if businessId == "av_call" {        switch info.actionType {        case .V2TIMSignalingActionType_Invite:            // Совершить вызов            content = "Make a call"        case .V2TIMSignalingActionType_Accept_Invite:            // Ответить на вызов            content = "Answer the call"        default:            // Другие            // ...            break        }    }        return content}
+```
+
+```
+/// Пользовательский текст сигнального сообщения+ (NSString *)getCallSignalingContentWithMessage:(V2TIMMessage *)message{    V2TIMSignalingInfo *info = [[V2TIMManager sharedInstance] getSignallingInfo:message];    if (!info) {        return nil    }    // Разберите поле `data`, переданное через    NSError *err = nil;    NSDictionary *param = nil;    if (info.data != nil) {        param = [NSJSONSerialization JSONObjectWithData:[info.data dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&err];    }    if (!param || ![param isKindOfClass:[NSDictionary class]]) {        return nil    }    // Определите тип бизнеса    NSArray *allKeys = param.allKeys;    if (![allKeys containsObject:@"businessID"]) {        return nil    }    NSString *businessId = [param objectForKey:@"businessID"];    // Определите, является ли это сигналом аудио/видео вызова    NSString *content = nil;    if ([businessId isEqualToString:@"av_call"]) {        if (info.actionType == SignalingActionType_Invite) {            // Совершить вызов            content = @"Make a call";        } else if (info.actionType == SignalingActionType_Accept_Invite) {            // Ответить на вызов            content = @"Answer the call";        } else {            // Другие            // ...        }    }    return content;}
+```
+
+```
+Пользовательский текст сигнального сообщенияstd::string GetCallSignalingContentWithMessage(const V2TIMMessage& message) {   V2TIMSignalingInfo signalingInfo =       V2TIMManager::GetInstance()->GetSignalingManager()->GetSignalingInfo(message);   if (signalingInfo.inviteID.Empty()) {       // Если `V2TIMSignalingInfo::inviteID` пусто, `message` не является сигнальным сообщением.       return {};   }   // Разберите поле `data`, переданное через, используя библиотеку с открытым исходным кодом RapidJSON на https://github.com/Tencent/rapidjson/   rapidjson::Document document;   document.Parse(signalingInfo.data.CString(), signalingInfo.data.Size());   if (!document.HasMember("businessId") || !document["businessId"].IsString()) {       return {};   }   const char* businessId = document["businessId"].GetString();   // Определите, является ли это сигналом аудио/видео вызова   std::string content;   if (businessId == "av_call") {       if (signalingInfo.actionType == V2TIMSignalingActionType::SignalingActionType_Invite) {           // Совершить вызов           content = u8"Make a call";       } else if (signalingInfo.actionType == 2TIMSignalingActionType::SignalingActionType_Accept_Invite) {           // Ответить на вызов           content = u8"Answer the call";       } else {           // Другие       }   }   return content;}
+```
+
+## Часто задаваемые вопросы
+
+- **Что делать, если в журнале отображается сообщение "total count of request cloud message exceed max limit" при извлечении исторических сообщений?**
+1. Когда `getType` установлен на извлечение облачных исторических сообщений и количество извлекаемых сообщений установлено на `count`, SDK будет извлекать `count` сообщений из облака.
+2. SDK будет отфильтровывать недействительные сообщения, такие как удалённые сообщения и сообщения, не относящиеся к текущему пользователю.
+3. Если в облаке содержится слишком много недействительных исторических сообщений, SDK будет выполнять множественное постраничное извлечение.
+Для обеспечения стабильности и надёжности системы SDK выполнит до трёх автоматических постраничных извлечений. После превышения этого лимита в журнале будет отображено сообщение "total count of request cloud message exceed max limit".
+
+Чтобы минимизировать влияние такого механизма ограничения на бизнес-слой, вы можете принять следующие меры для уменьшения количества недействительных сообщений:
+
+- Вы можете использовать онлайн-сообщения, то есть установить `onlineUserOnly` на `YES/true` при отправке сообщений.
+- Для групповых сообщений вы можете использовать целевые групповые сообщения для указания получателя.
+- **Что делать, если сообщения "теряются" при извлечении облачных исторических сообщений?**
+1. Извлечение `count` сообщений из локальной базы данных.
+2. Извлечение `count` сообщений из облака и фильтрация недействительных сообщений, таких как удалённые сообщения. Если количество меньше `count`, будет запущено постраничное извлечение.
+3. Объединение локальных и облачных сообщений и обновление информации, такой как статус сообщения.
+4. Возврат `count` сообщений из объединённого списка сообщений.
+
+В целом потеря сообщений указывает на то, что на этапе 2 было извлечено слишком много недействительных сообщений, что привело к активации механизма ограничения из вопроса 1 и привело к извлечению недостаточного количества сообщений из облака.
+Мы рекомендуем вам исправить эту проблему, следуя инструкциям в вопросе 1. Если проблема сохраняется, свяжитесь с нами для получения помощи.
+
+- **Что делать, если информация о членах группы, такая как карточка имени в группе, не обновляется в реальном времени при извлечении исторических сообщений?**
+1. Когда сообщения создаются, SDK обновляет текущую информацию о членах группы, такую как карточка имени и роль, и сохраняет её в локальной базе данных.
+2. При извлечении исторических групповых сообщений SDK будет напрямую запрашивать информацию о членах группы на момент создания сообщений и не будет запрашивать обновления с сервера в реальном времени.
+
+Если вы хотите получить актуальную информацию о членах группы, вы можете использовать API `getGroupMembersInfo` ([Java](https://im.sdk.qcloud.com/doc/en/classcom_1_1tencent_1_1imsdk_1_1v2_1_1V2TIMSignalingManager.html#ab303f20f53de134e6f6ebe5f9f9bcad0) / [Swift](https://im.sdk.qcloud.com/doc/en/swift_V2TIMManager+Group.html#v2timmanager.getgroupmembersinfo(groupid:memberlist:succ:fail:)) / [Objective-C](https://im.sdk.qcloud.com/doc/en/categoryV2TIMManager_07Group_08.html#a1ab284b80811bcc697d689d7b97edf04) / [C++](https://im.sdk.qcloud.com/doc/en/classV2TIMGroupManager.html#a6db2fcfd78bbd71003ae31584c88c672)).
+
+- **Что делать, если при извлечении исторических сообщений возникает задержка?**
+
+
+---
+*Источник: [https://trtc.io/document/47998](https://trtc.io/document/47998)*
+
+---
+*Источник (EN): [retrieve-messages.md](./retrieve-messages.md)*

@@ -1,0 +1,312 @@
+# Подключение гостей
+
+**AtomicXCore** предоставляет модули [CoGuestStore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/cogueststore) и [LiveSeatStore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/liveseatstore), которые обрабатывают полный цикл запросов зрителей на подключение микрофона в сценариях прямых трансляций. Вам не нужно беспокоиться о сложной синхронизации состояния или взаимодействиях сигнализации — просто вызовите несколько простых методов, чтобы добавить мощное взаимодействие аудио/видео между хозяевами и зрителями в вашей прямой трансляции. Это руководство показывает вам, как быстро реализовать функциональность микрофона с голосовым подключением в вашем приложении iOS с использованием `CoGuestStore` и `LiveSeatStore`.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/e4dd7827ca0611f0a7775254005ef0f7.png)
+
+## Основные сценарии
+
+`CoGuestStore` и `LiveSeatStore` поддерживают следующие основные сценарии взаимодействия в прямых трансляциях:
+
+- **Запрос зрителя на присоединение к микрофону**: Зрители могут активно запросить присоединение к микрофону; хозяин может одобрить или отклонить эти запросы.
+- **Хозяин приглашает зрителя к микрофону**: Хозяин может активно приглашать любого зрителя в комнате трансляции присоединиться к микрофону.
+- **Хозяин управляет местами микрофона**: Хозяин может управлять пользователями на местах микрофона, включая удаление пользователей, отключение звука и блокировку мест.
+
+## Реализация
+
+### Шаг 1: Интеграция компонента
+
+Обратитесь к [Quick Start](https://www.tencentcloud.com/document/product/647/74682) для интеграции **AtomicXCore**.
+
+### Шаг 2: Реализация запроса зрителя на подключение микрофона
+
+#### Реализация на стороне зрителя
+
+Как зритель, ваши основные задачи — **инициирование запроса, обработка ответа** и **добровольное отключение от микрофона**.
+
+1. **Инициирование запроса на подключение микрофона**
+
+Когда пользователь нажимает кнопку "Запросить подключение микрофона" в пользовательском интерфейсе, вызовите метод `applyForSeat`.
+
+```
+import AtomicXCorelet liveId = "Room ID"var guestStore: CoGuestStore {    CoGuestStore.create(liveID: liveID)}// User taps "Request Mic-Link"func requestToConnect() {    // timeout: Request timeout, e.g., 30 seconds    guestStore.applyForSeat(timeout: 30.0, extraInfo: nil) { result in      switch result {      case .success():          print("Mic-link request sent, waiting for host response...")      case .failure(let error):          print("Failed to send request: \\(error.message)")      }    }}
+```
+
+2. **Прослушивание ответа хозяина**
+
+Подпишитесь на `guestEventPublisher` для получения ответа хозяина.
+
+```
+import AtomicXCoreimport Combine// Subscribe to events during view controller initializationfunc subscribeGuestEvents() {    guestStore.guestEventPublisher      .sink { [weak self] event in          if case let .onGuestApplicationResponded(isAccept, hostUser) = event {              if isAccept {                  print("Host \\(hostUser.userName) accepted your request, preparing to join mic")                  // 1. Open microphone                  DeviceStore.shared.openLocalMicrophone(completion: nil)                  // 2. Update UI, e.g., disable request button, show "on mic" status              } else {                  print("Host \\(hostUser.userName) rejected your request")                  // Show popup to inform user of rejection              }          }      }      .store(in: &cancellables) // Manage subscription lifecycle}
+```
+
+3. **Добровольное отключение от микрофона**
+
+Когда зритель, который находится у микрофона, хочет завершить взаимодействие, вызовите `disConnect`, чтобы вернуться в обычный статус зрителя.
+
+```
+// User taps "Leave Mic" buttonfunc leaveSeat() {    guestStore.disConnect { result in      switch result {      case .success():          print("Successfully left mic")      case .failure(let error):          print("Failed to leave mic: \\(error.message)")      }    }}
+```
+
+4. **(Опционально) Отмена запроса**
+
+Если зритель хочет отозвать запрос до того, как хозяин ответит, вызовите `cancelApplication`.
+
+```
+// User taps "Cancel Request" while waitingfunc cancelRequest() {    guestStore.cancelApplication { result in      switch result {      case .success():          print("Request cancelled")      case .failure(let error):          print("Failed to cancel request: \\(error.message)")      }    }}
+```
+
+#### Реализация на стороне хозяина
+
+Как хозяин, ваши основные задачи — **получение запросов, отображение списка запросов** и **обработка запросов**.
+
+1. **Прослушивание новых запросов на подключение микрофона**
+
+Подпишитесь на `hostEventPublisher`, чтобы получить уведомление сразу же после поступления нового запроса от зрителя.
+
+```
+import AtomicXCoreimport Combinelet liveId = "Room ID"var guestStore: CoGuestStore {    CoGuestStore.create(liveID: liveID)}// Subscribe to host eventsguestStore.hostEventPublisher    .sink { [weak self] event in        if case let .onGuestApplicationReceived(guestUser) = event {            print("Received mic-link request from audience \\(guestUser.userName)")            // Update UI, e.g., show a red dot on the "Request List" button        }    }    .store(in: &cancellables)
+```
+
+2. **Отображение списка запросов**
+
+Состояние `CoGuestStore` поддерживает текущий список заявителей в реальном времени. Подпишитесь на него, чтобы обновить пользовательский интерфейс.
+
+```
+import AtomicXCoreimport Combine// Subscribe to state changesguestStore.state    .subscribe(StatePublisherSelector(keyPath: \\CoGuestState.applicants)) // Only care about applicant list changes    .removeDuplicates()    .sink { applicants in        print("Current number of applicants: \\(applicants.count)")        // Refresh your "Applicant List" UI here        // self.applicantListView.update(with: applicants)    }    .store(in: &cancellables)
+```
+
+3. **Обработка запросов на подключение микрофона**
+
+Когда вы выбираете зрителя из списка и нажимаете "Принять" или "Отклонить", вызовите соответствующий метод.
+
+```
+// Host taps "Accept" button, passing applicant's userIDfunc accept(userId: String) {    guestStore.acceptApplication(userID: userId) { result in        if case .success = result {            print("Accepted \\(userId)'s request, they are joining the mic")        }    }}// Host taps "Reject" buttonfunc reject(userId: String) {    guestStore.rejectApplication(userID: userId) { result in        if case .success = result {            print("Rejected \\(userId)'s request")        }    }}
+```
+
+### Шаг 3: Реализация приглашения хозяина на подключение микрофона
+
+#### Реализация на стороне хозяина
+
+1. **Приглашение зрителя к микрофону**
+
+Когда хозяин выбирает зрителя из списка аудитории и нажимает "Пригласить к микрофону", вызовите метод `inviteToSeat`.
+
+```
+// Host selects audience and initiates invitationfunc invite(userId: String) {    // timeout: Invitation timeout    guestStore.inviteToSeat(userID: userId, timeout: 30.0, extraInfo: nil) { result in        if case .success = result {            print("Invitation sent to \\(userId), waiting for response...")        }    }}
+```
+
+2. **Прослушивание ответа зрителя**
+
+Прослушивайте событие `onHostInvitationResponded` через `hostEventPublisher`.
+
+```
+// Add to hostEventPublisher subscriptionif case let .onHostInvitationResponded(isAccept, guestUser) = event {    if isAccept {        print("Audience \\(guestUser.userName) accepted your invitation")    } else {        print("Audience \\(guestUser.userName) rejected your invitation")    }}
+```
+
+#### Реализация на стороне зрителя
+
+1. **Получение приглашения от хозяина**
+
+Прослушивайте событие `onHostInvitationReceived` через `guestEventPublisher`.
+
+```
+// Add to guestEventPublisher subscriptionif case let .onHostInvitationReceived(hostUser) = event {    print("Received mic-link invitation from host \\(hostUser.userName)")    // Show a dialog for the user to choose "Accept" or "Reject"    // self.showInvitationDialog(from: hostUser)}
+```
+
+2. **Ответ на приглашение**
+
+Когда пользователь делает выбор в диалоговом окне, вызовите соответствующий метод.
+
+```
+let inviterId = "Host ID who sent the invitation" // Get from onHostInvitationReceived event// User taps "Accept"func accept() {    guestStore.acceptInvitation(inviterID: inviterId) { result in        if case .success = result {            // 2. Open microphone            DeviceStore.shared.openLocalMicrophone(completion: nil)        }    }}// User taps "Reject"func reject() {    guestStore.rejectInvitation(inviterID: inviterId) { result in        // ...    }}
+```
+
+## Дополнительные функции
+
+После того как пользователь находится у микрофона, хозяину может потребоваться управление местами микрофона. Следующие функции в основном предоставляются `LiveSeatStore`, который работает с `CoGuestStore`.
+
+### Пользователи у микрофона контролируют свой собственный микрофон
+
+Пользователи у микрофона (включая хозяина) могут контролировать статус отключения звука своего микрофона через интерфейс `LiveSeatStore`.
+
+#### Реализация:
+
+1. **Отключить звук:** Вызовите `muteMicrophone()`. Это односторонний запрос без обратного вызова.
+2. **Включить звук:** Вызовите `unmuteMicrophone(completion:)`.
+
+#### Пример кода:
+
+```
+let seatStore = LiveSeatStore.create(liveID: liveId)seatStore.muteMicrophone() // MuteseatStore.unmuteMicrophone(completion: nil) // Unmute
+```
+
+#### Параметры unmuteMicrophone:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения операции. |
+
+### Хозяин удаленно управляет микрофоном пользователя у микрофона
+
+Хозяин может выполнять операции "принудительного отключения" или "приглашения на включение" микрофона других пользователей у микрофона.
+
+#### Реализация:
+
+1. **Принудительное отключение (блокировка):** Хозяин вызывает `closeRemoteMicrophone`, чтобы принудительно отключить микрофон целевого пользователя и заблокировать управление микрофоном. Пользователь с отключенным звуком получит событие `onLocalMicrophoneClosedByAdmin` через `liveSeatEventPublisher`, и его локальная кнопка "Открыть микрофон" должна стать неактивной.
+2. **Приглашение на включение (разблокировка):** Хозяин вызывает `openRemoteMicrophone` — это не принудительно открывает микрофон пользователя, но разблокирует управление микрофоном, позволяя ему включить звук самостоятельно. Целевой пользователь получает событие `onLocalMicrophoneOpenedByAdmin`, его кнопка "Открыть микрофон" должна стать активной, но он остается с отключенным звуком до тех пор, пока не включит его самостоятельно.
+3. **Пользователь включает звук самостоятельно:** После получения уведомления о разблокировке пользователь должен активно вызвать `unmuteMicrophone()` из `LiveSeatStore`, чтобы действительно включить звук и быть слышимым в комнате.
+
+#### Пример кода:
+
+##### Сторона хозяина:
+
+```
+let targetUserId = "userD"// 1. Force mute and lock userDseatStore.closeRemoteMicrophone(userID: targetUserId) { result in    if case .success = result {        print("\\(targetUserId) has been muted and locked")    }}// 2. Unlock userDâs microphone control (userD remains muted)seatStore.openRemoteMicrophone(userID: targetUserId, policy: .unlockOnly) { result in     if case .success = result {        print("Invited \\(targetUserId) to open microphone (unlocked)")    }}
+```
+
+##### Сторона зрителя:
+
+```
+// userD listens for host actionsseatStore.liveSeatEventPublisher    .sink { event in        switch event {        case .onLocalMicrophoneClosedByAdmin:            print("Muted by host")            // self.muteButton.isEnabled = false        case .onLocalMicrophoneOpenedByAdmin(policy: _):             print("Host unlocked mute control")            // self.muteButton.isEnabled = true            // self.muteButton.setTitle("Open Microphone")        default:            break        }    }    .store(in: &cancellables)
+```
+
+#### Параметры closeRemoteMicrophone:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `userID` | `String` | Идентификатор целевого пользователя. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения запроса. |
+
+#### Параметры openRemoteMicrophone:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `userID` | `String` | Идентификатор целевого пользователя. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения запроса. |
+
+### Хозяин удаляет пользователя у микрофона с места
+
+#### Реализация:
+
+1. **Удаление пользователя с микрофона:** Хозяин может вызвать `kickUserOutOfSeat`, чтобы принудительно удалить указанного пользователя с места микрофона.
+2. **Прослушивание уведомления события:** Удаленный пользователь получит событие `onKickedOffSeat` через `CoGuestStore.guestEventPublisher`.
+
+#### Пример кода:
+
+```
+// Suppose you want to remove "userB"let targetUserId = "userB"seatStore.kickUserOutOfSeat(userID: targetUserId) { result in    switch result {    case .success:        print("\\(targetUserId) has been removed from the mic seat")    case .failure(let error):        print("Failed to remove user: \\(error.message)")    }}// "userB" receives the removal eventguestStore    .guestEventPublisher    .receive(on: RunLoop.main)    .sink { [weak self] event in        guard let self = self else { return }        switch event {        case .onKickedOffSeat(seatIndex: _, hostUser: _):            // Show toast notification        default:            break        }    }    .store(in: &cancellables)
+```
+
+#### Параметры kickUserOutOfSeat:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `userID` | `String` | Идентификатор пользователя, который должен быть удален с места микрофона. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения запроса. |
+
+### Хозяин блокирует и разблокирует места микрофона
+
+Хозяин может блокировать или разблокировать конкретное место микрофона.
+
+#### Реализация:
+
+1. **Блокировка места:** Хозяин может вызвать `lockSeat`, чтобы заблокировать место с указанным индексом. После блокировки зрители не могут занять это место через `applyForSeat` или `takeSeat`.
+2. **Разблокировка места:** Вызовите `unlockSeat`, чтобы разблокировать место и сделать его доступным снова.
+
+#### Пример кода:
+
+```
+// Lock seat #2seatStore.lockSeat(seatIndex: 2) { result in    if case .success = result {        print("Seat #2 locked")    }}// Unlock seat #2seatStore.unlockSeat(seatIndex: 2) { result in    if case .success = result {        print("Seat #2 unlocked")    }}
+```
+
+#### Параметры lockSeat:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `seatIndex` | `Int` | Индекс места для блокировки. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения запроса. |
+
+#### Параметры unlockSeat:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `seatIndex` | `Int` | Индекс места для разблокировки. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения запроса. |
+
+### Перемещение мест микрофона
+
+Хозяева и пользователи у микрофона могут вызвать `moveUserToSeat(userID:targetIndex:policy:completion:)` для перемещения пользователей между местами микрофона.
+
+#### Реализация:
+
+1. **Хозяин перемещает пользователя на место микрофона:** Хозяин может использовать этот API для перемещения любого пользователя на указанное место микрофона. Укажите `userID` целевого пользователя, индекс целевого места как `targetIndex` и используйте параметр `policy` для указания стратегии перемещения места, если целевое место занято (см. детали параметров ниже).
+2. **Пользователь у микрофона перемещает себя:** Пользователи у микрофона также могут вызвать этот API для перемещения себя. В этом случае `userID` должен быть идентификатором пользователя, `targetIndex` — желаемый новый индекс места, а параметр `policy` игнорируется. Если целевое место занято, перемещение завершается с ошибкой.
+
+#### Пример кода:
+
+```
+seatStore.moveUserToSeat(userID: "userC",                         targetIndex: newSeatIndex,                         policy: .abortWhenOccupied) { result in    if case .success = result {        print("Successfully moved to seat #\\(newSeatIndex)")    } else {        print("Move failed, seat may be occupied")    }}
+```
+
+#### Параметры moveUserToSeat:
+
+| **Параметр** | **Тип** | **Описание** |
+| --- | --- | --- |
+| `userID` | `String` | Идентификатор пользователя для перемещения. |
+| `targetIndex` | `Int` | Индекс целевого места. |
+| `policy` | `MoveSeatPolicy?` | Политика перемещения места, если целевое место занято:<br>- `abortWhenOccupied`: Прервать перемещение, если место занято (по умолчанию)<br>- `forceReplace`: Принудительно заменить пользователя на целевом месте; замененный пользователь будет удален<br>- `swapPosition`: Поменять позиции с пользователем на целевом месте. |
+| `completion` | `CompletionClosure?` | Обратный вызов после завершения запроса. |
+
+## Документация API
+
+Для получения подробной информации обо всех открытых интерфейсах, свойствах и методах [CoGuestStore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/cogueststore), [LiveSeatStore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/liveseatstore) и связанных классов обратитесь к официальной документации API фреймворка [AtomicXCore](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore). Соответствующие хранилища, используемые в этом руководстве:
+
+| **Хранилище/Компонент** | **Описание функции** | **Документация API** |
+| --- | --- | --- |
+| CoGuestStore | Управление подключением микрофона для зрителей: запросы/приглашения на подключение микрофона/принятие/отклонение, контроль прав доступа участников (микрофон/камера), синхронизация состояния. | [Документация API](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/cogueststore) |
+| LiveSeatStore | Управление местами микрофона: отключение/включение звука, блокировка/разблокировка мест, удаление пользователей с микрофона, удаленное управление микрофоном, мониторинг состояния списка мест микрофона | [Документация API](https://tencent-rtc.github.io/TUIKit_iOS/documentation/atomicxcore/liveseatstore) |
+
+## Часто задаваемые вопросы
+
+### В чем разница между реализацией подключения микрофона в голосовой комнате и видеотрансляции?
+
+Основные различия заключаются в бизнес-логике и представлении пользовательского интерфейса:
+
+- `Видеотрансляция:` Основа — видеопоток. Используйте `LiveCoreView` как основной компонент для отображения видеопотоков хозяина и зрителей, подключенных к микрофону. Пользовательский интерфейс сосредоточен на макете видео и размерах, и вы можете добавлять наложения (ник, заменяющее изображение) через `VideoViewDelegate`. Можно включить как камеру, так и микрофон.
+- `Голосовая комната:` Основа — сетка мест микрофона. Не используйте `LiveCoreView`; вместо этого создайте сетку пользовательского интерфейса (например, `UICollectionView`) на основе `LiveSeatStore`'s `state` (особенно `seatList`). Пользовательский интерфейс сосредоточен на реальном отображении статуса каждого места: занято, отключено, заблокировано и статус речи. Нужно включить только микрофон.
+
+### Как мне обновлять информацию о месте микрофона (например, занято, отключено) в пользовательском интерфейсе в реальном времени?
+
+Подпишитесь на свойство `seatList` в `LiveSeatState`, которое является реактивным массивом `[SeatInfo]`. Любые изменения уведомят вас о необходимости переотрисовки списка мест микрофона. Переберите этот массив, чтобы:
+
+- Получить информацию о пользователе на каждом месте через `seatInfo.userInfo`.
+- Проверить, заблокировано ли место через `seatInfo.isLocked`.
+- Проверить статус микрофона пользователя через `seatInfo.userInfo.microphoneStatus`.
+
+### В чем разница между интерфейсами микрофона в LiveSeatStore и DeviceStore?
+
+Это важное различие. `DeviceStore` управляет физическим устройством, а `LiveSeatStore` управляет бизнес-логикой мест микрофона (аудиопоток).
+
+`DeviceStore`:
+
+- `openLocalMicrophone`: Запрашивает системное разрешение и запускает оборудование микрофона для захвата аудио. Это долгая операция.
+- `closeLocalMicrophone`: Останавливает захват аудио и освобождает устройство микрофона.
+
+`LiveSeatStore`:
+
+- `muteMicrophone`: Отключение звука. Останавливает отправку локального аудиопотока на удаленное устройство, но оборудование микрофона остается работающим.
+- `unmuteMicrophone`: Включение звука. Возобновляет отправку аудиопотока на удаленное устройство.
+
+**Рекомендуемый рабочий процесс:** "Откройте устройство один раз, управляйте отключением/включением звука во время работы с микрофоном"
+
+1. **При присоединении к микрофону:** Когда зритель успешно присоединяется к микрофону, вызовите `openLocalMicrophone` один раз для запуска устройства.
+2. **Во время работы с микрофоном:** Все действия "отключение" и "включение" звука во время работы с микрофоном должны использовать `muteMicrophone` и `unmuteMicrophone` для управления аудиопотоком.
+3. **При отключении от микрофона:** При отключении от микрофона (например, вызовом `disconnect`), вызовите `closeLocalMicrophone` для освобождения устройства.
+
+
+---
+*Источник: [https://trtc.io/document/74684](https://trtc.io/document/74684)*
+
+---
+*Источник (EN): [guest-connection.md](./guest-connection.md)*

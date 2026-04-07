@@ -1,0 +1,118 @@
+# Управление микрофоном
+
+Данный документ рассказывает об управлении микрофоном в `SeatGridView`.
+
+`SeatGridView` поддерживает следующие возможности управления микрофоном:
+
+| [Включить микрофон](https://www.tencentcloud.com/document/product/647/67501#b69cb2f6-d5bb-49c3-800a-61a654f28a39) | [Выключить микрофон](https://www.tencentcloud.com/document/product/647/67501#8b6823f0-2ef9-400c-8f00-e7c40af1b431) |
+| --- | --- |
+| [Отключить микрофон](https://www.tencentcloud.com/document/product/647/67501#2c9ff222-49c7-4b73-a0ef-93011b7464bc) | [Включить микрофон](https://www.tencentcloud.com/document/product/647/67501#72a93aa9-24c8-4931-b1e6-10e617304cf9) |
+
+## Предварительные требования
+
+Перед использованием `SeatGridView` необходимо [интегрировать и выполнить вход](https://www.tencentcloud.com/document/product/647/67506#) в SeatGridView, чтобы обеспечить корректную работу всех функций.
+
+## Руководство по использованию
+
+### Шаг 1: Добавление SeatGridView в представление
+
+Сначала необходимо импортировать модуль `SeatGridView`, затем создать объект SeatGridView и добавить его в представление.
+
+iOS
+
+Android
+
+```
+import UIKitimport RTCRoomEngineimport SeatGridView class SeatManagementController: UIViewController {    private let seatGridView: SeatGridView = {         let view = SeatGridView()      return view    }        override func viewDidLoad() {        super.viewDidLoad()        self.seatGridView.addObserver(observer: self)        // Add seatGridView to the view and set layout constraints    }        deinit {        self.seatGridView.removeObserver(observer: self)    }}
+```
+
+```
+import com.trtc.uikit.livekit.seatGridView.SeatGridView;public class MicrophoneManagementActivity extends AppCompatActivity {    @Override    protected void onCreate(@Nullable Bundle savedInstanceState) {        super.onCreate(savedInstanceState);        SeatGridView seatGridView = new SeatGridView(this);        addContentView(seatGridView,                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));        seatGridView.addObserver(this);    }    @Override    protected void onDestroy() {        super.onDestroy();        seatGridView.removeObserver(this);    }}
+```
+
+### Шаг 2: Управление микрофоном
+
+#### Включить микрофон
+
+Вызовите `startMicrophone` для включения микрофона.
+
+iOS
+
+Android
+
+```
+self.seatGridView.startMicophone {    // Successfully turned on the mic} onError: { code, message in     // Failed to turn on the mic}
+```
+
+```
+seatGridView.startMicrophone(new TUIRoomDefine.ActionCallback() {    @Override    public void onSuccess () {        // Successfully turned on the mic    }    @Override    public void onError (TUICommonDefine.Error error, String message) {        // Failed to turn on the mic    }});
+```
+
+#### Выключить микрофон
+
+Вызовите `stopMicrophone` для выключения микрофона.
+
+iOS
+
+Android
+
+```
+self.seatGridView.stopMicophone()
+```
+
+```
+seatGridView.stopMicophone();
+```
+
+#### Отключить микрофон
+
+Вызовите `muteMicrophone` для отключения звука.
+
+iOS
+
+Android
+
+```
+self.seatGridView.muteMicrophone()
+```
+
+```
+seatGridView.muteMicrophone();
+```
+
+#### Включить микрофон
+
+Вызовите `unmuteMicrophone` для включения звука.
+
+iOS
+
+Android
+
+```
+self.seatGridView.unmuteMicrophone {    print("Unmuted successfully")} onError: { code, message in     print("Failed to unmute")}
+```
+
+```
+seatGridView.unMuteLocalAudio(new TUIRoomDefine.ActionCallback() {    @Override    public void onSuccess() {        // Successfully unmuted    }    @Override    public void onError(TUICommonDefine.Error error, String message) {        // // Failed to unmute    }});
+```
+
+При изменении статуса микрофона пользователя вы получите обратный вызов `onUserAudioStateChanged`.
+
+iOS
+
+Android
+
+```
+func onUserAudioStateChanged(userInfo: TUIUserInfo, hasAudio: Bool, reason: TUIChangeReason) {    if hasAudio {       print("\\(userInfo.userId) has audio")    } else {       print("\\(userInfo.userId) has no audio")    }}
+```
+
+```
+void onUserAudioStateChanged(TUIRoomDefine.UserInfo userInfo, boolean hasAudio,                             TUIRoomDefine.ChangeReason reason) {    // userInfo.userName's audio status changed}
+```
+
+
+---
+*Источник: [https://trtc.io/document/67501](https://trtc.io/document/67501)*
+
+---
+*Источник (EN): [microphone-management.md](./microphone-management.md)*

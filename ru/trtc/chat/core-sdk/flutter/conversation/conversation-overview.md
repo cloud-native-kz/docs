@@ -1,0 +1,51 @@
+# Обзор беседы
+
+## Беседа
+
+Когда пользователь создает чат один-на-один или групповой чат, создается беседа.
+
+В Tencent Cloud Chat SDK класс беседы — это `TencentImSDKPlugin.v2TIMManager.getConversationManager()`. Вы можете использовать API класса управления беседой для отображения/обновления списка бесед, обновления количества непрочитанных сообщений, закрепления беседы в верхней части, создания черновика беседы и отключения уведомлений о сообщениях.
+
+## Класс беседы
+
+Класс беседы — это `V2TIMConversation` ([Подробности](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/models_v2_tim_conversation/V2TimConversation-class.html)), который определяет следующее содержимое:
+
+| Атрибут | Определение | Описание |
+| --- | --- | --- |
+| type | Тип беседы | См. определение `V2TIMConversationType`, которое может быть `C2C` или `Group`. |
+| conversationID | Уникальный ID беседы | Формат: `c2c_userID` для чата один-на-один или `group_groupID` для группового чата. |
+| userID | ID пользователя получателя сообщения | `userID` хранит ID пользователя получателя сообщения, если тип беседы — чат один-на-один; в противном случае — `nil/null`. |
+| groupID | ID группы | `groupID` хранит ID группы, если тип беседы — групповой чат; в противном случае — `nil/null`. |
+| groupType | Тип группы | `groupType` — это тип группы, если тип беседы — групповой чат; в противном случае — `nil/null`. |
+| showName | Отображаемое имя беседы | Имя групповой беседы отображается в следующем порядке приоритета: имя группы > ID группы; Имя беседы один-на-один отображается в следующем порядке приоритета: замечание друга получателя сообщения > никнейм получателя сообщения > `userID` получателя сообщения. |
+| faceUrl | Отображаемое фото профиля беседы | Это фото профиля группы для группового чата или фото профиля получателя сообщения для чата один-на-один. |
+| unreadCount | Количество непрочитанных сообщений в беседе | Подробные инструкции см. в разделе [свойство unreadCount](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/models_v2_tim_conversation/V2TimConversation/unreadCount.html). Оно недействительно и по умолчанию равно `0` для аудио-видео группы (AVChatRoom). |
+| recvOpt | Опция получения сообщения | См. определение `V2TIMReceiveMessageOpt`. Подробные инструкции см. в разделе [класс V2TimReceiveMessageOptInfo](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/enum_receive_message_opt_enum/ReceiveMsgOptEnum.html). |
+| lastMessage | Последнее сообщение в беседе | Подробные инструкции см. в разделе [метод getConversationList](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_conversation_manager/V2TIMConversationManager/getConversationList.html). |
+| groupAtInfolist | Список информации о @ в групповой беседе | Обычно используется для отображения уведомлений "кто-то@мне" и "@все". |
+| draftText | Информация черновика | Информацию черновика можно установить, вызвав API `setConversationDraft`. Подробные инструкции см. в разделе [метод setConversationDraft](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/models_v2_tim_conversation/V2TimConversation/draftText.html). |
+| draftTimestamp | Время редактирования черновика | Автоматически генерируется при установке черновика. |
+| isPinned | Закреплена ли беседа в верхней части | Подробные инструкции см. в разделе [метод pinConversation](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_conversation_manager/V2TIMConversationManager/pinConversation.html). |
+| orderKey | Поле для сортировки бесед | Подробные инструкции см. в разделе [метод getConversationList](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_conversation_manager/V2TIMConversationManager/getConversationList.html). |
+| customData | Пользовательские данные беседы | Подробные инструкции см. в разделе [метод setConversationCustomData](https://pub.dev/documentation/tencent_cloud_chat_sdk/latest/manager_v2_tim_conversation_manager/V2TIMConversationManager/setConversationCustomData.html) |
+
+## Политика хранения беседы
+
+Нет ограничений на количество локально хранимых бесед.
+
+В облаке может храниться до 100 бесед. Чтобы увеличить это ограничение, выполните обновление до Pro, Pro Plus или Enterprise. Затем в консоли вы можете установить ограничение на 500.
+
+В облаке может храниться до 100 бесед. Чтобы увеличить это ограничение, выполните обновление до Pro, Pro Plus или Enterprise. Затем в консоли вы можете установить ограничение на 500:
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/1c757601ceca11ee86df525400c26da5.png)
+
+Если информация беседы не обновлялась в течение долгого времени, беседа может храниться в облаке до семи дней. Чтобы продлить период хранения беседы, [свяжитесь с нами](https://trtc.io/zh/contact) для подачи заявки.
+
+Локально хранимые беседы могут не всегда соответствовать тем, которые хранятся в облаке. Если пользователь не вызывает API `deleteConversation` для удаления локальных бесед, беседы всегда будут существовать. Однако в облаке может храниться до 100 бесед, и если информация беседы не обновлялась в течение долгого времени, беседа может храниться в облаке до семи дней. Поэтому локальные беседы, отображаемые на разных терминалах, могут отличаться.
+
+
+---
+*Источник: [https://trtc.io/document/48327](https://trtc.io/document/48327)*
+
+---
+*Источник (EN): [conversation-overview.md](./conversation-overview.md)*

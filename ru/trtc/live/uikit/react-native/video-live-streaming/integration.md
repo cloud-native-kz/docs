@@ -1,0 +1,145 @@
+# Интеграция
+
+## Обзор функций
+
+TUILiveKit — это полнофункциональное решение для потоковой трансляции, разработанное для беспрепятственной интеграции. Оно предоставляет следующие основные модули:
+
+| **Страница предпросмотра хоста** | **Страница прямой трансляции хоста** | **Страница управления сокведущими** | **Страница просмотра аудиторией** |
+| --- | --- | --- | --- |
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/a0a20983eae411f09965525400370dda.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/97187355eae411f09fdb525400ecee81.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/7930b5e4eae411f0a6f452540097cba1.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/8a8fb512eae411f0bfd65254001d6acc.png) |
+
+## **Подготовка**
+
+### Активация сервиса
+
+Перед использованием **TUILiveKit** обратитесь к разделу [Activate Service](https://www.tencentcloud.com/document/product/647/60033), чтобы получить **пробную версию** TUILiveKit или активировать **Pro Edition**.
+
+## Требования окружения
+
+- **Node.js**: >= 20.0.0 (рекомендуется использовать официальную LTS версию).
+- **React Native:** >= 0.82.1.
+- **Yarn**: >= 4.11.0.
+- **Android Studio** (только для Android).
+- **Xcode 15+** (только для iOS).
+- **CocoaPods** установлен (только для iOS). Если нет, следуйте [руководству по установке CocoaPods](https://guides.cocoapods.org/using/getting-started.html) или выполните:
+  - `sudo gem install cocoapods` в терминале.
+
+> **Примечание:** Во время установки вам может быть предложено ввести пароль вашего компьютера. Введите пароль администратора согласно инструкциям.
+
+- **Устройства**: два смартфона с рабочими камерой и микрофоном
+
+## Интеграция кода
+
+### Загрузка исходного кода
+
+1. **Клонирование репозитория**
+
+```
+git clone https://github.com/Tencent-RTC/TUIKit_ReactNative.git
+```
+
+2. **Импорт исходного кода в ваш проект**
+  - Скопируйте папку `tuikit-atomic-x` в корневую директорию вашего проекта.
+  - Скопируйте папку `live` в корневую директорию вашего проекта.
+3. **Конфигурация файла `package.json`**
+
+```
+{ // Конфигурация вашего проекта  "workspaces": [    "tuikit-atomic-x",    "live",  ],}
+```
+
+4. **Установка зависимостей**
+
+```
+yarn install
+```
+
+5. **Конфигурация файла `App.tsx`**
+
+Интернационализация TUILiveKit и связанная логика зависят от корневого узла вашего проекта. Смонтируйте компонент в файле `App.tsx`.
+
+> **Примечание:** Следующий пример кода является дополнительным обновлением вашего существующего кода проекта.
+
+```
+import { CustomToastContainer, i18n, I18nextProvider } from 'react-native-tuikit-atomic-x';function App() {  const renderPage = () => {    // Ваша бизнес-логика  };  return (    <I18nextProvider i18n={i18n}>      ......      {renderPage()}      <CustomToastContainer />    </I18nextProvider>  );}
+```
+
+### Конфигурация проекта
+
+Настройка платформы iOS
+
+Настройка платформы Android
+
+1. **Добавление SVGAPlayer в ваш Podfile**
+
+```
+  target 'YourProjectTarget' do      # Другие существующие зависимости Pod...      # Добавьте зависимость pod 'SVGAPlayer', модуль воспроизведения подарков использует эту возможность    pod 'SVGAPlayer', '~> 2.5.0'      end
+```
+
+2. **Установка pods**
+
+В терминале перейдите в директорию, содержащую ваш **Podfile**, и выполните:
+
+```
+pod install
+```
+
+3. **Конфигурация разрешений аудио/видео в `ios/YourApp/Info.plist`**
+
+```
+<dict>    разрешение на использование камеры    <key>NSCameraUsageDescription</key>    <string>Требуется использование камеры для видеозвонка</string>        разрешение на использование микрофона    <key>NSMicrophoneUsageDescription</key>    <string>Требуется использование микрофона для аудиозвонка</string>        android.permission.INTERNET    <key>NSAppTransportSecurity</key>    <dict>        <key>NSAllowsArbitraryLoads</key>        <true/>    </dict></dict>
+```
+
+**Конфигурация разрешений аудио/видео в `android/app/src/main/AndroidManifest.xml`**
+
+```
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">    android.permission.BASE    <uses-permission android:name="android.permission.INTERNET" />    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />    android.permission.RECORD_AUDIO    <uses-permission android:name="android.permission.CAMERA" />    <uses-permission android:name="android.permission.RECORD_AUDIO" />    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />    <application>        android.permission.INTERNET    </application></manifest>
+```
+
+### Завершение входа
+
+```
+import { useLoginState } from 'react-native-tuikit-atomic-x';const { login } = useLoginState();async function Login() {  try {    await login({      sdkAppID: 0,        // SDKAppID, см. раздел Activate the Service для получения      userID: '',         // UserID, см. раздел Activate the Service для получения      userSig: '',        // userSig, см. раздел Activate the Service для получения    });  } catch (error) {    console.error('login error:', error);  }}
+```
+
+> **Примечание:** В целях безопасности настоятельно рекомендуется реализовать логику генерации userSig на вашем сервере, чтобы избежать раскрытия SecretKey в клиентском коде. Вы можете использовать [инструмент помощника консоли](https://trtc.io/login?fro=gt&s_url=https%3A%2F%2Fconsole.trtc.io%2Fapp) для генерации временного userSig в целях отладки. Дополнительные сведения см. в разделе [Как рассчитать и использовать UserSig](https://www.tencentcloud.com/document/product/647/35166). Образец кода на [GitHub](https://github.com/Tencent-RTC/TUIKit_ReactNative/blob/main/application/src/debug/UserSigGenerator.ts) использует функцию genTestUserSig для локальной генерации userSig для быстрой интеграции. Однако это раскрывает ваш SecretKey в коде и **не рекомендуется для производства** или будущих обновлений. Описание параметров приводится ниже:
+
+| Параметр | Тип | Описание |
+| --- | --- | --- |
+| SDKAppID | Int | Получено из [консоли TRTC > Управление приложениями](https://console.trtc.io/app). |
+| UserID | String | Уникальный идентификатор текущего пользователя, содержащий только английские буквы, цифры, дефисы и подчеркивания. |
+| userSig | String | Билет для аутентификации TRTC. Обратите внимание:**Среда разработки**: Вы можете использовать локальную функцию `GenerateTestUserSig.genTestSig` для генерации UserSig или сгенерировать временный UserSig через [инструмент генерации UserSig](https://console.trtc.io/usersig).**Среда производства**: Чтобы предотвратить утечку ключей, вы должны использовать метод на стороне сервера для генерации UserSig. Дополнительные сведения см. в разделе [Генерация UserSig на стороне сервера](https://www.tencentcloud.com/document/product/647/69883).Дополнительные сведения см. в разделе [как рассчитать и использовать UserSig](https://www.tencentcloud.com/document/product/647/35166). |
+
+## Следующие шаги
+
+Готово! После интеграции компонента потоковой трансляции и завершения входа вы можете начать трансляцию, включить просмотр аудиторией и использовать другие функции потоковой трансляции. Дополнительные сведения см. в таблице ниже.
+
+| **Функция** | **Описание** | **Ссылка на опыт** |
+| --- | --- | --- |
+| **Публикация прямой трансляции** | Полный рабочий процесс для хоста по запуску трансляции, включая подготовку перед трансляцией и различные взаимодействия во время трансляции. | [Публикация прямой трансляции](https://www.tencentcloud.com/document/product/647/77116) |
+| **Просмотр аудиторией** | Аудитория может смотреть прямую трансляцию после входа в комнату трансляции якоря с такими функциями как подключение микрофона аудитории, информация о прямой комнате, онлайн аудитория и отображение плавающих сообщений. | [Просмотр аудиторией](https://www.tencentcloud.com/document/product/647/77117) |
+| **Список прямых трансляций** | Отображение интерфейса и функций списка прямых трансляций, включая отображение списка прямых трансляций и информации о комнате. | [Список прямых трансляций](https://www.tencentcloud.com/document/product/647/77118) |
+
+## Часто задаваемые вопросы
+
+## Проблемы компиляции iOS
+
+React Native 0.60+ поддерживает автоматическое связывание. Однако если вы столкнетесь с проблемами, выполните следующую команду:
+
+```
+# Очистка и пересборканpx react-native clean
+```
+
+### Проблемы компиляции Android
+
+Проверьте конфигурацию Gradle:
+
+```
+// android/build.gradlebuildscript {    ext {        minSdkVersion = 24        compileSdkVersion = 36        targetSdkVersion = 36        ndkVersion = "27.1.12297006"        kotlinVersion = "2.1.20"    }}
+```
+
+
+---
+*Источник: [https://trtc.io/document/77112](https://trtc.io/document/77112)*
+
+---
+*Источник (EN): [integration.md](./integration.md)*

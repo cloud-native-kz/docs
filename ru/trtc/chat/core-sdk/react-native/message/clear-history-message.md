@@ -1,0 +1,46 @@
+# Очистка истории сообщений
+
+## Обзор функции
+
+При очистке сообщений в беседе все сообщения в беседе будут удалены как локально, так и из облака, но сама беседа не будет удалена.
+
+> **Примечание:** При очистке сообщений в беседе `unreadCount` будет установлен в `0`, а содержимое `lastMessage` также будет очищено. Этот API не может использоваться для очистки сообщений в теме.
+
+## Отображение в интерфейсе
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/e722d1eacbe111ef8c8a525400454e06.png)
+
+## Очистка сообщений
+
+##### **API**
+
+```
+chat.clearHistoryMessage(conversationID);
+```
+
+##### **Параметры**
+
+| Имя | Тип | Описание |
+| --- | --- | --- |
+| conversationID | String | ID беседы в формате: `C2C${userID}` (для индивидуальных чатов) `GROUP{groupID}` (для групповых чатов) |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+// Очистить сообщения один-на-один локально и из облакаlet promise = chat.clearHistoryMessage('C2CExample');promise.then(function(imResponse) {  // Сообщения успешно очищены}).catch(function(imError){  console.warn('clearHistoryMessage error:', imError); // Информация об ошибке очистки сообщений});
+```
+
+```
+// Очистить групповые сообщения локально и из облакаlet promise = chat.clearHistoryMessage('GROUPExample');promise.then(function(imResponse) {  // Сообщения успешно очищены}).catch(function(imError){  console.warn('clearHistoryMessage error:', imError); // Информация об ошибке очистки сообщений});
+```
+
+
+---
+*Источник: [https://trtc.io/document/48880](https://trtc.io/document/48880)*
+
+---
+*Источник (EN): [clear-history-message.md](./clear-history-message.md)*

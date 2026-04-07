@@ -1,0 +1,65 @@
+# Язык
+
+## Описание функции
+
+React UIKit имеет встроенные языковые пакеты **английского, японского, корейского, китайского (упрощённый) и китайского (традиционный)** языков для отображения интерфейса.
+
+![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/c0fded35621711f0ad0f5254005ef0f7.png)
+
+## Использование поддерживаемых по умолчанию языков
+
+Если ваше приложение требует только **английского, японского, корейского, китайского (упрощённый) или китайского (традиционный)** языков и не требует новых записей или изменений существующих переводов, см. этот раздел. По умолчанию поддерживаются следующие языки:
+
+- `en-US` - английский
+- `zh-CN` - китайский упрощённый
+- `zh-TW` - китайский традиционный
+- `ja-JP` - японский
+- `ko-KR` - корейский
+- `auto` - автоматическое определение
+
+Среди них автоматическое определение (`auto`) выбирает язык в следующем порядке приоритета:
+
+1. Языковые настройки браузера.
+2. Языковые настройки системы.
+3. По умолчанию вернуться к `en-US`.
+
+### Указание языка
+
+Оберните приложение с помощью `UIKitProvider` и установите атрибут языка:
+
+```
+  // language support en-US / zh-CN / ja-JP / ko-KR / zh-TW / auto  <UIKitProvider language={'en-US'}>...</UIKitProvider>
+```
+
+### Динамическое переключение языка
+
+За пределами `UIKitProvider` динамически переключайте язык React UIKit.
+
+```
+import { UIKitProvider, ConversationList } from '@tencentcloud/chat-uikit-react';function App() {  const [lang, setLang] = useState<'en-US' | 'zh-CN' | 'zh-TW' | 'ja-JP' | 'ko-KR'>('en-US');  return (    <div>      <button onClick={() => setLang('zh-CN')}>Chinese</button>      <button onClick={() => setLang('en-US')}>English</button>      <div>{`Current language: ${lang}`}</div>      <UIKitProvider        language={lang}        theme="light"      >        <ConversationList />      </UIKitProvider>    </div>  );}
+```
+
+`UIKitProvider` внутри может использовать Hook `useUIKit` для доступа к функциям интернационализации. Однако, поскольку Hook `useUIKit` основан на реализации Context, его нельзя вызывать извне за пределами `<UIKitProvider />`.
+
+```
+Current language
+```
+
+### Использование записей языка
+
+Используйте hook `useUIKit` для экспорта функции перевода `t`. `useUIKit` как Hook может быть доступен только в дочерних компонентах `UIKitProvider`.
+
+```
+import React from 'react';import { UIKitProvider, useUIKit } from '@tencentcloud/chat-uikit-react';export default function App() {  return (    // init language    <UIKitProvider language='en-US'>      <Child />    </UIKitProvider>  );}function Child() {    const { t } = useUIKit();    return <div>{t('TUIChat.No More')}</div>}
+```
+
+## Связь и обратная связь
+
+Присоединитесь к [группе технического обмена Telegram](https://t.me/tencent_imsdk) или [группе общения WhatsApp](https://chat.whatsapp.com/IVa11ZkVmKTEwSWsAzSyik), чтобы получить поддержку от профессиональных инженеров и решить ваши проблемы.
+
+
+---
+*Источник: [https://trtc.io/document/62741](https://trtc.io/document/62741)*
+
+---
+*Источник (EN): [language.md](./language.md)*

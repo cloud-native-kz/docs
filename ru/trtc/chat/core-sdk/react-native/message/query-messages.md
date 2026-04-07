@@ -1,0 +1,99 @@
+# Запрос сообщений
+
+## Обзор функции
+
+Вы можете вызвать `findMessages` для запроса локального сообщения по `messageID`.
+
+1. Можно запрашивать только локальные сообщения, например полученные сообщения или исторические сообщения, загруженные через API.
+2. Сообщения из аудиовидео группы (AVChatRoom) не могут быть запрошены, так как они не сохраняются локально.
+
+Вы можете вызвать `searchCloudMessages` для поиска облачных сообщений (рекомендуется).
+
+## Отображение в интерфейсе
+
+| ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/12ab7347c71d11ef85bd525400454e06.png) | ![](https://cloudcache.intl.tencent-cloud.com/cms/backend-cms/17dc6db0c71d11efb54a52540099c741.png) |
+| --- | --- |
+
+## Поиск локального сообщения
+
+> **Примечание:** Этот интерфейс запрашивает сообщения, сохраненные локально, через `getMessageList`.
+
+##### **API**
+
+```
+chat.findMessage(messageID);
+```
+
+##### **Параметры**
+
+| Название | Тип | Описание |
+| --- | --- | --- |
+| messageID | String | ID сообщения |
+
+##### **Возвращаемое значение**
+
+[Message](https://web.sdk.qcloud.com/im/doc/en//Message.html) или `null`.
+
+##### **Примеры**
+
+```
+let message = chat.findMessage('144115217363870632-1647417469-77069006');if (message) {  // Read the attributes of `message`, such as `readReceiptInfo`}
+```
+
+### Поиск облачных сообщений
+
+> **Примечание:** Эта функция является платной услугой, и вам необходимо [приобрести плагин облачного поиска](https://console.trtc.io/chat/plugin/TUICloudSearch?language=en). Этот интерфейс имеет локальное ограничение частоты 2 раза в секунду. При поиске сообщений в [Все беседы], если количество найденных сообщений messageCount > 1, интерфейс возвращает пустой messageList []. Вы можете отобразить [`${messageCount`} ] связанные записи в пользовательском интерфейсе. Если вы хотите выделить совпадающие сообщения, обратитесь к [Специальный поиск] для выделения возвращенного messageList. При поиске сообщений в [Все беседы], если количество совпадающих сообщений в беседе = 1, то messageList является совпадающим сообщением. Сообщества, темы и групповые чаты в прямом эфире не поддерживают поиск облачных сообщений.
+
+##### **API**
+
+```
+chat.searchCloudMessages(options);
+```
+
+##### **Параметры**
+
+Параметр `options` имеет тип `Object`. Он содержит следующие значения атрибутов:
+
+| Название | Тип | Описание |
+| --- | --- | --- |
+| keywordList | Array.<String> | Список ключевых слов, поддерживающий до 5 ключевых слов. Если не указаны отправитель сообщения и тип сообщения, список ключевых слов не должен быть пустым; в противном случае список ключевых слов может быть пустым. |
+| keywordListMatchType | String | Тип совпадения списка ключевых слов: "or" - поиск с логическим ИЛИ (по умолчанию); "and" - поиск с логическим И |
+| senderUserIDList | Array.<String> | Укажите сообщения, отправленные по userID, поддерживая до 5 ID. |
+| messageTypeList | Array.<String> | Укажите набор типов сообщений для поиска, по умолчанию осуществляется поиск всех типов. Если не предоставлен, это означает поиск всех поддерживаемых типов сообщений (`TencentCloudChat.TYPES.MSG_FACE`, `TencentCloudChat.TYPES.MSG_GRP_TIP` и `TencentCloudChat.TYPES.MSG_GRP_SYS_NOTICE` не поддерживаются). При предоставлении конкретных значений см. `TencentCloudChat.TYPES`. |
+| conversationID | String | Поиск в "Все беседы" или "Указанные беседы". Если не указано, это означает все беседы. По умолчанию: Все беседы. Состав ID беседы: C2C${userID} (личный чат), GROUP${groupID} (групповой чат) |
+| timePosition | Number | Начальная временная точка поиска. По умолчанию 0, что означает поиск с текущего момента. Единица: секунды |
+| timePeriod | Number | Прошлый временной диапазон от начальной временной точки, в секундах. По умолчанию 0, что означает отсутствие ограничения по времени. Передача 24 * 60 * 60 представляет прошедший день. |
+| cursor | String | Начальная позиция для каждого облачного поиска. Не передавайте курсор для первого поиска; при продолжении поиска укажите значение курсора, возвращенное последним вызовом интерфейса searchCloudMessages. Примечание: Курсор действителен в течение 2 минут при полном поиске. |
+
+##### **Возвращаемое значение**
+
+`Promise`
+
+##### **Примеры**
+
+```
+let promise = chat.searchCloudMessages({   keywordList: ['hello', 'where are you'],});
+```
+
+```
+let promise = chat.searchCloudMessages({   keywordList: ['hello', 'where are you'],   keywordListMatchType: 'and',});
+```
+
+```
+let promise = chat.searchCloudMessages({   keywordList: ['hello', 'where are you'],   senderUserIDList: ['user1', 'user2'],});
+```
+
+```
+let promise = chat.searchCloudMessages({   keywordList: ['hello', 'where are you'],   messageTypeList: [TencentCloudChat.TYPES.MSG_TEXT, TencentCloudChat.TYPES.MSG_CUSTOM],});
+```
+
+```
+let promise = chat.searchCloudMessages({   keywordList: ['hello', 'where are you'],   timePosition: Number((new Date().getTime()/1000).toFixed(0)),   timePeriod: 24 * 60 * 60,});promise.then(function(imResponse) {   const { totalCount, cursor, searchResultList } = imResponse.data;   // The total number of all conversations where messages meet the search criteria.   console.log(totalCount);   // The starting position for the next cloud search. If there is no next position, it indicates that the search result retrieval is complete.   console.log(cursor);   // Messages that meet the search criteria are grouped by conversation ID and returned in pages.   console.log(searchResultList);    for (let i = 0; i < searchResultList.length; i++) {      const searchResultItem = searchResultList[i];      const { conversationID, messageCount, messageList } = searchResultItem;      console.log(conversationID);      console.log(messageCount);      console.log(messageList);    }}).catch(function(imError) {   console.error(imError); // Search message failed});
+```
+
+
+---
+*Источник: [https://trtc.io/document/48888](https://trtc.io/document/48888)*
+
+---
+*Источник (EN): [query-messages.md](./query-messages.md)*

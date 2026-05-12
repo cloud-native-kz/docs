@@ -35,7 +35,7 @@ Available roles:
 Once billing is set up, you can start using the platform services:
 
 - Go to **CDN** to set up content delivery
-- Go to **Tencent** to connect your Tencent Cloud account
+- [Go to **Tencent** to connect your Tencent Cloud account](./tencent-onboarding-en.md)
 - Go to **Sangfor** to manage Sangfor HCI resources
 - Go to **AWS** (Preview) to explore the AWS integration
 

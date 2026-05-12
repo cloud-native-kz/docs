@@ -24,7 +24,7 @@
 |---|---|
 | **AWS** | Интеграция с Amazon Web Services (Превью) |
 | **CDN** | Сервис доставки контента |
-| **Tencent** | Интеграция с Tencent Cloud |
+| [**Tencent**](./tencent-onboarding.md) | Интеграция с Tencent Cloud |
 | **Sangfor** | Сервис Sangfor HCI |
 
 В нижней части сайдбара:
@@ -67,7 +67,7 @@
 ### Tencent
 
 Интеграция с **Tencent Cloud**. На странице обзора отображается статус подключения вашей Организации к сервисам Tencent Cloud.
-
+[Как зарегистрироваться в **Tencent Cloud**](./tencent-onboarding.md)
 <!-- скриншот: страница Tencent -->
 
 ### Sangfor

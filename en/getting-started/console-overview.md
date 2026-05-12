@@ -24,7 +24,7 @@ The sidebar is divided into two groups:
 |---|---|
 | **AWS** | Amazon Web Services integration (Preview) |
 | **CDN** | Content Delivery Network service |
-| **Tencent** | Tencent Cloud integration |
+| [**Tencent**](./tencent-onboarding-en.md) | Tencent Cloud integration |
 | **Sangfor** | Sangfor HCI service |
 
 At the bottom of the sidebar:
@@ -67,7 +67,7 @@ Integration with **Amazon Web Services**. Currently in **Preview** mode — avai
 ### Tencent
 
 Integration with **Tencent Cloud**. The overview page shows the connection status between your Organization and Tencent Cloud services.
-
+[How to register to **Tencent Cloud**](./tencent-onboarding-en.md)
 <!-- screenshot: Tencent page -->
 
 ### Sangfor

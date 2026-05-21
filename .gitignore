@@ -53,3 +53,5 @@ app.*.map.json
 .fvmrc
 
 .cxx/
+
+en/cloud-platform/SANGFOR_HCI_6.9.0_User_Manual_EN.pdf

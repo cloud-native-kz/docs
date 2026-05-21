@@ -1,0 +1,63 @@
+title: HCI Cloud Platform
+description:
+  - >-
+    HCI Cloud Platform is a self-service cloud platform that lets you create and
+    manage <a href="console-guide/virtual-machines">virtual machines</a>,
+    configure <a href="console-guide/networking">VPC networks</a>, and deploy
+    managed services including
+    <a href="console-guide/databases">databases</a>, and connect your
+    <a href="console-guide/kubernetes">Kubernetes clusters to HCI storage</a>
+    — all from a single platform.
+  - >-
+    Each tenant gets a logically isolated
+    <a href="console-guide/networking">Virtual Private Cloud</a> with subnets,
+    elastic IPs, access control, and port mapping. Virtual machine data is
+    protected through <a href="console-guide/virtual-machines#snapshots">snapshots</a>
+    and <a href="console-guide/virtual-machines#backup">scheduled backups</a>
+    with file-level recovery.
+  - >-
+    The platform includes a
+    <a href="console-guide/monitoring">monitoring dashboard</a> for tracking VM
+    and network performance, configurable alerts, and a resource quota overview.
+meta:
+  title: HCI Cloud Platform
+  description: >-
+    HCI Cloud Platform is a self-service cloud platform for creating and managing
+    virtual machines, VPC networks, and managed databases, with Kubernetes storage integration.
+  keywords:
+    - keyword: HCI
+    - keyword: cloud platform
+    - keyword: virtual machines
+    - keyword: VPC
+    - keyword: Kubernetes
+    - keyword: managed databases
+    - keyword: elastic IP
+    - keyword: snapshots
+links:
+  - title: Getting Started
+    description: Access the HCI console and find your way around
+    href: getting-started
+  - title: Virtual Machines
+    description: Create, connect to, clone, snapshot, back up, and delete VMs
+    href: console-guide/virtual-machines
+  - title: Images & Templates
+    description: Upload ISO images and create private VM images from existing VMs
+    href: console-guide/images
+  - title: Storage
+    description: Configure VM disk sizes and monitor storage quota
+    href: console-guide/storage
+  - title: Networking
+    description: Configure VPC networks, subnets, elastic IPs, access control, and port mapping
+    href: console-guide/networking
+  - title: Security Services
+    description: Configure distributed firewall policies, vNGAF, and SSL VPN
+    href: console-guide/security
+  - title: Kubernetes Storage Integration
+    description: Connect your Kubernetes cluster to HCI block storage using the CSI plugin
+    href: console-guide/kubernetes
+  - title: Managed Databases (DMP)
+    description: Provision MySQL, PostgreSQL, MSSQL, and Oracle database instances
+    href: console-guide/databases
+  - title: Monitoring & Alerts
+    description: View VM and network performance metrics, alerts, and resource quota
+    href: console-guide/monitoring

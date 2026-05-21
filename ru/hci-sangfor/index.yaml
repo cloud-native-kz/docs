@@ -1,0 +1,62 @@
+title: Облачная платформа HCI
+description:
+  - >-
+    Облачная платформа HCI — это самообслуживаемая облачная платформа, которая позволяет
+    создавать и управлять <a href="console-guide/virtual-machines">виртуальными машинами</a>,
+    настраивать <a href="console-guide/networking">VPC-сети</a>, разворачивать
+    управляемые сервисы, включая <a href="console-guide/databases">базы данных</a>,
+    и подключать <a href="console-guide/kubernetes">Kubernetes-кластеры к хранилищу HCI</a>
+    — всё в одном месте.
+  - >-
+    Каждый тенант получает логически изолированное
+    <a href="console-guide/networking">виртуальное частное облако (VPC)</a> с подсетями,
+    эластичными IP-адресами, контролем доступа и проброской портов. Данные виртуальных машин
+    защищены с помощью <a href="console-guide/virtual-machines#snapshots">снэпшотов</a>
+    и <a href="console-guide/virtual-machines#backup">резервного копирования по расписанию</a>
+    с восстановлением на уровне файлов.
+  - >-
+    Платформа включает
+    <a href="console-guide/monitoring">панель мониторинга</a> для отслеживания
+    производительности ВМ и сети, настраиваемые оповещения и обзор квот ресурсов.
+meta:
+  title: Облачная платформа HCI
+  description: >-
+    HCI Cloud Platform — самообслуживаемая облачная платформа для создания и управления
+    виртуальными машинами, VPC-сетями и управляемыми базами данных с интеграцией хранилища Kubernetes.
+  keywords:
+    - keyword: HCI
+    - keyword: облачная платформа
+    - keyword: виртуальные машины
+    - keyword: VPC
+    - keyword: Kubernetes
+    - keyword: управляемые базы данных
+    - keyword: эластичный IP
+    - keyword: снэпшоты
+links:
+  - title: Начало работы
+    description: Доступ к консоли HCI и знакомство с интерфейсом
+    href: getting-started
+  - title: Виртуальные машины
+    description: Создание, подключение, клонирование, снэпшоты, резервное копирование и удаление ВМ
+    href: console-guide/virtual-machines
+  - title: Образы и шаблоны
+    description: Загрузка ISO-образов и создание частных образов ВМ из существующих машин
+    href: console-guide/images
+  - title: Хранилище
+    description: Настройка размеров дисков ВМ и мониторинг квоты хранилища
+    href: console-guide/storage
+  - title: Сеть
+    description: Настройка VPC-сетей, подсетей, эластичных IP, контроля доступа и проброски портов
+    href: console-guide/networking
+  - title: Сервисы безопасности
+    description: Настройка политик распределённого межсетевого экрана, vNGAF и SSL VPN
+    href: console-guide/security
+  - title: Интеграция Kubernetes с хранилищем
+    description: Подключение Kubernetes-кластера к блочному хранилищу HCI через CSI-плагин
+    href: console-guide/kubernetes
+  - title: Управляемые базы данных (DMP)
+    description: Развёртывание экземпляров MySQL, PostgreSQL, MSSQL и Oracle
+    href: console-guide/databases
+  - title: Мониторинг и оповещения
+    description: Просмотр метрик производительности ВМ и сети, оповещений и квот ресурсов
+    href: console-guide/monitoring
